@@ -1,0 +1,1427 @@
+[
+  {
+    "metadados": {
+      "ultimaAtualizacao": "2026-05-05T13:43:42.330Z",
+      "totalItens": 109
+    },
+    "estoque": [
+      {
+        "idPatrimonio": "0068",
+        "numeroSerie": "24Q4YW3",
+        "tipo": "NOTEBOOK",
+        "marca": "DELL",
+        "modelo": "VOSTRO 3510",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I5 - 11ª GER",
+          "ram": "16 GB RAM",
+          "armazenamento": "NVME SSD 256GB"
+        }
+      },
+      {
+        "idPatrimonio": "1009",
+        "numeroSerie": "H68V8X3",
+        "tipo": "NOTEBOOK",
+        "marca": "DELL",
+        "modelo": "VOSTRO 3510",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I5 - 11ª GER",
+          "ram": "16 GB RAM",
+          "armazenamento": "NVME SSD 256GB"
+        }
+      },
+      {
+        "idPatrimonio": "0160",
+        "numeroSerie": "D3Q4YW3",
+        "tipo": "NOTEBOOK",
+        "marca": "DELL",
+        "modelo": "VOSTRO 3510",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I5 - 11ª GER",
+          "ram": "08 GB RAM",
+          "armazenamento": "NVME SSD 256GB"
+        }
+      },
+      {
+        "idPatrimonio": "0149",
+        "numeroSerie": "B87MH04",
+        "tipo": "NOTEBOOK",
+        "marca": "DELL",
+        "modelo": "VOSTRO 3520",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I5 - 11ª GER",
+          "ram": "16 GB RAM",
+          "armazenamento": "NVME SSD 256GB"
+        }
+      },
+      {
+        "idPatrimonio": "0361",
+        "numeroSerie": "DB7MH04",
+        "tipo": "NOTEBOOK",
+        "marca": "DELL",
+        "modelo": "VOSTRO 3520",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I5 - 11ª GER",
+          "ram": "08 GB RAM",
+          "armazenamento": "NVME SSD 256GB"
+        }
+      },
+      {
+        "idPatrimonio": "0967",
+        "numeroSerie": "3M7MLM3",
+        "tipo": "NOTEBOOK",
+        "marca": "DELL",
+        "modelo": "INSPIRON 3501",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I5 - 10ª GER",
+          "ram": "08 GB RAM",
+          "armazenamento": "SSD 256 GB"
+        }
+      },
+      {
+        "idPatrimonio": "0968",
+        "numeroSerie": "BM7MLM3",
+        "tipo": "NOTEBOOK",
+        "marca": "DELL",
+        "modelo": "INSPIRON 3501",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I5 - 10ª GER",
+          "ram": "08 GB RAM",
+          "armazenamento": "SSD 256 GB"
+        }
+      },
+      {
+        "idPatrimonio": "0965",
+        "numeroSerie": "8M7MLM3",
+        "tipo": "NOTEBOOK",
+        "marca": "DELL",
+        "modelo": "INSPIRON 3501",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I5 - 10ª GER",
+          "ram": "08 GB RAM",
+          "armazenamento": "SSD 256 GB"
+        }
+      },
+      {
+        "idPatrimonio": "0970",
+        "numeroSerie": "HM7MLM3",
+        "tipo": "NOTEBOOK",
+        "marca": "DELL",
+        "modelo": "INSPIRON 3501",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I5 - 10ª GER",
+          "ram": "08 GB RAM",
+          "armazenamento": "SSD 256 GB"
+        }
+      },
+      {
+        "idPatrimonio": "N/A",
+        "numeroSerie": "RX2W902A4NZ",
+        "tipo": "TABLET",
+        "marca": "SAMSUNG",
+        "modelo": "GALAXY TAB S6 LITE",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "N/A",
+          "ram": "04 GB RAM",
+          "armazenamento": "64 GB"
+        }
+      },
+      {
+        "idPatrimonio": "0483",
+        "numeroSerie": "PE04ZQAH",
+        "tipo": "NOTEBOOK",
+        "marca": "LENOVO",
+        "modelo": "IDEAPAD 330",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I3 - 7ª GER",
+          "ram": "08 GB RAM",
+          "armazenamento": "SSD 512 GB"
+        }
+      },
+      {
+        "idPatrimonio": "0380",
+        "numeroSerie": "BRJ705CGCR",
+        "tipo": "NOTEBOOK",
+        "marca": "HP",
+        "modelo": "HP PROBOOK 440",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I5 - 8ª GER",
+          "ram": "08 GB RAM DDR3",
+          "armazenamento": "SSD 120 GB"
+        }
+      },
+      {
+        "idPatrimonio": "N/A",
+        "numeroSerie": "5800-03-161220",
+        "tipo": "DESKTOP",
+        "marca": "GENERICO",
+        "modelo": "MICRO I5 (4670) SLIM",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I5 - 4ª GER",
+          "ram": "08 GB RAM",
+          "armazenamento": "SSD 256 GB"
+        }
+      },
+      {
+        "idPatrimonio": "0383",
+        "numeroSerie": "GJNMC72",
+        "tipo": "NOTEBOOK",
+        "marca": "DELL",
+        "modelo": "VOSTRO 3458",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I3 - 4ª GER",
+          "ram": "08 GB RAM DDR3",
+          "armazenamento": "SSD 240 GB"
+        }
+      },
+      {
+        "idPatrimonio": "0393",
+        "numeroSerie": "GMGMJ82",
+        "tipo": "NOTEBOOK",
+        "marca": "DELL",
+        "modelo": "VOSTRO 3458",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I3 - 4ª GER",
+          "ram": "08 GB RAM DDR3",
+          "armazenamento": "SSD 240 GB"
+        }
+      },
+      {
+        "idPatrimonio": "0392",
+        "numeroSerie": "GMGSB92",
+        "tipo": "NOTEBOOK",
+        "marca": "DELL",
+        "modelo": "VOSTRO 3458",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I3 - 4ª GER",
+          "ram": "08 GB RAM DDR3",
+          "armazenamento": "SSD 240 GB"
+        }
+      },
+      {
+        "idPatrimonio": "0962",
+        "numeroSerie": "JL1F1K3",
+        "tipo": "NOTEBOOK",
+        "marca": "DELL",
+        "modelo": "VOSTRO 15 3501",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I5 - 10ª GER",
+          "ram": "16 GB RAM",
+          "armazenamento": "SSD 256 GB"
+        }
+      },
+      {
+        "idPatrimonio": "0373",
+        "numeroSerie": "B2KJZJ3",
+        "tipo": "NOTEBOOK",
+        "marca": "DELL",
+        "modelo": "VOSTRO 15 3501",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I5 - 10ª GER",
+          "ram": "08 GB RAM",
+          "armazenamento": "NVME SSD 256GB"
+        }
+      },
+      {
+        "idPatrimonio": "0961",
+        "numeroSerie": "C2KJZJ3",
+        "tipo": "NOTEBOOK",
+        "marca": "DELL",
+        "modelo": "VOSTRO 15 3501",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I5 - 10ª GER",
+          "ram": "16 GB RAM",
+          "armazenamento": "SSD 256 GB"
+        }
+      },
+      {
+        "idPatrimonio": "0359",
+        "numeroSerie": "3GB9YJ3",
+        "tipo": "NOTEBOOK",
+        "marca": "DELL",
+        "modelo": "VOSTRO 15 3501",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I5 - 10ª GER",
+          "ram": "16 GB RAM",
+          "armazenamento": "SSD 256 GB"
+        }
+      },
+      {
+        "idPatrimonio": "0963",
+        "numeroSerie": "6GB9YJ3",
+        "tipo": "NOTEBOOK",
+        "marca": "DELL",
+        "modelo": "VOSTRO 15 3501",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I5 - 10ª GER",
+          "ram": "16 GB RAM",
+          "armazenamento": "SSD 256 GB"
+        }
+      },
+      {
+        "idPatrimonio": "0360",
+        "numeroSerie": "72KJZJ3",
+        "tipo": "NOTEBOOK",
+        "marca": "DELL",
+        "modelo": "VOSTRO 15 3501",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I5 - 10ª GER",
+          "ram": "16 GB RAM",
+          "armazenamento": "SSD 256 GB"
+        }
+      },
+      {
+        "idPatrimonio": "0395",
+        "numeroSerie": "PE02VR8V",
+        "tipo": "NOTEBOOK",
+        "marca": "LENOVO",
+        "modelo": "V310 - 14IKB",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I5 - 7ª GER",
+          "ram": "08 GB RAM",
+          "armazenamento": "SSD 256 GB"
+        }
+      },
+      {
+        "idPatrimonio": "0147",
+        "numeroSerie": "PE04888G",
+        "tipo": "NOTEBOOK",
+        "marca": "LENOVO",
+        "modelo": "THINKPAD T480",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I5 - 8ª GER",
+          "ram": "08 GB RAM",
+          "armazenamento": "SSD 256 GB"
+        }
+      },
+      {
+        "idPatrimonio": "0157",
+        "numeroSerie": "9M7MLM3",
+        "tipo": "NOTEBOOK",
+        "marca": "DELL",
+        "modelo": "VOSTRO 3501",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I5 - 10ª GER",
+          "ram": "16 GB RAM",
+          "armazenamento": "SSD 240 GB"
+        }
+      },
+      {
+        "idPatrimonio": "0394",
+        "numeroSerie": "PE02WUKK",
+        "tipo": "NOTEBOOK",
+        "marca": "LENOVO",
+        "modelo": "THINKPAD E470",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "i7 - 7ª GER",
+          "ram": "16 GB RAM",
+          "armazenamento": "SSD 480 GB"
+        }
+      },
+      {
+        "idPatrimonio": "0372",
+        "numeroSerie": "741GYR2",
+        "tipo": "NOTEBOOK",
+        "marca": "DELL",
+        "modelo": "LATITUDE 7490",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I7 - 8ª GER",
+          "ram": "16 GB RAM",
+          "armazenamento": "SSD 256 GB"
+        }
+      },
+      {
+        "idPatrimonio": "0369",
+        "numeroSerie": "BRJ64496YD",
+        "tipo": "NOTEBOOK",
+        "marca": "HP",
+        "modelo": "HP PROBOOK 440",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I5 - 6ª GER",
+          "ram": "08 GB RAM DDR3",
+          "armazenamento": "SSD 256 GB"
+        }
+      },
+      {
+        "idPatrimonio": "0401",
+        "numeroSerie": "J3Q4YW3",
+        "tipo": "NOTEBOOK",
+        "marca": "DELL",
+        "modelo": "INSPIRON 3510",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I5 - 11ª GER",
+          "ram": "08 GB RAM",
+          "armazenamento": "NVME SSD 256GB"
+        }
+      },
+      {
+        "idPatrimonio": "0264",
+        "numeroSerie": "9ZFCQ14",
+        "tipo": "NOTEBOOK",
+        "marca": "DELL",
+        "modelo": "VOSTRO 3520",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I5 - 12ª GER",
+          "ram": "08 GB RAM",
+          "armazenamento": "NVME SSD 256GB"
+        }
+      },
+      {
+        "idPatrimonio": "0141",
+        "numeroSerie": "08C69QAK801936D",
+        "tipo": "NOTEBOOK",
+        "marca": "SAMSUNG",
+        "modelo": "ESSENTIALS E30",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "CELERON",
+          "ram": "08 GB RAM",
+          "armazenamento": "SSD 240 GB"
+        }
+      },
+      {
+        "idPatrimonio": "0146",
+        "numeroSerie": "08C69QAK801926J",
+        "tipo": "NOTEBOOK",
+        "marca": "SAMSUNG",
+        "modelo": "ESSENTIALS NP 350XA",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "CELERON",
+          "ram": "16 GB RAM",
+          "armazenamento": "SSD 240 GB"
+        }
+      },
+      {
+        "idPatrimonio": "0148",
+        "numeroSerie": "08C69QAK801794P",
+        "tipo": "NOTEBOOK",
+        "marca": "SAMSUNG",
+        "modelo": "ESSENTIALS NP 350XA",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "CELERON",
+          "ram": "16 GB RAM",
+          "armazenamento": "SSD 240 GB"
+        }
+      },
+      {
+        "idPatrimonio": "0175",
+        "numeroSerie": "PE02VQ84",
+        "tipo": "NOTEBOOK",
+        "marca": "LENOVO",
+        "modelo": "V310 - 14IKB",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I5 - 7ª GER",
+          "ram": "08 GB RAM",
+          "armazenamento": "SSD 240 GB"
+        }
+      },
+      {
+        "idPatrimonio": "1002",
+        "numeroSerie": "PE02VR90",
+        "tipo": "NOTEBOOK",
+        "marca": "LENOVO",
+        "modelo": "V310 - 14IKB",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I5 - 7ª GER",
+          "ram": "08 GB RAM",
+          "armazenamento": "SSD 240 GB"
+        }
+      },
+      {
+        "idPatrimonio": "0262",
+        "numeroSerie": "PE09ZEK2",
+        "tipo": "NOTEBOOK",
+        "marca": "LENOVO",
+        "modelo": "V15 G2 ITL",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I5 - 11ª GER",
+          "ram": "16 GB RAM",
+          "armazenamento": "NVME SSD 512GB"
+        }
+      },
+      {
+        "idPatrimonio": "1007",
+        "numeroSerie": "BRJ723G255",
+        "tipo": "NOTEBOOK",
+        "marca": "HP",
+        "modelo": "PROBOOK 640",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I5 - 6ª GER",
+          "ram": "16 GB RAM",
+          "armazenamento": "SSD 240 GB"
+        }
+      },
+      {
+        "idPatrimonio": "0271",
+        "numeroSerie": "PE04V88F",
+        "tipo": "NOTEBOOK",
+        "marca": "LENOVO",
+        "modelo": "IDEAPAD 330",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I3 - 7ª GER",
+          "ram": "08 GB RAM",
+          "armazenamento": "SSD 250 GB"
+        }
+      },
+      {
+        "idPatrimonio": "N/A",
+        "numeroSerie": "PCMSA3",
+        "tipo": "DESKTOP",
+        "marca": "GENERICO",
+        "modelo": "GENERICO",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I5 - 4ª GER",
+          "ram": "08 GB RAM",
+          "armazenamento": "SSD 250 GB"
+        }
+      },
+      {
+        "idPatrimonio": "0044",
+        "numeroSerie": "PE01GF0V",
+        "tipo": "NOTEBOOK",
+        "marca": "LENOVO",
+        "modelo": "B40",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I3 - 4ª GER",
+          "ram": "08 GB RAM DDR3",
+          "armazenamento": "SSD 240 GB"
+        }
+      },
+      {
+        "idPatrimonio": "0045",
+        "numeroSerie": "PE04PMLW",
+        "tipo": "NOTEBOOK",
+        "marca": "LENOVO",
+        "modelo": "THINKPAD T480",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I5 - 8ª GER",
+          "ram": "08 GB RAM",
+          "armazenamento": "SSD 240 GB"
+        }
+      },
+      {
+        "idPatrimonio": "0041",
+        "numeroSerie": "5NCVY64",
+        "tipo": "NOTEBOOK",
+        "marca": "DELL",
+        "modelo": "LATITUDE 3540",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I5 - 12ª GER",
+          "ram": "16 GB RAM",
+          "armazenamento": "NVME SSD 512GB"
+        }
+      },
+      {
+        "idPatrimonio": "0001",
+        "numeroSerie": "07ZL9QBK900143N",
+        "tipo": "CHROMEBOOK",
+        "marca": "SAMSUNG",
+        "modelo": "500C",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "N/A",
+          "ram": "N/A",
+          "armazenamento": "N/A"
+        }
+      },
+      {
+        "idPatrimonio": "0007",
+        "numeroSerie": "1WJFV2",
+        "tipo": "NOTEBOOK",
+        "marca": "DELL",
+        "modelo": "LATITUDE 3490",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I5 - 8ª GER",
+          "ram": "08 GB RAM",
+          "armazenamento": "NVME SSD 256GB"
+        }
+      },
+      {
+        "idPatrimonio": "0021",
+        "numeroSerie": "4Y9TZ23",
+        "tipo": "NOTEBOOK",
+        "marca": "DELL",
+        "modelo": "LATITUDE 3400",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I5 - 8ª GER",
+          "ram": "08 GB RAM",
+          "armazenamento": "NVME SSD 256GB"
+        }
+      },
+      {
+        "idPatrimonio": "0165",
+        "numeroSerie": "PE02V071",
+        "tipo": "NOTEBOOK",
+        "marca": "LENOVO",
+        "modelo": "V310 - 14IKB",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I5 - 7ª GER",
+          "ram": "08 GB RAM",
+          "armazenamento": "SSD 256 GB"
+        }
+      },
+      {
+        "idPatrimonio": "0077",
+        "numeroSerie": "08C69QAK802018R",
+        "tipo": "NOTEBOOK",
+        "marca": "SAMSUNG",
+        "modelo": "ESSENTIALS NP 350XA",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "CELERON",
+          "ram": "08 GB RAM",
+          "armazenamento": "SSD 256 GB"
+        }
+      },
+      {
+        "idPatrimonio": "0173",
+        "numeroSerie": "PE02J7QR",
+        "tipo": "NOTEBOOK",
+        "marca": "LENOVO",
+        "modelo": "V310 - 14IKB",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I5 - 6ª GER",
+          "ram": "08 GB RAM",
+          "armazenamento": "SSD 480 GB"
+        }
+      },
+      {
+        "idPatrimonio": "0191",
+        "numeroSerie": "08C69QAK8022010P",
+        "tipo": "NOTEBOOK",
+        "marca": "SAMSUNG",
+        "modelo": "ESSENTIALS NP 350XA",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "CELERON",
+          "ram": "08 GB RAM",
+          "armazenamento": "SSD 128 GB"
+        }
+      },
+      {
+        "idPatrimonio": "0194",
+        "numeroSerie": "965GPZ2",
+        "tipo": "NOTEBOOK",
+        "marca": "DELL",
+        "modelo": "LATITUDE 5400",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I5 - 8ª GER",
+          "ram": "16 GB RAM",
+          "armazenamento": "SSD 512 GB"
+        }
+      },
+      {
+        "idPatrimonio": "0201",
+        "numeroSerie": "BRJ94665XS",
+        "tipo": "NOTEBOOK",
+        "marca": "HP",
+        "modelo": "ELITEBOOK",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I5 - 8ª GER",
+          "ram": "08 GB RAM",
+          "armazenamento": "SSD 240 GB"
+        }
+      },
+      {
+        "idPatrimonio": "0202",
+        "numeroSerie": "BRJ94665XV",
+        "tipo": "NOTEBOOK",
+        "marca": "HP",
+        "modelo": "ELITEBOOK",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I5 - 8ª GER",
+          "ram": "08 GB RAM",
+          "armazenamento": "SSD 240 GB"
+        }
+      },
+      {
+        "idPatrimonio": "1018",
+        "numeroSerie": "HND2J8Y2",
+        "tipo": "TABLET",
+        "marca": "LENOVO",
+        "modelo": "TAB M11",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "N/A",
+          "ram": "04 GB RAM",
+          "armazenamento": "128GB"
+        }
+      },
+      {
+        "idPatrimonio": "1019",
+        "numeroSerie": "HND2J943",
+        "tipo": "TABLET",
+        "marca": "LENOVO",
+        "modelo": "TAB M11",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "N/A",
+          "ram": "04 GB RAM",
+          "armazenamento": "128GB"
+        }
+      },
+      {
+        "idPatrimonio": "0210",
+        "numeroSerie": "F9V9294",
+        "tipo": "NOTEBOOK",
+        "marca": "DELL",
+        "modelo": "INSPIRON 3530",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "I5 - 13ª GER",
+          "ram": "08 GB RAM",
+          "armazenamento": "SSD 512 GB"
+        }
+      },
+      {
+        "idPatrimonio": "245",
+        "numeroSerie": "HND2J84S",
+        "tipo": "TABLET",
+        "marca": "LENOVO",
+        "modelo": "TAB M11",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "N/A",
+          "ram": "04 GB RAM",
+          "armazenamento": "128GB"
+        }
+      },
+      {
+        "idPatrimonio": "0365",
+        "numeroSerie": "NXHU3AL00A03214DFC9501",
+        "tipo": "NOTEBOOK",
+        "marca": "ACER",
+        "modelo": "ASPIRE 3",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I5 - 10ª GER",
+          "ram": "12 GB RAM",
+          "armazenamento": "NVME SSD 256GB + HD 1 TB"
+        }
+      },
+      {
+        "idPatrimonio": "0280",
+        "numeroSerie": "PE02JL4P",
+        "tipo": "NOTEBOOK",
+        "marca": "LENOVO",
+        "modelo": "V310 - 14IKB",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I5 - 6ª GER",
+          "ram": "08 GB RAM",
+          "armazenamento": "SSD 240 GB"
+        }
+      },
+      {
+        "idPatrimonio": "0304",
+        "numeroSerie": "5CG84121TY",
+        "tipo": "NOTEBOOK",
+        "marca": "HP",
+        "modelo": "PROBOOK 640 - G4",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I5 - 7ª GER",
+          "ram": "16 GB RAM",
+          "armazenamento": "NVME SSD 256GB"
+        }
+      },
+      {
+        "idPatrimonio": "0305",
+        "numeroSerie": "GC292G4",
+        "tipo": "NOTEBOOK",
+        "marca": "DELL",
+        "modelo": "PRO 16",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "I5 - 13ª GER",
+          "ram": "16 GB RAM",
+          "armazenamento": "NVME SSD 480GB"
+        }
+      },
+      {
+        "idPatrimonio": "0306",
+        "numeroSerie": "5D292G4",
+        "tipo": "NOTEBOOK",
+        "marca": "DELL",
+        "modelo": "PRO 16",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "I5 - 13ª GER",
+          "ram": "16 GB RAM",
+          "armazenamento": "NVME SSD 480GB"
+        }
+      },
+      {
+        "idPatrimonio": "0974",
+        "numeroSerie": "PE0F601T",
+        "tipo": "NOTEBOOK",
+        "marca": "LENOVO",
+        "modelo": "V15 G4 IRU",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "I5 - 13ª GER",
+          "ram": "16 GB RAM",
+          "armazenamento": "NVME SSD 256GB"
+        }
+      },
+      {
+        "idPatrimonio": "0975",
+        "numeroSerie": "PE0F6000",
+        "tipo": "NOTEBOOK",
+        "marca": "LENOVO",
+        "modelo": "V15 G4 IRU",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "I5 - 13ª GER",
+          "ram": "16 GB RAM",
+          "armazenamento": "NVME SSD 256GB"
+        }
+      },
+      {
+        "idPatrimonio": "0976",
+        "numeroSerie": "PE0F601B",
+        "tipo": "NOTEBOOK",
+        "marca": "LENOVO",
+        "modelo": "V15 G4 IRU",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "I5 - 13ª GER",
+          "ram": "16 GB RAM",
+          "armazenamento": "NVME SSD 256GB"
+        }
+      },
+      {
+        "idPatrimonio": "0977",
+        "numeroSerie": "PE0F6016",
+        "tipo": "NOTEBOOK",
+        "marca": "LENOVO",
+        "modelo": "V15 G4 IRU",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "I5 - 13ª GER",
+          "ram": "16 GB RAM",
+          "armazenamento": "NVME SSD 256GB"
+        }
+      },
+      {
+        "idPatrimonio": "0978",
+        "numeroSerie": "PE0F601Z",
+        "tipo": "NOTEBOOK",
+        "marca": "LENOVO",
+        "modelo": "V15 G4 IRU",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "I5 - 13ª GER",
+          "ram": "16 GB RAM",
+          "armazenamento": "NVME SSD 256GB"
+        }
+      },
+      {
+        "idPatrimonio": "0980",
+        "numeroSerie": "PE0F600N",
+        "tipo": "NOTEBOOK",
+        "marca": "LENOVO",
+        "modelo": "V15 G4 IRU",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "I5 - 13ª GER",
+          "ram": "16 GB RAM",
+          "armazenamento": "NVME SSD 256GB"
+        }
+      },
+      {
+        "idPatrimonio": "0981",
+        "numeroSerie": "PE0F600B",
+        "tipo": "NOTEBOOK",
+        "marca": "LENOVO",
+        "modelo": "V15 G4 IRU",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "I5 - 13ª GER",
+          "ram": "16 GB RAM",
+          "armazenamento": "NVME SSD 256GB"
+        }
+      },
+      {
+        "idPatrimonio": "0982",
+        "numeroSerie": "PE0F6013",
+        "tipo": "NOTEBOOK",
+        "marca": "LENOVO",
+        "modelo": "V15 G4 IRU",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "I5 - 13ª GER",
+          "ram": "16 GB RAM",
+          "armazenamento": "NVME SSD 256GB"
+        }
+      },
+      {
+        "idPatrimonio": "0983",
+        "numeroSerie": "PE0F600T",
+        "tipo": "NOTEBOOK",
+        "marca": "LENOVO",
+        "modelo": "V15 G4 IRU",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "I5 - 13ª GER",
+          "ram": "16 GB RAM",
+          "armazenamento": "NVME SSD 256GB"
+        }
+      },
+      {
+        "idPatrimonio": "0984",
+        "numeroSerie": "PE0F601V",
+        "tipo": "NOTEBOOK",
+        "marca": "LENOVO",
+        "modelo": "V15 G4 IRU",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "I5 - 13ª GER",
+          "ram": "16 GB RAM",
+          "armazenamento": "NVME SSD 256GB"
+        }
+      },
+      {
+        "idPatrimonio": "0985",
+        "numeroSerie": "PE0F600K",
+        "tipo": "NOTEBOOK",
+        "marca": "LENOVO",
+        "modelo": "V15 G4 IRU",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "I5 - 13ª GER",
+          "ram": "16 GB RAM",
+          "armazenamento": "NVME SSD 256GB"
+        }
+      },
+      {
+        "idPatrimonio": "0986",
+        "numeroSerie": "PE0F5ZYK",
+        "tipo": "NOTEBOOK",
+        "marca": "LENOVO",
+        "modelo": "V15 G4 IRU",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "I5 - 13ª GER",
+          "ram": "16 GB RAM",
+          "armazenamento": "NVME SSD 256GB"
+        }
+      },
+      {
+        "idPatrimonio": "0987",
+        "numeroSerie": "PE0F6007",
+        "tipo": "NOTEBOOK",
+        "marca": "LENOVO",
+        "modelo": "V15 G4 IRU",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "I5 - 13ª GER",
+          "ram": "16 GB RAM",
+          "armazenamento": "NVME SSD 256GB"
+        }
+      },
+      {
+        "idPatrimonio": "0988",
+        "numeroSerie": "PE0F601L",
+        "tipo": "NOTEBOOK",
+        "marca": "LENOVO",
+        "modelo": "V15 G4 IRU",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "I5 - 13ª GER",
+          "ram": "16 GB RAM",
+          "armazenamento": "NVME SSD 256GB"
+        }
+      },
+      {
+        "idPatrimonio": "0989",
+        "numeroSerie": "PE0F6027",
+        "tipo": "NOTEBOOK",
+        "marca": "LENOVO",
+        "modelo": "V15 G4 IRU",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "I5 - 13ª GER",
+          "ram": "16 GB RAM",
+          "armazenamento": "NVME SSD 256GB"
+        }
+      },
+      {
+        "idPatrimonio": "0931",
+        "numeroSerie": "PE0F601Q",
+        "tipo": "NOTEBOOK",
+        "marca": "LENOVO",
+        "modelo": "V15 G4 IRU",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "I5 - 13ª GER",
+          "ram": "16 GB RAM",
+          "armazenamento": "NVME SSD 256GB"
+        }
+      },
+      {
+        "idPatrimonio": "0932",
+        "numeroSerie": "PE0F6014",
+        "tipo": "NOTEBOOK",
+        "marca": "LENOVO",
+        "modelo": "V15 G4 IRU",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "I5 - 13ª GER",
+          "ram": "16 GB RAM",
+          "armazenamento": "NVME SSD 256GB"
+        }
+      },
+      {
+        "idPatrimonio": "0933",
+        "numeroSerie": "PE0F6021",
+        "tipo": "NOTEBOOK",
+        "marca": "LENOVO",
+        "modelo": "V15 G4 IRU",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "I5 - 13ª GER",
+          "ram": "16 GB RAM",
+          "armazenamento": "NVME SSD 256GB"
+        }
+      },
+      {
+        "idPatrimonio": "0937",
+        "numeroSerie": "PE0F5ZZR",
+        "tipo": "NOTEBOOK",
+        "marca": "LENOVO",
+        "modelo": "V15 G4 IRU",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "I5 - 13ª GER",
+          "ram": "08 GB RAM",
+          "armazenamento": "NVME SSD 256GB"
+        }
+      },
+      {
+        "idPatrimonio": "0943",
+        "numeroSerie": "PE0F5ZZT",
+        "tipo": "NOTEBOOK",
+        "marca": "LENOVO",
+        "modelo": "V15 G4 IRU",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "I5 - 13ª GER",
+          "ram": "08 GB RAM",
+          "armazenamento": "NVME SSD 256GB"
+        }
+      },
+      {
+        "idPatrimonio": "0938",
+        "numeroSerie": "PE0F600P",
+        "tipo": "NOTEBOOK",
+        "marca": "LENOVO",
+        "modelo": "V15 G4 IRU",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "I5 - 13ª GER",
+          "ram": "08 GB RAM",
+          "armazenamento": "NVME SSD 256GB"
+        }
+      },
+      {
+        "idPatrimonio": "0940",
+        "numeroSerie": "PE0F6024",
+        "tipo": "NOTEBOOK",
+        "marca": "LENOVO",
+        "modelo": "V15 G4 IRU",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "I5 - 13ª GER",
+          "ram": "08 GB RAM",
+          "armazenamento": "NVME SSD 256GB"
+        }
+      },
+      {
+        "idPatrimonio": "0947",
+        "numeroSerie": "PE0F600Z",
+        "tipo": "NOTEBOOK",
+        "marca": "LENOVO",
+        "modelo": "V15 G4 IRU",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "I5 - 13ª GER",
+          "ram": "08 GB RAM",
+          "armazenamento": "NVME SSD 256GB"
+        }
+      },
+      {
+        "idPatrimonio": "0945",
+        "numeroSerie": "PE0F600Q",
+        "tipo": "NOTEBOOK",
+        "marca": "LENOVO",
+        "modelo": "V15 G4 IRU",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "I5 - 13ª GER",
+          "ram": "08 GB RAM",
+          "armazenamento": "NVME SSD 256GB"
+        }
+      },
+      {
+        "idPatrimonio": "0946",
+        "numeroSerie": "PE0F601E",
+        "tipo": "NOTEBOOK",
+        "marca": "LENOVO",
+        "modelo": "V15 G4 IRU",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "I5 - 13ª GER",
+          "ram": "08 GB RAM",
+          "armazenamento": "NVME SSD 256GB"
+        }
+      },
+      {
+        "idPatrimonio": "0944",
+        "numeroSerie": "PE0F601J",
+        "tipo": "NOTEBOOK",
+        "marca": "LENOVO",
+        "modelo": "V15 G4 IRU",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "I5 - 13ª GER",
+          "ram": "16 GB RAM",
+          "armazenamento": "NVME SSD 256GB"
+        }
+      },
+      {
+        "idPatrimonio": "0948",
+        "numeroSerie": "PE0F6008",
+        "tipo": "NOTEBOOK",
+        "marca": "LENOVO",
+        "modelo": "V15 G4 IRU",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "I5 - 13ª GER",
+          "ram": "16 GB RAM",
+          "armazenamento": "NVME SSD 256GB"
+        }
+      },
+      {
+        "idPatrimonio": "0949",
+        "numeroSerie": "PE0F5ZZ4",
+        "tipo": "NOTEBOOK",
+        "marca": "LENOVO",
+        "modelo": "V15 G4 IRU",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "I5 - 13ª GER",
+          "ram": "16 GB RAM",
+          "armazenamento": "NVME SSD 256GB"
+        }
+      },
+      {
+        "idPatrimonio": "0950",
+        "numeroSerie": "PE0F601F",
+        "tipo": "NOTEBOOK",
+        "marca": "LENOVO",
+        "modelo": "V15 G4 IRU",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "I5 - 13ª GER",
+          "ram": "08 GB RAM",
+          "armazenamento": "NVME SSD 256GB"
+        }
+      },
+      {
+        "idPatrimonio": "0951",
+        "numeroSerie": "PE0F600C",
+        "tipo": "NOTEBOOK",
+        "marca": "LENOVO",
+        "modelo": "V15 G4 IRU",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "I5 - 13ª GER",
+          "ram": "16 GB RAM",
+          "armazenamento": "NVME SSD 256GB"
+        }
+      },
+      {
+        "idPatrimonio": "0366",
+        "numeroSerie": "7ZFCQ14",
+        "tipo": "NOTEBOOK",
+        "marca": "DELL",
+        "modelo": "VOSTRO 3510",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I5 - 12ª GER",
+          "ram": "16 GB RAM",
+          "armazenamento": "NVME SSD 256GB"
+        }
+      },
+      {
+        "idPatrimonio": "0362",
+        "numeroSerie": "PE0F5ZZZ",
+        "tipo": "NOTEBOOK",
+        "marca": "LENOVO",
+        "modelo": "V15 G4 IRU",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "I5 - 13ª GER",
+          "ram": "16 GB RAM",
+          "armazenamento": "NVME SSD 256GB"
+        }
+      },
+      {
+        "idPatrimonio": "0368",
+        "numeroSerie": "GPD27LQRT9",
+        "tipo": "MACBOOK AIR",
+        "marca": "APPLE",
+        "modelo": "MACBOOK AIR M4",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "N/A",
+          "ram": "16 GB RAM",
+          "armazenamento": "NVME SSD 512GB"
+        }
+      },
+      {
+        "idPatrimonio": "0386",
+        "numeroSerie": "FL4NTH4",
+        "tipo": "NOTEBOOK",
+        "marca": "DELL",
+        "modelo": "PRO 16",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "CORE 5 - 220U",
+          "ram": "16 GB RAM",
+          "armazenamento": "NVME SSD 512GB"
+        }
+      },
+      {
+        "idPatrimonio": "0433",
+        "numeroSerie": "1V0T5J4",
+        "tipo": "NOTEBOOK",
+        "marca": "DELL",
+        "modelo": "PRO 14",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "CORE 5 - 120U",
+          "ram": "16 GB RAM DDR5",
+          "armazenamento": "NVME SSD 512GB"
+        }
+      },
+      {
+        "idPatrimonio": "0434",
+        "numeroSerie": "2S0T5J4",
+        "tipo": "NOTEBOOK",
+        "marca": "DELL",
+        "modelo": "PRO 14",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "CORE 5 - 120U",
+          "ram": "16 GB RAM DDR5",
+          "armazenamento": "NVME SSD 512GB"
+        }
+      },
+      {
+        "idPatrimonio": "0435",
+        "numeroSerie": "JT0T5J4",
+        "tipo": "NOTEBOOK",
+        "marca": "DELL",
+        "modelo": "PRO 14",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "CORE 5 - 120U",
+          "ram": "16 GB RAM DDR5",
+          "armazenamento": "NVME SSD 512GB"
+        }
+      },
+      {
+        "idPatrimonio": "0441",
+        "numeroSerie": "HND2MX49",
+        "tipo": "TABLET",
+        "marca": "LENOVO",
+        "modelo": "TAB",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "N/A",
+          "ram": "04 GB RAM",
+          "armazenamento": "64 GB"
+        }
+      },
+      {
+        "idPatrimonio": "0442",
+        "numeroSerie": "HND2MXAV",
+        "tipo": "TABLET",
+        "marca": "LENOVO",
+        "modelo": "TAB",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "N/A",
+          "ram": "04 GB RAM",
+          "armazenamento": "64 GB"
+        }
+      },
+      {
+        "idPatrimonio": "0465",
+        "numeroSerie": "7HVYPJ4",
+        "tipo": "NOTEBOOK",
+        "marca": "DELL",
+        "modelo": "PRO 16",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "CORE 7 - 150U",
+          "ram": "16 GB RAM DDR5",
+          "armazenamento": "NVME SSD 512GB"
+        }
+      },
+      {
+        "idPatrimonio": "0462",
+        "numeroSerie": "BDVYPJ4",
+        "tipo": "NOTEBOOK",
+        "marca": "DELL",
+        "modelo": "PRO 16",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "CORE 7 - 150U",
+          "ram": "16 GB RAM DDR5",
+          "armazenamento": "NVME SSD 512GB"
+        }
+      },
+      {
+        "idPatrimonio": "0463",
+        "numeroSerie": "HBVYPJ4",
+        "tipo": "NOTEBOOK",
+        "marca": "DELL",
+        "modelo": "PRO 16",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "CORE 7 - 150U",
+          "ram": "16 GB RAM DDR5",
+          "armazenamento": "NVME SSD 512GB"
+        }
+      },
+      {
+        "idPatrimonio": "0457",
+        "numeroSerie": "29VYPJ4",
+        "tipo": "NOTEBOOK",
+        "marca": "DELL",
+        "modelo": "PRO 16",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "RYZEN 7 PRO",
+          "ram": "16 GB RAM DDR5",
+          "armazenamento": "NVME SSD 512GB"
+        }
+      },
+      {
+        "idPatrimonio": "0458",
+        "numeroSerie": "BCVYPJ4",
+        "tipo": "NOTEBOOK",
+        "marca": "DELL",
+        "modelo": "PRO 16",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "RYZEN 7 PRO",
+          "ram": "16 GB RAM DDR5",
+          "armazenamento": "NVME SSD 512GB"
+        }
+      },
+      {
+        "idPatrimonio": "0459",
+        "numeroSerie": "H8VYPJ4",
+        "tipo": "NOTEBOOK",
+        "marca": "DELL",
+        "modelo": "PRO 16",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "RYZEN 7 PRO",
+          "ram": "16 GB RAM DDR5",
+          "armazenamento": "NVME SSD 512GB"
+        }
+      },
+      {
+        "idPatrimonio": "0460",
+        "numeroSerie": "89VYPJ4",
+        "tipo": "NOTEBOOK",
+        "marca": "DELL",
+        "modelo": "PRO 16",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "RYZEN 7 PRO",
+          "ram": "16 GB RAM DDR5",
+          "armazenamento": "NVME SSD 512GB"
+        }
+      },
+      {
+        "idPatrimonio": "0461",
+        "numeroSerie": "FCVYPJ4",
+        "tipo": "NOTEBOOK",
+        "marca": "DELL",
+        "modelo": "PRO 16",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "RYZEN 7 PRO",
+          "ram": "16 GB RAM DDR5",
+          "armazenamento": "NVME SSD 512GB"
+        }
+      },
+      {
+        "idPatrimonio": "0473",
+        "numeroSerie": "3KD82G4",
+        "tipo": "NOTEBOOK",
+        "marca": "DELL",
+        "modelo": "ALIENWARE 16 AURORA",
+        "status": "DISPONIVEL NOVO",
+        "especificacoes": {
+          "processador": "CORE 5 - 210H",
+          "ram": "16 GB RAM DDR5",
+          "armazenamento": "NVME SSD 512GB"
+        }
+      }
+    ]
+  }
+]
