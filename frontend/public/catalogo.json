@@ -1,8 +1,8 @@
 [
   {
     "metadados": {
-      "ultimaAtualizacao": "2026-05-05T13:43:42.330Z",
-      "totalItens": 109
+      "ultimaAtualizacao": "2026-05-06T12:45:20.224Z",
+      "totalItens": 108
     },
     "estoque": [
       {
@@ -15,7 +15,8 @@
         "especificacoes": {
           "processador": "I5 - 11ª GER",
           "ram": "16 GB RAM",
-          "armazenamento": "NVME SSD 256GB"
+          "armazenamento": "NVME SSD 256GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -28,7 +29,8 @@
         "especificacoes": {
           "processador": "I5 - 11ª GER",
           "ram": "16 GB RAM",
-          "armazenamento": "NVME SSD 256GB"
+          "armazenamento": "NVME SSD 256GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -41,7 +43,8 @@
         "especificacoes": {
           "processador": "I5 - 11ª GER",
           "ram": "08 GB RAM",
-          "armazenamento": "NVME SSD 256GB"
+          "armazenamento": "NVME SSD 256GB",
+          "so": "WINDOWS 10 PRO O&M"
         }
       },
       {
@@ -54,7 +57,8 @@
         "especificacoes": {
           "processador": "I5 - 11ª GER",
           "ram": "16 GB RAM",
-          "armazenamento": "NVME SSD 256GB"
+          "armazenamento": "NVME SSD 256GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -67,7 +71,8 @@
         "especificacoes": {
           "processador": "I5 - 11ª GER",
           "ram": "08 GB RAM",
-          "armazenamento": "NVME SSD 256GB"
+          "armazenamento": "NVME SSD 256GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -80,7 +85,8 @@
         "especificacoes": {
           "processador": "I5 - 10ª GER",
           "ram": "08 GB RAM",
-          "armazenamento": "SSD 256 GB"
+          "armazenamento": "SSD 256 GB",
+          "so": "WINDOWS 10 PRO O&M"
         }
       },
       {
@@ -93,7 +99,8 @@
         "especificacoes": {
           "processador": "I5 - 10ª GER",
           "ram": "08 GB RAM",
-          "armazenamento": "SSD 256 GB"
+          "armazenamento": "SSD 256 GB",
+          "so": "WINDOWS 10 PRO O&M"
         }
       },
       {
@@ -106,7 +113,8 @@
         "especificacoes": {
           "processador": "I5 - 10ª GER",
           "ram": "08 GB RAM",
-          "armazenamento": "SSD 256 GB"
+          "armazenamento": "SSD 256 GB",
+          "so": "WINDOWS 10 PRO O&M"
         }
       },
       {
@@ -119,7 +127,8 @@
         "especificacoes": {
           "processador": "I5 - 10ª GER",
           "ram": "08 GB RAM",
-          "armazenamento": "SSD 256 GB"
+          "armazenamento": "SSD 256 GB",
+          "so": "WINDOWS 10 PRO O&M"
         }
       },
       {
@@ -132,7 +141,8 @@
         "especificacoes": {
           "processador": "N/A",
           "ram": "04 GB RAM",
-          "armazenamento": "64 GB"
+          "armazenamento": "64 GB",
+          "so": "LINUX"
         }
       },
       {
@@ -145,7 +155,8 @@
         "especificacoes": {
           "processador": "I3 - 7ª GER",
           "ram": "08 GB RAM",
-          "armazenamento": "SSD 512 GB"
+          "armazenamento": "SSD 512 GB",
+          "so": "WINDOWS 10 PRO O&M"
         }
       },
       {
@@ -158,7 +169,8 @@
         "especificacoes": {
           "processador": "I5 - 8ª GER",
           "ram": "08 GB RAM DDR3",
-          "armazenamento": "SSD 120 GB"
+          "armazenamento": "SSD 120 GB",
+          "so": "WINDOWS 10 PRO O&M"
         }
       },
       {
@@ -171,7 +183,8 @@
         "especificacoes": {
           "processador": "I5 - 4ª GER",
           "ram": "08 GB RAM",
-          "armazenamento": "SSD 256 GB"
+          "armazenamento": "SSD 256 GB",
+          "so": "WINDOWS 10 PRO O&M"
         }
       },
       {
@@ -184,7 +197,8 @@
         "especificacoes": {
           "processador": "I3 - 4ª GER",
           "ram": "08 GB RAM DDR3",
-          "armazenamento": "SSD 240 GB"
+          "armazenamento": "SSD 240 GB",
+          "so": "WINDOWS 10 PRO O&M"
         }
       },
       {
@@ -197,7 +211,8 @@
         "especificacoes": {
           "processador": "I3 - 4ª GER",
           "ram": "08 GB RAM DDR3",
-          "armazenamento": "SSD 240 GB"
+          "armazenamento": "SSD 240 GB",
+          "so": "WINDOWS 10 PRO O&M"
         }
       },
       {
@@ -210,7 +225,8 @@
         "especificacoes": {
           "processador": "I3 - 4ª GER",
           "ram": "08 GB RAM DDR3",
-          "armazenamento": "SSD 240 GB"
+          "armazenamento": "SSD 240 GB",
+          "so": "WINDOWS 10 PRO O&M"
         }
       },
       {
@@ -223,7 +239,8 @@
         "especificacoes": {
           "processador": "I5 - 10ª GER",
           "ram": "16 GB RAM",
-          "armazenamento": "SSD 256 GB"
+          "armazenamento": "SSD 256 GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -236,7 +253,8 @@
         "especificacoes": {
           "processador": "I5 - 10ª GER",
           "ram": "08 GB RAM",
-          "armazenamento": "NVME SSD 256GB"
+          "armazenamento": "NVME SSD 256GB",
+          "so": "WINDOWS 10 PRO O&M"
         }
       },
       {
@@ -249,7 +267,8 @@
         "especificacoes": {
           "processador": "I5 - 10ª GER",
           "ram": "16 GB RAM",
-          "armazenamento": "SSD 256 GB"
+          "armazenamento": "SSD 256 GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -262,7 +281,8 @@
         "especificacoes": {
           "processador": "I5 - 10ª GER",
           "ram": "16 GB RAM",
-          "armazenamento": "SSD 256 GB"
+          "armazenamento": "SSD 256 GB",
+          "so": "WINDOWS 10 PRO O&M"
         }
       },
       {
@@ -275,7 +295,8 @@
         "especificacoes": {
           "processador": "I5 - 10ª GER",
           "ram": "16 GB RAM",
-          "armazenamento": "SSD 256 GB"
+          "armazenamento": "SSD 256 GB",
+          "so": "WINDOWS 10 PRO O&M"
         }
       },
       {
@@ -288,7 +309,8 @@
         "especificacoes": {
           "processador": "I5 - 10ª GER",
           "ram": "16 GB RAM",
-          "armazenamento": "SSD 256 GB"
+          "armazenamento": "SSD 256 GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -301,7 +323,8 @@
         "especificacoes": {
           "processador": "I5 - 7ª GER",
           "ram": "08 GB RAM",
-          "armazenamento": "SSD 256 GB"
+          "armazenamento": "SSD 256 GB",
+          "so": "WINDOWS 10 PRO O&M"
         }
       },
       {
@@ -314,7 +337,8 @@
         "especificacoes": {
           "processador": "I5 - 8ª GER",
           "ram": "08 GB RAM",
-          "armazenamento": "SSD 256 GB"
+          "armazenamento": "SSD 256 GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -327,7 +351,8 @@
         "especificacoes": {
           "processador": "I5 - 10ª GER",
           "ram": "16 GB RAM",
-          "armazenamento": "SSD 240 GB"
+          "armazenamento": "SSD 240 GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -340,7 +365,8 @@
         "especificacoes": {
           "processador": "i7 - 7ª GER",
           "ram": "16 GB RAM",
-          "armazenamento": "SSD 480 GB"
+          "armazenamento": "SSD 480 GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -353,7 +379,8 @@
         "especificacoes": {
           "processador": "I7 - 8ª GER",
           "ram": "16 GB RAM",
-          "armazenamento": "SSD 256 GB"
+          "armazenamento": "SSD 256 GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -366,7 +393,8 @@
         "especificacoes": {
           "processador": "I5 - 6ª GER",
           "ram": "08 GB RAM DDR3",
-          "armazenamento": "SSD 256 GB"
+          "armazenamento": "SSD 256 GB",
+          "so": "WINDOWS 10 PRO O&M"
         }
       },
       {
@@ -379,7 +407,8 @@
         "especificacoes": {
           "processador": "I5 - 11ª GER",
           "ram": "08 GB RAM",
-          "armazenamento": "NVME SSD 256GB"
+          "armazenamento": "NVME SSD 256GB",
+          "so": "WINDOWS 10 PRO O&M"
         }
       },
       {
@@ -392,7 +421,8 @@
         "especificacoes": {
           "processador": "I5 - 12ª GER",
           "ram": "08 GB RAM",
-          "armazenamento": "NVME SSD 256GB"
+          "armazenamento": "NVME SSD 256GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -405,7 +435,8 @@
         "especificacoes": {
           "processador": "CELERON",
           "ram": "08 GB RAM",
-          "armazenamento": "SSD 240 GB"
+          "armazenamento": "SSD 240 GB",
+          "so": "WINDOWS 10 PRO O&M"
         }
       },
       {
@@ -418,7 +449,8 @@
         "especificacoes": {
           "processador": "CELERON",
           "ram": "16 GB RAM",
-          "armazenamento": "SSD 240 GB"
+          "armazenamento": "SSD 240 GB",
+          "so": "WINDOWS 10 PRO O&M"
         }
       },
       {
@@ -431,7 +463,8 @@
         "especificacoes": {
           "processador": "CELERON",
           "ram": "16 GB RAM",
-          "armazenamento": "SSD 240 GB"
+          "armazenamento": "SSD 240 GB",
+          "so": "WINDOWS 10 PRO O&M"
         }
       },
       {
@@ -444,7 +477,8 @@
         "especificacoes": {
           "processador": "I5 - 7ª GER",
           "ram": "08 GB RAM",
-          "armazenamento": "SSD 240 GB"
+          "armazenamento": "SSD 240 GB",
+          "so": "WINDOWS 10 PRO O&M"
         }
       },
       {
@@ -457,7 +491,8 @@
         "especificacoes": {
           "processador": "I5 - 7ª GER",
           "ram": "08 GB RAM",
-          "armazenamento": "SSD 240 GB"
+          "armazenamento": "SSD 240 GB",
+          "so": "WINDOWS 10 PRO O&M"
         }
       },
       {
@@ -470,7 +505,8 @@
         "especificacoes": {
           "processador": "I5 - 11ª GER",
           "ram": "16 GB RAM",
-          "armazenamento": "NVME SSD 512GB"
+          "armazenamento": "NVME SSD 512GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -483,7 +519,8 @@
         "especificacoes": {
           "processador": "I5 - 6ª GER",
           "ram": "16 GB RAM",
-          "armazenamento": "SSD 240 GB"
+          "armazenamento": "SSD 240 GB",
+          "so": "WINDOWS 10 PRO O&M"
         }
       },
       {
@@ -496,7 +533,8 @@
         "especificacoes": {
           "processador": "I3 - 7ª GER",
           "ram": "08 GB RAM",
-          "armazenamento": "SSD 250 GB"
+          "armazenamento": "SSD 250 GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -509,7 +547,8 @@
         "especificacoes": {
           "processador": "I5 - 4ª GER",
           "ram": "08 GB RAM",
-          "armazenamento": "SSD 250 GB"
+          "armazenamento": "SSD 250 GB",
+          "so": "WINDOWS 10 PRO O&M"
         }
       },
       {
@@ -522,7 +561,8 @@
         "especificacoes": {
           "processador": "I3 - 4ª GER",
           "ram": "08 GB RAM DDR3",
-          "armazenamento": "SSD 240 GB"
+          "armazenamento": "SSD 240 GB",
+          "so": "WINDOWS 10 PRO O&M"
         }
       },
       {
@@ -535,7 +575,8 @@
         "especificacoes": {
           "processador": "I5 - 8ª GER",
           "ram": "08 GB RAM",
-          "armazenamento": "SSD 240 GB"
+          "armazenamento": "SSD 240 GB",
+          "so": "WINDOWS 10 PRO O&M"
         }
       },
       {
@@ -548,7 +589,8 @@
         "especificacoes": {
           "processador": "I5 - 12ª GER",
           "ram": "16 GB RAM",
-          "armazenamento": "NVME SSD 512GB"
+          "armazenamento": "NVME SSD 512GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -561,7 +603,8 @@
         "especificacoes": {
           "processador": "N/A",
           "ram": "N/A",
-          "armazenamento": "N/A"
+          "armazenamento": "N/A",
+          "so": "N/A"
         }
       },
       {
@@ -574,7 +617,8 @@
         "especificacoes": {
           "processador": "I5 - 8ª GER",
           "ram": "08 GB RAM",
-          "armazenamento": "NVME SSD 256GB"
+          "armazenamento": "NVME SSD 256GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -587,7 +631,8 @@
         "especificacoes": {
           "processador": "I5 - 8ª GER",
           "ram": "08 GB RAM",
-          "armazenamento": "NVME SSD 256GB"
+          "armazenamento": "NVME SSD 256GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -600,7 +645,8 @@
         "especificacoes": {
           "processador": "I5 - 7ª GER",
           "ram": "08 GB RAM",
-          "armazenamento": "SSD 256 GB"
+          "armazenamento": "SSD 256 GB",
+          "so": "WINDOWS 10 PRO O&M"
         }
       },
       {
@@ -613,7 +659,8 @@
         "especificacoes": {
           "processador": "CELERON",
           "ram": "08 GB RAM",
-          "armazenamento": "SSD 256 GB"
+          "armazenamento": "SSD 256 GB",
+          "so": "WINDOWS 10 PRO O&M"
         }
       },
       {
@@ -626,7 +673,8 @@
         "especificacoes": {
           "processador": "I5 - 6ª GER",
           "ram": "08 GB RAM",
-          "armazenamento": "SSD 480 GB"
+          "armazenamento": "SSD 480 GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -639,7 +687,8 @@
         "especificacoes": {
           "processador": "CELERON",
           "ram": "08 GB RAM",
-          "armazenamento": "SSD 128 GB"
+          "armazenamento": "SSD 128 GB",
+          "so": "WINDOWS 10 PRO O&M"
         }
       },
       {
@@ -652,7 +701,8 @@
         "especificacoes": {
           "processador": "I5 - 8ª GER",
           "ram": "16 GB RAM",
-          "armazenamento": "SSD 512 GB"
+          "armazenamento": "SSD 512 GB",
+          "so": "WINDOWS 10 PRO O&M"
         }
       },
       {
@@ -665,7 +715,8 @@
         "especificacoes": {
           "processador": "I5 - 8ª GER",
           "ram": "08 GB RAM",
-          "armazenamento": "SSD 240 GB"
+          "armazenamento": "SSD 240 GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -678,7 +729,8 @@
         "especificacoes": {
           "processador": "I5 - 8ª GER",
           "ram": "08 GB RAM",
-          "armazenamento": "SSD 240 GB"
+          "armazenamento": "SSD 240 GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -691,7 +743,8 @@
         "especificacoes": {
           "processador": "N/A",
           "ram": "04 GB RAM",
-          "armazenamento": "128GB"
+          "armazenamento": "128GB",
+          "so": "N/A"
         }
       },
       {
@@ -704,7 +757,8 @@
         "especificacoes": {
           "processador": "N/A",
           "ram": "04 GB RAM",
-          "armazenamento": "128GB"
+          "armazenamento": "128GB",
+          "so": "N/A"
         }
       },
       {
@@ -717,7 +771,8 @@
         "especificacoes": {
           "processador": "I5 - 13ª GER",
           "ram": "08 GB RAM",
-          "armazenamento": "SSD 512 GB"
+          "armazenamento": "SSD 512 GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -730,7 +785,8 @@
         "especificacoes": {
           "processador": "N/A",
           "ram": "04 GB RAM",
-          "armazenamento": "128GB"
+          "armazenamento": "128GB",
+          "so": "N/A"
         }
       },
       {
@@ -743,7 +799,8 @@
         "especificacoes": {
           "processador": "I5 - 10ª GER",
           "ram": "12 GB RAM",
-          "armazenamento": "NVME SSD 256GB + HD 1 TB"
+          "armazenamento": "NVME SSD 256GB + HD 1 TB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -756,7 +813,8 @@
         "especificacoes": {
           "processador": "I5 - 6ª GER",
           "ram": "08 GB RAM",
-          "armazenamento": "SSD 240 GB"
+          "armazenamento": "SSD 240 GB",
+          "so": "WINDOWS 10 PRO O&M"
         }
       },
       {
@@ -769,7 +827,8 @@
         "especificacoes": {
           "processador": "I5 - 7ª GER",
           "ram": "16 GB RAM",
-          "armazenamento": "NVME SSD 256GB"
+          "armazenamento": "NVME SSD 256GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -782,7 +841,8 @@
         "especificacoes": {
           "processador": "I5 - 13ª GER",
           "ram": "16 GB RAM",
-          "armazenamento": "NVME SSD 480GB"
+          "armazenamento": "NVME SSD 480GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -795,7 +855,8 @@
         "especificacoes": {
           "processador": "I5 - 13ª GER",
           "ram": "16 GB RAM",
-          "armazenamento": "NVME SSD 480GB"
+          "armazenamento": "NVME SSD 480GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -808,7 +869,8 @@
         "especificacoes": {
           "processador": "I5 - 13ª GER",
           "ram": "16 GB RAM",
-          "armazenamento": "NVME SSD 256GB"
+          "armazenamento": "NVME SSD 256GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -821,7 +883,8 @@
         "especificacoes": {
           "processador": "I5 - 13ª GER",
           "ram": "16 GB RAM",
-          "armazenamento": "NVME SSD 256GB"
+          "armazenamento": "NVME SSD 256GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -834,7 +897,8 @@
         "especificacoes": {
           "processador": "I5 - 13ª GER",
           "ram": "16 GB RAM",
-          "armazenamento": "NVME SSD 256GB"
+          "armazenamento": "NVME SSD 256GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -847,7 +911,8 @@
         "especificacoes": {
           "processador": "I5 - 13ª GER",
           "ram": "16 GB RAM",
-          "armazenamento": "NVME SSD 256GB"
+          "armazenamento": "NVME SSD 256GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -860,7 +925,8 @@
         "especificacoes": {
           "processador": "I5 - 13ª GER",
           "ram": "16 GB RAM",
-          "armazenamento": "NVME SSD 256GB"
+          "armazenamento": "NVME SSD 256GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -873,7 +939,8 @@
         "especificacoes": {
           "processador": "I5 - 13ª GER",
           "ram": "16 GB RAM",
-          "armazenamento": "NVME SSD 256GB"
+          "armazenamento": "NVME SSD 256GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -886,7 +953,8 @@
         "especificacoes": {
           "processador": "I5 - 13ª GER",
           "ram": "16 GB RAM",
-          "armazenamento": "NVME SSD 256GB"
+          "armazenamento": "NVME SSD 256GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -899,7 +967,8 @@
         "especificacoes": {
           "processador": "I5 - 13ª GER",
           "ram": "16 GB RAM",
-          "armazenamento": "NVME SSD 256GB"
+          "armazenamento": "NVME SSD 256GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -912,7 +981,8 @@
         "especificacoes": {
           "processador": "I5 - 13ª GER",
           "ram": "16 GB RAM",
-          "armazenamento": "NVME SSD 256GB"
+          "armazenamento": "NVME SSD 256GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -925,7 +995,8 @@
         "especificacoes": {
           "processador": "I5 - 13ª GER",
           "ram": "16 GB RAM",
-          "armazenamento": "NVME SSD 256GB"
+          "armazenamento": "NVME SSD 256GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -938,7 +1009,8 @@
         "especificacoes": {
           "processador": "I5 - 13ª GER",
           "ram": "16 GB RAM",
-          "armazenamento": "NVME SSD 256GB"
+          "armazenamento": "NVME SSD 256GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -951,7 +1023,8 @@
         "especificacoes": {
           "processador": "I5 - 13ª GER",
           "ram": "16 GB RAM",
-          "armazenamento": "NVME SSD 256GB"
+          "armazenamento": "NVME SSD 256GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -964,7 +1037,8 @@
         "especificacoes": {
           "processador": "I5 - 13ª GER",
           "ram": "16 GB RAM",
-          "armazenamento": "NVME SSD 256GB"
+          "armazenamento": "NVME SSD 256GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -977,7 +1051,8 @@
         "especificacoes": {
           "processador": "I5 - 13ª GER",
           "ram": "16 GB RAM",
-          "armazenamento": "NVME SSD 256GB"
+          "armazenamento": "NVME SSD 256GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -990,7 +1065,8 @@
         "especificacoes": {
           "processador": "I5 - 13ª GER",
           "ram": "16 GB RAM",
-          "armazenamento": "NVME SSD 256GB"
+          "armazenamento": "NVME SSD 256GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -1003,7 +1079,8 @@
         "especificacoes": {
           "processador": "I5 - 13ª GER",
           "ram": "16 GB RAM",
-          "armazenamento": "NVME SSD 256GB"
+          "armazenamento": "NVME SSD 256GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -1016,7 +1093,8 @@
         "especificacoes": {
           "processador": "I5 - 13ª GER",
           "ram": "16 GB RAM",
-          "armazenamento": "NVME SSD 256GB"
+          "armazenamento": "NVME SSD 256GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -1029,7 +1107,8 @@
         "especificacoes": {
           "processador": "I5 - 13ª GER",
           "ram": "16 GB RAM",
-          "armazenamento": "NVME SSD 256GB"
+          "armazenamento": "NVME SSD 256GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -1042,20 +1121,8 @@
         "especificacoes": {
           "processador": "I5 - 13ª GER",
           "ram": "08 GB RAM",
-          "armazenamento": "NVME SSD 256GB"
-        }
-      },
-      {
-        "idPatrimonio": "0943",
-        "numeroSerie": "PE0F5ZZT",
-        "tipo": "NOTEBOOK",
-        "marca": "LENOVO",
-        "modelo": "V15 G4 IRU",
-        "status": "DISPONIVEL NOVO",
-        "especificacoes": {
-          "processador": "I5 - 13ª GER",
-          "ram": "08 GB RAM",
-          "armazenamento": "NVME SSD 256GB"
+          "armazenamento": "NVME SSD 256GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -1068,7 +1135,8 @@
         "especificacoes": {
           "processador": "I5 - 13ª GER",
           "ram": "08 GB RAM",
-          "armazenamento": "NVME SSD 256GB"
+          "armazenamento": "NVME SSD 256GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -1081,7 +1149,8 @@
         "especificacoes": {
           "processador": "I5 - 13ª GER",
           "ram": "08 GB RAM",
-          "armazenamento": "NVME SSD 256GB"
+          "armazenamento": "NVME SSD 256GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -1094,7 +1163,8 @@
         "especificacoes": {
           "processador": "I5 - 13ª GER",
           "ram": "08 GB RAM",
-          "armazenamento": "NVME SSD 256GB"
+          "armazenamento": "NVME SSD 256GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -1107,7 +1177,8 @@
         "especificacoes": {
           "processador": "I5 - 13ª GER",
           "ram": "08 GB RAM",
-          "armazenamento": "NVME SSD 256GB"
+          "armazenamento": "NVME SSD 256GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -1120,7 +1191,8 @@
         "especificacoes": {
           "processador": "I5 - 13ª GER",
           "ram": "08 GB RAM",
-          "armazenamento": "NVME SSD 256GB"
+          "armazenamento": "NVME SSD 256GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -1133,7 +1205,8 @@
         "especificacoes": {
           "processador": "I5 - 13ª GER",
           "ram": "16 GB RAM",
-          "armazenamento": "NVME SSD 256GB"
+          "armazenamento": "NVME SSD 256GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -1146,7 +1219,8 @@
         "especificacoes": {
           "processador": "I5 - 13ª GER",
           "ram": "16 GB RAM",
-          "armazenamento": "NVME SSD 256GB"
+          "armazenamento": "NVME SSD 256GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -1159,7 +1233,8 @@
         "especificacoes": {
           "processador": "I5 - 13ª GER",
           "ram": "16 GB RAM",
-          "armazenamento": "NVME SSD 256GB"
+          "armazenamento": "NVME SSD 256GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -1172,7 +1247,8 @@
         "especificacoes": {
           "processador": "I5 - 13ª GER",
           "ram": "08 GB RAM",
-          "armazenamento": "NVME SSD 256GB"
+          "armazenamento": "NVME SSD 256GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -1185,7 +1261,8 @@
         "especificacoes": {
           "processador": "I5 - 13ª GER",
           "ram": "16 GB RAM",
-          "armazenamento": "NVME SSD 256GB"
+          "armazenamento": "NVME SSD 256GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -1198,7 +1275,8 @@
         "especificacoes": {
           "processador": "I5 - 12ª GER",
           "ram": "16 GB RAM",
-          "armazenamento": "NVME SSD 256GB"
+          "armazenamento": "NVME SSD 256GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -1211,7 +1289,8 @@
         "especificacoes": {
           "processador": "I5 - 13ª GER",
           "ram": "16 GB RAM",
-          "armazenamento": "NVME SSD 256GB"
+          "armazenamento": "NVME SSD 256GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -1224,7 +1303,8 @@
         "especificacoes": {
           "processador": "N/A",
           "ram": "16 GB RAM",
-          "armazenamento": "NVME SSD 512GB"
+          "armazenamento": "NVME SSD 512GB",
+          "so": "N/A"
         }
       },
       {
@@ -1237,7 +1317,8 @@
         "especificacoes": {
           "processador": "CORE 5 - 220U",
           "ram": "16 GB RAM",
-          "armazenamento": "NVME SSD 512GB"
+          "armazenamento": "NVME SSD 512GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -1250,7 +1331,8 @@
         "especificacoes": {
           "processador": "CORE 5 - 120U",
           "ram": "16 GB RAM DDR5",
-          "armazenamento": "NVME SSD 512GB"
+          "armazenamento": "NVME SSD 512GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -1263,7 +1345,8 @@
         "especificacoes": {
           "processador": "CORE 5 - 120U",
           "ram": "16 GB RAM DDR5",
-          "armazenamento": "NVME SSD 512GB"
+          "armazenamento": "NVME SSD 512GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -1276,7 +1359,8 @@
         "especificacoes": {
           "processador": "CORE 5 - 120U",
           "ram": "16 GB RAM DDR5",
-          "armazenamento": "NVME SSD 512GB"
+          "armazenamento": "NVME SSD 512GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -1289,7 +1373,8 @@
         "especificacoes": {
           "processador": "N/A",
           "ram": "04 GB RAM",
-          "armazenamento": "64 GB"
+          "armazenamento": "64 GB",
+          "so": "N/A"
         }
       },
       {
@@ -1302,7 +1387,8 @@
         "especificacoes": {
           "processador": "N/A",
           "ram": "04 GB RAM",
-          "armazenamento": "64 GB"
+          "armazenamento": "64 GB",
+          "so": "N/A"
         }
       },
       {
@@ -1315,7 +1401,8 @@
         "especificacoes": {
           "processador": "CORE 7 - 150U",
           "ram": "16 GB RAM DDR5",
-          "armazenamento": "NVME SSD 512GB"
+          "armazenamento": "NVME SSD 512GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -1328,7 +1415,8 @@
         "especificacoes": {
           "processador": "CORE 7 - 150U",
           "ram": "16 GB RAM DDR5",
-          "armazenamento": "NVME SSD 512GB"
+          "armazenamento": "NVME SSD 512GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -1341,7 +1429,8 @@
         "especificacoes": {
           "processador": "CORE 7 - 150U",
           "ram": "16 GB RAM DDR5",
-          "armazenamento": "NVME SSD 512GB"
+          "armazenamento": "NVME SSD 512GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -1354,7 +1443,8 @@
         "especificacoes": {
           "processador": "RYZEN 7 PRO",
           "ram": "16 GB RAM DDR5",
-          "armazenamento": "NVME SSD 512GB"
+          "armazenamento": "NVME SSD 512GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -1367,7 +1457,8 @@
         "especificacoes": {
           "processador": "RYZEN 7 PRO",
           "ram": "16 GB RAM DDR5",
-          "armazenamento": "NVME SSD 512GB"
+          "armazenamento": "NVME SSD 512GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -1380,7 +1471,8 @@
         "especificacoes": {
           "processador": "RYZEN 7 PRO",
           "ram": "16 GB RAM DDR5",
-          "armazenamento": "NVME SSD 512GB"
+          "armazenamento": "NVME SSD 512GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -1393,7 +1485,8 @@
         "especificacoes": {
           "processador": "RYZEN 7 PRO",
           "ram": "16 GB RAM DDR5",
-          "armazenamento": "NVME SSD 512GB"
+          "armazenamento": "NVME SSD 512GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -1406,7 +1499,8 @@
         "especificacoes": {
           "processador": "RYZEN 7 PRO",
           "ram": "16 GB RAM DDR5",
-          "armazenamento": "NVME SSD 512GB"
+          "armazenamento": "NVME SSD 512GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       },
       {
@@ -1419,7 +1513,8 @@
         "especificacoes": {
           "processador": "CORE 5 - 210H",
           "ram": "16 GB RAM DDR5",
-          "armazenamento": "NVME SSD 512GB"
+          "armazenamento": "NVME SSD 512GB",
+          "so": "WINDOWS 11 PRO OEM"
         }
       }
     ]
