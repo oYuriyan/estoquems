@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
-import { Search, CheckCircle, AlertTriangle, Server, MemoryStick, HardDrive, Trash2, FileText, Send, X, LayoutDashboard, Monitor, ShoppingCart, Plus, Package, LayoutGrid, List, AlertCircle, Cpu } from 'lucide-react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { Search, CheckCircle, AlertTriangle, Server, MemoryStick, HardDrive, Trash2, FileText, Send, X, LayoutDashboard, Monitor, ShoppingCart, Plus, Package, LayoutGrid, List, AlertCircle, Cpu, Info, RefreshCw } from 'lucide-react';
 import { differenceInHours, parseISO, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import clsx from 'clsx';
@@ -60,6 +60,20 @@ interface Quote {
   clientName?: string;
   margin?: string;
   validityDays?: number;
+  isReserved?: boolean;
+}
+
+interface Toast {
+  id: string;
+  message: string;
+  type: 'success' | 'error' | 'info';
+  exiting?: boolean;
+}
+
+interface ConfirmDialog {
+  title: string;
+  message: string;
+  onConfirm: () => void;
 }
 
 const STORAGE_KEY_QUOTES = 'microEstoque_quotes';
@@ -73,70 +87,113 @@ const loadPersistedQuotes = (): Quote[] => {
       if (Array.isArray(parsed) && parsed.length > 0) return parsed;
     }
   } catch { /* ignore */ }
-  return [{ id: '1', name: 'Cotação 1', items: [], clientName: '', margin: '', validityDays: 2 }];
+  return [];
 };
 
-const loadPersistedActiveId = (): string => {
+const loadPersistedActiveId = (): string | null => {
   try {
-    return localStorage.getItem(STORAGE_KEY_ACTIVE) || '1';
+    return localStorage.getItem(STORAGE_KEY_ACTIVE) || null;
   } catch { /* ignore */ }
-  return '1';
+  return null;
 };
 
 export default function App() {
   const [data, setData] = useState<Catalogo | null>(null);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [activeBrand, setActiveBrand] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards');
   const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' } | null>(null);
 
   // Multi-Quote State (persistido no localStorage)
   const [quotes, setQuotes] = useState<Quote[]>(loadPersistedQuotes);
-  const [activeQuoteId, setActiveQuoteId] = useState(loadPersistedActiveId);
+  const [activeQuoteId, setActiveQuoteId] = useState<string | null>(loadPersistedActiveId);
   const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Toast & Confirm
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const [confirmDialog, setConfirmDialog] = useState<ConfirmDialog | null>(null);
 
   // Modals
   const [activeGroup, setActiveGroup] = useState<GroupedItem | null>(null);
 
-  const activeQuote = quotes.find(q => q.id === activeQuoteId) || quotes[0];
-  const cart = activeQuote.items;
+  const addToast = useCallback((message: string, type: Toast['type'] = 'info') => {
+    const id = Date.now().toString();
+    setToasts(prev => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts(prev => prev.map(t => t.id === id ? { ...t, exiting: true } : t));
+      setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 350);
+    }, 3500);
+  }, []);
 
-  const updateQuote = (id: string, patch: Partial<Quote>) => {
-    setQuotes(prev => prev.map(q => q.id === id ? { ...q, ...patch } : q));
+  const showConfirm = useCallback((title: string, message: string, onConfirm: () => void) => {
+    setConfirmDialog({ title, message, onConfirm });
+  }, []);
+
+  const activeQuote = quotes.find(q => q.id === activeQuoteId) || quotes[0] || null;
+  const cart = activeQuote ? activeQuote.items : [];
+
+  const updateQuote = (id: string | null, patch: Partial<Quote>) => {
+    if (!id) return;
+    const hasReservedUpdate = 'isReserved' in patch;
+    setQuotes(prev => prev.map(q => q.id === id ? { ...q, ...patch, isReserved: hasReservedUpdate ? patch.isReserved : false } : q));
   };
 
   const addNewQuote = () => {
     const id = Date.now().toString();
-    const name = `Cotação ${quotes.length + 1}`;
+    const name = `Proposta ${quotes.length + 1}`;
     setQuotes(prev => [...prev, { id, name, items: [], clientName: '', margin: '', validityDays: 2 }]);
     setActiveQuoteId(id);
   };
 
   const removeQuote = (id: string) => {
-    if (quotes.length === 1) return;
     const remaining = quotes.filter(q => q.id !== id);
     setQuotes(remaining);
-    setActiveQuoteId(remaining[0].id);
+    if (id === activeQuoteId) {
+      setActiveQuoteId(remaining.length > 0 ? remaining[0].id : null);
+    }
+    setIsQuoteModalOpen(false);
+  };
+
+  const fetchCatalogo = useCallback(async (silent = true) => {
+    if (!silent) setIsRefreshing(true);
+    try {
+      const response = await fetch(`/catalogo.json?t=${new Date().getTime()}`, { cache: 'no-store' });
+      if (!response.ok) throw new Error('Falha ao carregar o catálogo.');
+      const json = await response.json();
+      const parsedData = Array.isArray(json) ? json[0] : json;
+      setData(parsedData);
+    } catch (err: any) {
+      console.error(err.message || 'Erro desconhecido ao carregar dados.');
+      if (!silent) addToast('Erro ao atualizar o catálogo.', 'error');
+    } finally {
+      setLoading(false);
+      setIsRefreshing(false);
+    }
+  }, [addToast]);
+
+  const syncGLPI = async () => {
+    setIsRefreshing(true);
+    try {
+      await fetch('http://localhost:5678/webhook/atualizar_estoque', { method: 'GET', mode: 'no-cors' });
+      addToast('Sincronização GLPI acionada! O catálogo será atualizado em instantes.', 'success');
+      
+      // Simula uma espera para o n8n terminar de gerar o arquivo e tenta baixar o novo
+      setTimeout(() => fetchCatalogo(true), 5000); 
+    } catch (err) {
+      addToast('Erro ao acionar a sincronização GLPI.', 'error');
+      setIsRefreshing(false);
+    }
   };
 
   useEffect(() => {
-    const fetchCatalogo = async () => {
-      try {
-        const response = await fetch(`/catalogo.json?t=${new Date().getTime()}`, { cache: 'no-store' });
-        if (!response.ok) throw new Error('Falha ao carregar o catálogo.');
-        const json = await response.json();
-        const parsedData = Array.isArray(json) ? json[0] : json;
-        setData(parsedData);
-      } catch (err: any) {
-        console.error(err.message || 'Erro desconhecido ao carregar dados.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchCatalogo();
-  }, []);
+    fetchCatalogo(true);
+    const interval = setInterval(() => fetchCatalogo(true), 60000); // Auto-refresh a cada 60s
+    return () => clearInterval(interval);
+  }, [fetchCatalogo]);
 
   // Persistir cotações no localStorage
   useEffect(() => {
@@ -144,7 +201,8 @@ export default function App() {
   }, [quotes]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY_ACTIVE, activeQuoteId);
+    if (activeQuoteId) localStorage.setItem(STORAGE_KEY_ACTIVE, activeQuoteId);
+    else localStorage.removeItem(STORAGE_KEY_ACTIVE);
   }, [activeQuoteId]);
 
   const searchedEstoque = useMemo(() => {
@@ -181,13 +239,32 @@ export default function App() {
   }, [data, search]);
 
   const filteredEstoque = useMemo(() => {
-    if (!statusFilter) return searchedEstoque;
-    return searchedEstoque.filter(item => {
-      const s = item.status?.toUpperCase() || '';
-      if (statusFilter === 'NOVO') return s.includes('NOVO');
-      if (statusFilter === 'USADO') return s.includes('USADO');
-      return true;
-    });
+    let res = searchedEstoque;
+    if (statusFilter) {
+      res = res.filter(item => {
+        const s = item.status?.toUpperCase() || '';
+        if (statusFilter === 'NOVO') return s.includes('NOVO');
+        if (statusFilter === 'USADO') return s.includes('USADO');
+        return true;
+      });
+    }
+    if (activeBrand) {
+      res = res.filter(item => item.marca === activeBrand);
+    }
+    return res;
+  }, [searchedEstoque, statusFilter, activeBrand]);
+
+  const availableBrands = useMemo(() => {
+    let res = searchedEstoque;
+    if (statusFilter) {
+      res = res.filter(item => {
+        const s = item.status?.toUpperCase() || '';
+        if (statusFilter === 'NOVO') return s.includes('NOVO');
+        if (statusFilter === 'USADO') return s.includes('USADO');
+        return true;
+      });
+    }
+    return Array.from(new Set(res.map(i => i.marca))).sort();
   }, [searchedEstoque, statusFilter]);
 
   // Detectar itens cotados que não estão mais disponíveis no estoque
@@ -236,8 +313,16 @@ export default function App() {
       return acc;
     }, {});
 
-    return Object.values(groups).sort((a, b) => b.items.length - a.items.length);
-  }, [filteredEstoque]);
+    const values = Object.values(groups);
+    // Sort: items in active proposal first, then by quantity
+    values.sort((a, b) => {
+      const aInCart = cart.some(c => a.items.some(i => i.idPatrimonio === c.idPatrimonio)) ? 1 : 0;
+      const bInCart = cart.some(c => b.items.some(i => i.idPatrimonio === c.idPatrimonio)) ? 1 : 0;
+      if (aInCart !== bInCart) return bInCart - aInCart;
+      return b.items.length - a.items.length;
+    });
+    return values;
+  }, [filteredEstoque, cart]);
 
   const sortedGroupedEstoque = useMemo(() => {
     let sortableItems = [...groupedEstoque];
@@ -278,18 +363,36 @@ export default function App() {
   };
 
   const toggleCartItem = (item: Equipamento) => {
+    let currentActiveId = activeQuoteId;
+    if (quotes.length === 0 || !activeQuote) {
+      const id = Date.now().toString();
+      const newQuote: Quote = { id, name: 'Proposta 1', items: [item], clientName: '', margin: '', validityDays: 2 };
+      setQuotes([newQuote]);
+      setActiveQuoteId(id);
+      return;
+    }
+
     const exists = cart.some(c => c.idPatrimonio === item.idPatrimonio);
     const newItems = exists
       ? cart.filter(c => c.idPatrimonio !== item.idPatrimonio)
       : [...cart, item];
-    updateQuote(activeQuoteId, { items: newItems });
+    updateQuote(currentActiveId as string, { items: newItems });
   };
 
-  const clearCart = () => {
-    if (confirm('Tem certeza que deseja limpar toda a cotação?')) updateQuote(activeQuoteId, { items: [] });
+  const deleteProposal = () => {
+    if (!activeQuoteId) return;
+    showConfirm(
+      'Excluir Proposta',
+      'Tem certeza que deseja excluir esta proposta e todos os seus dados? Esta ação não pode ser desfeita.',
+      () => {
+        removeQuote(activeQuoteId);
+        setIsQuoteModalOpen(false);
+      }
+    );
   };
 
   const generateWhatsAppLink = () => {
+    if (!activeQuote) return;
     const { clientName, margin } = activeQuote;
     let text = `*Orçamento de Equipamentos*\nCliente: ${clientName || 'Não informado'}\n\n`;
     if (margin) text += `Condição/Margem: ${margin}\n\n`;
@@ -307,19 +410,54 @@ export default function App() {
   };
 
   const handleReserve = async () => {
-    if (cart.length === 0) return;
+    if (cart.length === 0 || !activeQuoteId || !activeQuote) return;
     setIsSubmitting(true);
     try {
-      // const response = await fetch('YOUR_N8N_WEBHOOK_URL', { ... });
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      alert('Reserva solicitada com sucesso ao n8n!');
-      updateQuote(activeQuoteId, { items: [] });
-      setIsQuoteModalOpen(false);
-    } catch (err) {
-      alert('Erro ao comunicar com n8n. Verifique o webhook.');
+      const payload = {
+        propostaId: activeQuote.id,
+        nomeProposta: activeQuote.name,
+        cliente: activeQuote.clientName || 'Não informado',
+        validadeDias: activeQuote.validityDays || 2,
+        itens: cart.map(i => ({
+          idPatrimonio: i.idPatrimonio,
+          numeroSerie: i.numeroSerie,
+          modelo: i.modelo
+        }))
+      };
+
+      const response = await fetch('http://localhost:5678/webhook/reservar_ativos', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        if (response.status === 409) {
+          throw new Error('Falha na reserva. Algumas máquinas não estão mais disponíveis no estoque.');
+        } else {
+          throw new Error('Erro ao comunicar com o sistema. Verifique a conexão com o n8n.');
+        }
+      }
+
+      updateQuote(activeQuoteId, { isReserved: true });
+      
+      // Força um refresh para pegar o novo JSON com os status "RESERVADO" se o n8n já tiver rodado
+      setTimeout(() => fetchCatalogo(true), 1500);
+    } catch (err: any) {
+      addToast(err.message || 'Erro desconhecido ao reservar.', 'error');
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const resetCatalog = () => {
+    setSearch('');
+    setStatusFilter(null);
+    setActiveBrand(null);
+    setSortConfig(null);
+    setViewMode('cards');
   };
 
   if (loading) {
@@ -348,22 +486,28 @@ export default function App() {
 
         <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-2 custom-scrollbar">
           <div className="px-3 mb-2 text-xs font-bold uppercase tracking-wider text-slate-500">Menu Principal</div>
-          <button className="w-full flex items-center gap-3 px-3 py-2.5 bg-indigo-600/10 text-indigo-400 rounded-xl font-medium transition-colors border border-indigo-500/20 shadow-sm">
+          <button onClick={resetCatalog} className="w-full flex items-center gap-3 px-3 py-2.5 bg-indigo-600/10 text-indigo-400 rounded-xl font-medium transition-colors border border-indigo-500/20 shadow-sm hover:bg-indigo-600/20">
             <LayoutDashboard className="w-5 h-5" />
-            Micro Estoque
+            Ver Todo o Catálogo
           </button>
 
           <div className="px-3 mt-8 mb-1 flex justify-between items-center">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Minhas Cotações</span>
-            <button onClick={addNewQuote} className="text-slate-500 hover:text-indigo-400 transition-colors" title="Nova cotação">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Minhas Propostas</span>
+            <button onClick={addNewQuote} className="text-slate-500 hover:text-indigo-400 transition-colors" title="Nova proposta">
               <Plus className="w-4 h-4" />
             </button>
           </div>
 
+          {quotes.length === 0 && (
+            <div className="px-3 py-4 text-center">
+              <p className="text-[11px] text-slate-500 leading-relaxed">Nenhuma proposta criada.<br />Selecione itens no catálogo para iniciar.</p>
+            </div>
+          )}
+
           {quotes.map(q => (
             <button
               key={q.id}
-              onClick={() => { setActiveQuoteId(q.id); if (q.items.length > 0) setIsQuoteModalOpen(true); }}
+              onClick={() => setActiveQuoteId(q.id)}
               className={clsx(
                 "w-full flex justify-between items-center px-3 py-2.5 rounded-xl font-medium transition-colors group text-left",
                 q.id === activeQuoteId
@@ -372,32 +516,39 @@ export default function App() {
               )}
             >
               <div className="flex items-center gap-3 min-w-0">
-                <ShoppingCart className="w-4 h-4 shrink-0" />
-                <span className="truncate text-sm">{q.name}</span>
+                <FileText className="w-4 h-4 shrink-0" />
+                <div className="min-w-0">
+                  <span className="truncate text-sm block">{q.name}</span>
+                  {q.clientName && <span className="truncate text-[11px] font-black text-indigo-300 block mt-0.5">{q.clientName}</span>}
+                </div>
               </div>
               <div className="flex items-center gap-1 shrink-0">
+                {q.isReserved && <CheckCircle className="w-3.5 h-3.5 text-emerald-400 mr-1" />}
                 {q.items.length > 0 && (
-                  <span className="bg-amber-500 text-amber-950 text-xs font-bold px-1.5 py-0.5 rounded">
+                  <span className="bg-amber-500 text-amber-950 text-[10px] font-bold px-1.5 py-0.5 rounded">
                     {q.items.length}
                   </span>
                 )}
-                {quotes.length > 1 && (
-                  <span
-                    onClick={(e) => { e.stopPropagation(); removeQuote(q.id); }}
-                    className="text-slate-600 hover:text-red-400 transition-colors ml-1"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </span>
-                )}
+                <span
+                  onClick={(e) => { e.stopPropagation(); showConfirm('Excluir Proposta', `Deseja excluir "${q.name}"?`, () => removeQuote(q.id)); }}
+                  className="text-slate-600 hover:text-red-400 transition-colors ml-1 opacity-0 group-hover:opacity-100"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </span>
               </div>
             </button>
           ))}
         </nav>
 
         <div className="p-4 border-t border-slate-800/50">
-          <div className="text-[10px] text-center text-slate-500 uppercase tracking-widest mb-2 font-bold">Status do Estoque</div>
+          <div className="flex justify-between items-center mb-2 px-1">
+            <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Status do Estoque</span>
+            <button onClick={() => fetchCatalogo(false)} disabled={isRefreshing} className={clsx("text-slate-500 hover:text-indigo-400 transition-colors", isRefreshing && "animate-spin text-indigo-400")} title="Atualizar Agora">
+              <RefreshCw className="w-3.5 h-3.5" />
+            </button>
+          </div>
           <div className={clsx(
-            "w-full px-3 py-2 rounded-lg flex items-center justify-center gap-2 text-xs font-bold shadow-inner border",
+            "w-full px-3 py-2 rounded-lg flex items-center justify-center gap-2 text-xs font-bold shadow-inner border mb-3",
             statusCritico
               ? "bg-amber-900/30 text-amber-400 border-amber-900/50"
               : "bg-emerald-900/30 text-emerald-400 border-emerald-900/50"
@@ -405,6 +556,14 @@ export default function App() {
             {statusCritico ? <AlertTriangle className="w-3 h-3" /> : <CheckCircle className="w-3 h-3" />}
             <span>{format(ultimaAtualizacao, "dd/MM HH:mm")}</span>
           </div>
+          <button 
+            onClick={syncGLPI} 
+            disabled={isRefreshing}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-bold transition-colors border border-slate-700"
+            title="Forçar webhook do n8n para atualizar o catálogo a partir do GLPI"
+          >
+            <Server className="w-3.5 h-3.5" /> Forçar Sincronização
+          </button>
         </div>
       </aside>
 
@@ -417,17 +576,29 @@ export default function App() {
             <p className="text-sm text-slate-500 font-medium">Catálogo comercial de ativos • {format(new Date(), "EEEE, d 'de' MMMM", { locale: ptBR })}</p>
           </div>
 
-          <div className="relative w-full md:w-96 group">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
+          <div className="relative w-full md:w-auto flex items-center gap-3">
+            <div className="relative flex-1 md:w-96 group">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
+              </div>
+              <input
+                type="text"
+                placeholder="Buscar por marca, modelo, proc, série..."
+                className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl leading-5 bg-slate-50/50 text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all shadow-sm font-medium"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
             </div>
-            <input
-              type="text"
-              placeholder="Buscar por marca, modelo, proc, série..."
-              className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl leading-5 bg-slate-50/50 text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all shadow-sm font-medium"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+            {activeQuote && cart.length > 0 && (
+              <button
+                onClick={() => setIsQuoteModalOpen(true)}
+                className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-colors shadow-sm whitespace-nowrap"
+              >
+                <FileText className="w-4 h-4" />
+                <span>{activeQuote.name}</span>
+                <span className="bg-white/20 text-[10px] font-bold px-1.5 py-0.5 rounded">{cart.length}</span>
+              </button>
+            )}
           </div>
         </header>
 
@@ -435,7 +606,7 @@ export default function App() {
         <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-[#f8fafc]">
 
           {/* Summary Cards / Filtros */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <button
               onClick={() => setStatusFilter(null)}
               className={clsx("bg-white rounded-2xl p-5 shadow-sm border text-left flex flex-col justify-between transition-all", !statusFilter ? "border-indigo-400 ring-2 ring-indigo-100" : "border-slate-200 hover:border-slate-300")}
@@ -471,19 +642,28 @@ export default function App() {
               <div className="text-3xl font-black text-amber-600">{searchedEstoque.filter(i => !i.status?.toUpperCase().includes('NOVO')).length}</div>
               <div className="text-xs text-slate-400 mt-1">clique para filtrar</div>
             </button>
-
-            <button
-              onClick={() => { if (cart.length > 0) setIsQuoteModalOpen(true); }}
-              className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 hover:border-emerald-300 text-left flex flex-col justify-between transition-all"
-            >
-              <div className="flex justify-between items-start mb-2">
-                <span className="text-xs font-bold text-slate-500 tracking-wider uppercase">No Carrinho</span>
-                <ShoppingCart className="w-5 h-5 text-emerald-400" />
-              </div>
-              <div className="text-3xl font-black text-emerald-600">{cart.length}</div>
-              <div className="text-xs text-slate-400 mt-1">{cart.length > 0 ? 'clique para ver proposta' : 'nenhum selecionado'}</div>
-            </button>
           </div>
+
+          {/* Quick Brand Filter */}
+          {availableBrands.length > 0 && (
+            <div className="flex gap-2 overflow-x-auto pb-4 mb-4 custom-scrollbar">
+              <button
+                onClick={() => setActiveBrand(null)}
+                className={clsx("whitespace-nowrap px-4 py-1.5 rounded-full text-[11px] font-bold transition-all border", !activeBrand ? "bg-indigo-600 text-white border-indigo-600 shadow-md" : "bg-white text-slate-500 border-slate-200 hover:border-indigo-300 hover:text-indigo-600")}
+              >
+                Todas as Marcas
+              </button>
+              {availableBrands.map(marca => (
+                <button
+                  key={marca}
+                  onClick={() => setActiveBrand(marca)}
+                  className={clsx("whitespace-nowrap px-4 py-1.5 rounded-full text-[11px] font-bold transition-all border", activeBrand === marca ? "bg-indigo-600 text-white border-indigo-600 shadow-md" : "bg-white text-slate-500 border-slate-200 hover:border-indigo-300 hover:text-indigo-600")}
+                >
+                  {marca}
+                </button>
+              ))}
+            </div>
+          )}
 
           {statusFilter && (
             <div className="mb-4 flex items-center gap-2">
@@ -508,9 +688,15 @@ export default function App() {
           </div>
 
           {groupedEstoque.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-slate-200 border-dashed p-12 text-center shadow-sm">
-              <Search className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-              <p className="text-slate-500 text-lg font-medium">Nenhum equipamento encontrado.</p>
+            <div className="bg-white rounded-2xl border border-slate-200 border-dashed p-16 text-center shadow-sm">
+              <Search className="w-14 h-14 text-slate-300 mx-auto mb-5" />
+              <p className="text-slate-600 text-lg font-bold mb-2">Nenhum equipamento encontrado</p>
+              <p className="text-slate-400 text-sm max-w-md mx-auto mb-5">Verifique os termos digitados ou tente buscar de forma mais genérica. Você pode buscar por marca, modelo, processador ou número de série.</p>
+              {(search || statusFilter) && (
+                <button onClick={resetCatalog} className="inline-flex items-center gap-2 text-sm font-bold text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-4 py-2 rounded-xl border border-indigo-200 transition-colors">
+                  <X className="w-4 h-4" /> Limpar filtros
+                </button>
+              )}
             </div>
           ) : viewMode === 'cards' ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 pb-24">
@@ -631,12 +817,13 @@ export default function App() {
 
       {/* MODAL DE SELEÇÃO DE MÁQUINAS (ACTIVE GROUP) */}
       {activeGroup && (() => {
+        const availableItems = activeGroup.items.filter(i => !i.status?.toUpperCase().includes('RESERVADO'));
         const selectedCount = cart.filter(c => activeGroup.items.some(i => i.idPatrimonio === c.idPatrimonio)).length;
-        const allSelected = selectedCount === activeGroup.items.length;
+        const allSelected = availableItems.length > 0 && selectedCount === availableItems.length;
 
         const selectAll = () => {
           const currentIds = new Set(cart.map(c => c.idPatrimonio));
-          const toAdd = activeGroup.items.filter(i => !currentIds.has(i.idPatrimonio));
+          const toAdd = availableItems.filter(i => !currentIds.has(i.idPatrimonio));
           if (toAdd.length > 0) updateQuote(activeQuoteId, { items: [...cart, ...toAdd] });
         };
 
@@ -648,13 +835,13 @@ export default function App() {
         const selectQuantity = (qty: number) => {
           const groupIds = new Set(activeGroup.items.map(i => i.idPatrimonio));
           const withoutGroup = cart.filter(c => !groupIds.has(c.idPatrimonio));
-          const toAdd = activeGroup.items.slice(0, qty);
+          const toAdd = availableItems.slice(0, qty);
           updateQuote(activeQuoteId, { items: [...withoutGroup, ...toAdd] });
         };
 
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm print:hidden">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm backdrop-enter print:hidden">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden modal-enter">
               {/* Header Modal */}
               <div className="p-6 border-b border-slate-100 flex justify-between items-start bg-slate-50 relative">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-full blur-2xl pointer-events-none"></div>
@@ -687,7 +874,7 @@ export default function App() {
                     onChange={(e) => selectQuantity(Number(e.target.value))}
                     className="border border-slate-300 rounded-lg px-2 py-1.5 text-sm font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
                   >
-                    {Array.from({ length: activeGroup.items.length + 1 }, (_, i) => (
+                    {Array.from({ length: availableItems.length + 1 }, (_, i) => (
                       <option key={i} value={i}>{i}</option>
                     ))}
                   </select>
@@ -708,18 +895,20 @@ export default function App() {
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {activeGroup.items.map(item => {
+                      const isReserved = item.status?.toUpperCase().includes('RESERVADO');
                       const isSelected = cart.some(c => c.idPatrimonio === item.idPatrimonio);
                       return (
                         <tr
                           key={item.idPatrimonio}
-                          className={clsx("transition-colors hover:bg-slate-50 cursor-pointer", isSelected ? "bg-indigo-50/50" : "")}
-                          onClick={() => toggleCartItem(item)}
+                          className={clsx("transition-colors", isReserved ? "bg-red-50/40 opacity-80" : "hover:bg-slate-50 cursor-pointer", isSelected && !isReserved ? "bg-indigo-50/50" : "")}
+                          onClick={() => !isReserved && toggleCartItem(item)}
                         >
                           <td className="py-4 px-6">
                             <input
                               type="checkbox"
                               className="w-5 h-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-600 cursor-pointer pointer-events-none"
                               checked={isSelected}
+                              disabled={isReserved}
                               readOnly
                             />
                           </td>
@@ -729,13 +918,20 @@ export default function App() {
                           </td>
                           <td className="py-4 px-6 text-sm font-medium text-slate-600">{item.especificacoes.so || 'N/A'}</td>
                           <td className="py-4 px-6">
-                            <span className={clsx("text-[10px] font-bold px-2.5 py-1 rounded-full border",
-                              item.status?.includes('NOVO') ? "bg-blue-50 text-blue-700 border-blue-200" :
-                                item.status?.includes('DISPONIVEL') ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
-                                  "bg-slate-100 text-slate-600 border-slate-200"
-                            )}>
-                              {item.status?.replace('DISPONIVEL', '').trim() || item.status}
-                            </span>
+                            {isReserved ? (
+                              <span className="inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full border bg-red-50 text-red-700 border-red-200 whitespace-nowrap">
+                                <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
+                                {item.status}
+                              </span>
+                            ) : (
+                              <span className={clsx("text-[10px] font-bold px-2.5 py-1 rounded-full border",
+                                item.status?.includes('NOVO') ? "bg-blue-50 text-blue-700 border-blue-200" :
+                                  item.status?.includes('DISPONIVEL') ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
+                                    "bg-slate-100 text-slate-600 border-slate-200"
+                              )}>
+                                {item.status?.replace('DISPONIVEL', '').trim() || item.status}
+                              </span>
+                            )}
                           </td>
                         </tr>
                       );
@@ -755,9 +951,9 @@ export default function App() {
       })()}
 
       {/* QUOTE MODAL */}
-      {isQuoteModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm print:hidden">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+      {isQuoteModalOpen && activeQuote && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm backdrop-enter print:hidden">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden modal-enter">
             <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
               <h2 className="text-xl font-black text-slate-800 flex items-center gap-2">
                 <FileText className="text-indigo-600" /> Montar Proposta Comercial
@@ -769,8 +965,8 @@ export default function App() {
 
             <div className="p-6 flex-1 overflow-y-auto custom-scrollbar">
               <div className="mb-3 flex items-center gap-2 pb-3 border-b border-slate-100">
-                <ShoppingCart className="w-4 h-4 text-amber-500" />
-                <span className="text-sm font-bold text-slate-700">{activeQuote.name}</span>
+                <FileText className="w-4 h-4 text-indigo-500" />
+                <span className="text-sm font-bold text-slate-700">{activeQuote?.name}</span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div>
@@ -788,8 +984,8 @@ export default function App() {
               </div>
 
               <div className="flex justify-between items-end mb-3">
-                <h3 className="text-sm font-bold text-slate-800 uppercase tracking-widest">Itens da Cotação</h3>
-                <span className="text-xs font-bold bg-amber-100 text-amber-800 px-2 py-1 rounded-md">{cart.length} selecionados</span>
+                <h3 className="text-sm font-bold text-slate-800 uppercase tracking-widest">Itens da Proposta</h3>
+                <span className="text-xs font-bold bg-indigo-100 text-indigo-800 px-2 py-1 rounded-md">{cart.length} {cart.length === 1 ? 'item' : 'itens'}</span>
               </div>
 
               <div className="space-y-3">
@@ -818,32 +1014,30 @@ export default function App() {
                   );
                 })}
                 {cart.length === 0 && (
-                  <div className="text-center p-8 text-slate-400 font-medium">Você esvaziou a cotação.</div>
+                  <div className="text-center p-8 text-slate-400 font-medium">Nenhum item nesta proposta. Selecione equipamentos no catálogo.</div>
                 )}
               </div>
             </div>
 
             <div className="p-5 border-t border-slate-200 bg-slate-50 flex flex-wrap gap-3 justify-between items-center">
-              <button onClick={clearCart} className="text-sm font-bold text-slate-400 hover:text-red-500 transition-colors">Esvaziar Cotação</button>
-              <div className="flex gap-2">
+              <button onClick={deleteProposal} className="text-sm font-bold text-red-400 hover:text-red-600 transition-colors flex items-center gap-1.5"><Trash2 className="w-3.5 h-3.5" /> Excluir Proposta</button>
+              <div className="flex items-center gap-2">
+                {activeQuote.isReserved && (
+                  <div className="flex items-center gap-2 mr-4 text-emerald-600 bg-emerald-50 px-3 py-2 rounded-xl border border-emerald-200 font-bold text-sm animate-pulse">
+                    <CheckCircle className="w-5 h-5" /> Reserva Confirmada
+                  </div>
+                )}
                 <button onClick={generateWhatsAppLink} className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold transition-colors shadow-sm">
                   <Send className="w-4 h-4" /> WhatsApp
                 </button>
-                <button
-                  onClick={() => {
-                    const oldTitle = document.title;
-                    const clientName = activeQuote.clientName || 'Cliente';
-                    document.title = `Proposta - ${clientName} - ${activeQuote.name}`;
-                    window.print();
-                    document.title = oldTitle;
-                  }}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold transition-colors shadow-sm"
-                >
-                  <FileText className="w-4 h-4" /> PDF
+                <button onClick={() => window.print()} className="flex items-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold transition-colors shadow-sm">
+                  <FileText className="w-4 h-4" /> Gerar PDF
                 </button>
-                <button onClick={handleReserve} disabled={isSubmitting || cart.length === 0} className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-colors shadow-sm disabled:opacity-50">
-                  {isSubmitting ? 'Reservando...' : 'Reservar'}
-                </button>
+                {!activeQuote.isReserved && (
+                  <button onClick={handleReserve} disabled={isSubmitting} className={clsx("flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-colors shadow-sm", isSubmitting && "opacity-70 cursor-wait")}>
+                    {isSubmitting ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Server className="w-4 h-4" />} Reservar
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -851,95 +1045,156 @@ export default function App() {
       )}
 
       {/* PDF PRINT TEMPLATE (Only visible on Print) */}
-      <div className="hidden print:block p-8 bg-white text-slate-900 w-full min-h-screen relative font-sans">
-        {/* Marca d'água no centro da página */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none z-0">
-          <img src={watermarkOficial} alt="" className="w-2/3 object-contain" />
-        </div>
-
-        {/* HEADER ESCURO */}
-        <div className="bg-[#0f172a] rounded-xl p-6 mb-8 flex justify-between items-center text-white relative z-10 shadow-sm print:exact-colors print:bg-[#0f172a]">
-          <div className="flex items-center">
-            <img src={logoOficial} alt="Logo" className="h-16 object-contain" />
+      {activeQuote && (
+        <div className="hidden print:block p-8 bg-white text-slate-900 w-full min-h-screen relative font-sans">
+          {/* Marca d'água no centro da página */}
+          <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none z-0">
+            <img src={watermarkOficial} alt="" className="w-2/3 object-contain" />
           </div>
-          <div className="text-right">
-            <h1 className="text-2xl font-black text-blue-400 tracking-widest uppercase">Proposta Comercial</h1>
-            <p className="text-xl font-bold mt-1 text-white">{activeQuote.name}</p>
-            <p className="text-xs text-slate-400 mt-2">Emissão: {format(new Date(), "dd/MM/yyyy, HH:mm")}</p>
-          </div>
-        </div>
 
-        {/* DADOS DO CONTRATANTE */}
-        <div className="mb-6 relative z-10">
-          <h2 className="text-blue-700 font-bold text-sm tracking-widest uppercase mb-2 border-l-4 border-blue-700 pl-2">Dados do Contratante</h2>
-          <div className="grid grid-cols-2 bg-slate-50 border border-slate-200 rounded-lg overflow-hidden">
-            <div className="p-3 border-b border-slate-200 col-span-2">
-              <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Razão Social / Nome do Cliente</div>
-              <div className="text-slate-800 font-medium text-sm">{activeQuote.clientName || "Não Informado"}</div>
+          {/* HEADER ESCURO */}
+          <div className="bg-[#0f172a] rounded-xl p-6 mb-8 flex justify-between items-center text-white relative z-10 shadow-sm print:exact-colors print:bg-[#0f172a]">
+            <div className="flex items-center">
+              <img src={logoOficial} alt="Logo" className="h-16 object-contain" />
             </div>
-            <div className="p-3 border-r border-slate-200">
-              <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Condição Especial / Margem</div>
-              <div className="text-slate-800 font-medium text-sm">{activeQuote.margin || "—"}</div>
+            <div className="text-right">
+              <h1 className="text-2xl font-black text-blue-400 tracking-widest uppercase">Proposta Comercial</h1>
+              <p className="text-xl font-bold mt-1 text-white">{activeQuote.name}</p>
+              <p className="text-xs text-slate-400 mt-2">Emissão: {format(new Date(), "dd/MM/yyyy, HH:mm")}</p>
             </div>
-            <div className="p-3">
-              <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Validade da Proposta</div>
-              <div className="text-slate-800 font-medium text-sm">
-                {activeQuote.validityDays ?? 2} {(activeQuote.validityDays ?? 2) <= 1 ? 'dia útil' : 'dias úteis'}
+          </div>
+
+          {/* DADOS DO CONTRATANTE */}
+          <div className="mb-6 relative z-10">
+            <h2 className="text-blue-700 font-bold text-sm tracking-widest uppercase mb-2 border-l-4 border-blue-700 pl-2">Dados do Contratante</h2>
+            <div className="grid grid-cols-2 bg-slate-50 border border-slate-200 rounded-lg overflow-hidden">
+              <div className="p-3 border-b border-slate-200 col-span-2">
+                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Razão Social / Nome do Cliente</div>
+                <div className="text-slate-800 font-medium text-sm">{activeQuote.clientName || "Não Informado"}</div>
+              </div>
+              <div className="p-3 border-r border-slate-200">
+                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Condição Especial / Margem</div>
+                <div className="text-slate-800 font-medium text-sm">{activeQuote.margin || "—"}</div>
+              </div>
+              <div className="p-3">
+                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Validade da Proposta</div>
+                <div className="text-slate-800 font-medium text-sm">
+                  {activeQuote.validityDays ?? 2} {(activeQuote.validityDays ?? 2) <= 1 ? 'dia útil' : 'dias úteis'}
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* ITENS DA PROPOSTA */}
-        <div className="mb-8 relative z-10">
-          <h2 className="text-blue-700 font-bold text-sm tracking-widest uppercase mb-2 border-l-4 border-blue-700 pl-2">Itens da Proposta</h2>
-          <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
-            <table className="w-full text-left border-collapse">
-              <thead className="bg-slate-50 border-b border-slate-200">
-                <tr>
-                  <th className="py-2.5 px-3 text-[10px] font-bold uppercase tracking-widest text-slate-500 w-1/3">Item / Equipamento</th>
-                  <th className="py-2.5 px-3 text-[10px] font-bold uppercase tracking-widest text-slate-500 w-1/3 border-l border-slate-200">Especificações</th>
-                  <th className="py-2.5 px-3 text-[10px] font-bold uppercase tracking-widest text-slate-500 w-1/3 border-l border-slate-200">Identificação</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200">
-                {cart.map((item, i) => (
-                  <tr key={i}>
-                    <td className="py-3 px-3 align-top">
-                      <div className="font-black text-slate-800 text-sm uppercase">{item.tipo} {item.marca}</div>
-                      <div className="text-slate-600 font-medium text-xs mt-0.5">{item.modelo}</div>
-                    </td>
-                    <td className="py-3 px-3 align-top text-[11px] text-slate-700 border-l border-slate-200">
-                      <ul className="space-y-1">
-                        <li><span className="font-bold text-slate-500 uppercase tracking-wide text-[9px]">Processador:</span> {item.especificacoes?.processador}</li>
-                        <li><span className="font-bold text-slate-500 uppercase tracking-wide text-[9px]">Memória / Armazenamento:</span> {item.especificacoes?.ram} | {item.especificacoes?.armazenamento}</li>
-                        <li><span className="font-bold text-slate-500 uppercase tracking-wide text-[9px]">Sistema Operacional:</span> {item.especificacoes?.so}</li>
-                      </ul>
-                    </td>
-                    <td className="py-3 px-3 align-top border-l border-slate-200">
-                      <div className="mb-1.5"><span className="font-bold text-slate-500 uppercase tracking-wide text-[9px]">SÉRIE:</span> <span className="font-mono text-sm font-black text-slate-800 block mt-0.5">{item.numeroSerie}</span></div>
-                      <div className="font-mono text-[11px] text-slate-600"><span className="font-bold text-slate-500 uppercase tracking-wide text-[9px] font-sans">PATRIMÔNIO:</span> {item.idPatrimonio}</div>
-                    </td>
+          {/* ITENS DA PROPOSTA */}
+          <div className="mb-8 relative z-10">
+            <h2 className="text-blue-700 font-bold text-sm tracking-widest uppercase mb-2 border-l-4 border-blue-700 pl-2">Itens da Proposta</h2>
+            <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
+              <table className="w-full text-left border-collapse">
+                <thead className="bg-slate-50 border-b border-slate-200">
+                  <tr>
+                    <th className="py-2.5 px-3 text-[10px] font-bold uppercase tracking-widest text-slate-500 w-1/3">Item / Equipamento</th>
+                    <th className="py-2.5 px-3 text-[10px] font-bold uppercase tracking-widest text-slate-500 w-1/3 border-l border-slate-200">Especificações</th>
+                    <th className="py-2.5 px-3 text-[10px] font-bold uppercase tracking-widest text-slate-500 w-1/3 border-l border-slate-200">Identificação</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-200">
+                  {cart.map((item, i) => (
+                    <tr key={i}>
+                      <td className="py-3 px-3 align-top">
+                        <div className="font-black text-slate-800 text-sm uppercase">{item.tipo} {item.marca}</div>
+                        <div className="text-slate-600 font-medium text-xs mt-0.5">{item.modelo}</div>
+                      </td>
+                      <td className="py-3 px-3 align-top text-[11px] text-slate-700 border-l border-slate-200">
+                        <ul className="space-y-1">
+                          <li><span className="font-bold text-slate-500 uppercase tracking-wide text-[9px]">Processador:</span> {item.especificacoes?.processador}</li>
+                          <li><span className="font-bold text-slate-500 uppercase tracking-wide text-[9px]">Memória RAM:</span> {item.especificacoes?.ram}</li>
+                          <li><span className="font-bold text-slate-500 uppercase tracking-wide text-[9px]">Armazenamento:</span> {item.especificacoes?.armazenamento}</li>
+                          <li><span className="font-bold text-slate-500 uppercase tracking-wide text-[9px]">Sistema Operacional:</span> {item.especificacoes?.so}</li>
+                        </ul>
+                      </td>
+                      <td className="py-3 px-3 align-top border-l border-slate-200">
+                        <div className="mb-1.5"><span className="font-bold text-slate-500 uppercase tracking-wide text-[9px]">SÉRIE:</span> <span className="font-mono text-sm font-black text-slate-800 block mt-0.5">{item.numeroSerie}</span></div>
+                        <div className="font-mono text-[11px] text-slate-600"><span className="font-bold text-slate-500 uppercase tracking-wide text-[9px] font-sans">PATRIMÔNIO:</span> {item.idPatrimonio}</div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* FOOTER / AVISO */}
+          <div className="mt-12 pt-8 relative z-10 break-inside-avoid">
+            <p className="text-[11px] text-slate-500 text-center italic px-8">
+              Declaro para os devidos fins que os equipamentos descritos acima compõem a proposta comercial atual. A efetivação e faturamento dependem de aprovação formal.
+            </p>
+          </div>
+
+          {/* RODAPÉ ABSOLUTO */}
+          <div className="fixed bottom-6 w-full left-0 px-8 flex justify-between items-center text-[9px] font-medium text-slate-400">
+            <span>Documento eletrônico oficial gerado pela Micro Sistema Soluções (Micro Estoque).</span>
+            <span>Página 1 de 1</span>
           </div>
         </div>
+      )}
 
-        {/* FOOTER / AVISO */}
-        <div className="mt-12 pt-8 relative z-10 break-inside-avoid">
-          <p className="text-[11px] text-slate-500 text-center italic px-8">
-            Declaro para os devidos fins que os equipamentos descritos acima compõem a proposta comercial atual. A efetivação e faturamento dependem de aprovação formal.
-          </p>
+      {/* TOAST NOTIFICATIONS */}
+      {toasts.length > 0 && (
+        <div className="fixed top-6 right-6 z-[100] flex flex-col gap-3 print:hidden">
+          {toasts.map(toast => (
+            <div
+              key={toast.id}
+              className={clsx(
+                "flex items-center gap-3 px-5 py-3.5 rounded-xl shadow-lg border backdrop-blur-sm min-w-[320px] max-w-[420px]",
+                toast.exiting ? 'toast-exit' : 'toast-enter',
+                toast.type === 'success' && "bg-emerald-50/95 border-emerald-200 text-emerald-800",
+                toast.type === 'error' && "bg-red-50/95 border-red-200 text-red-800",
+                toast.type === 'info' && "bg-blue-50/95 border-blue-200 text-blue-800"
+              )}
+            >
+              {toast.type === 'success' && <CheckCircle className="w-5 h-5 text-emerald-500 shrink-0" />}
+              {toast.type === 'error' && <AlertCircle className="w-5 h-5 text-red-500 shrink-0" />}
+              {toast.type === 'info' && <Info className="w-5 h-5 text-blue-500 shrink-0" />}
+              <span className="text-sm font-semibold flex-1">{toast.message}</span>
+              <button
+                onClick={() => setToasts(prev => prev.filter(t => t.id !== toast.id))}
+                className="text-current opacity-40 hover:opacity-100 transition-opacity shrink-0"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
         </div>
+      )}
 
-        {/* RODAPÉ ABSOLUTO */}
-        <div className="fixed bottom-6 w-full left-0 px-8 flex justify-between items-center text-[9px] font-medium text-slate-400">
-          <span>Documento eletrônico oficial gerado pela Micro Sistema Soluções (Micro Estoque).</span>
-          <span>Página 1 de 1</span>
+      {/* CONFIRM DIALOG */}
+      {confirmDialog && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm backdrop-enter print:hidden">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md modal-enter overflow-hidden">
+            <div className="p-6 pb-4">
+              <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-4">
+                <AlertTriangle className="w-6 h-6 text-amber-600" />
+              </div>
+              <h3 className="text-lg font-black text-slate-800 text-center mb-2">{confirmDialog.title}</h3>
+              <p className="text-sm text-slate-500 text-center leading-relaxed">{confirmDialog.message}</p>
+            </div>
+            <div className="flex border-t border-slate-100">
+              <button
+                onClick={() => setConfirmDialog(null)}
+                className="flex-1 py-3.5 text-sm font-bold text-slate-500 hover:bg-slate-50 transition-colors border-r border-slate-100"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => { confirmDialog.onConfirm(); setConfirmDialog(null); }}
+                className="flex-1 py-3.5 text-sm font-bold text-red-600 hover:bg-red-50 transition-colors"
+              >
+                Confirmar
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
     </div>
   );

@@ -1,8 +1,8 @@
 [
   {
     "metadados": {
-      "ultimaAtualizacao": "2026-05-06T12:45:20.224Z",
-      "totalItens": 108
+      "ultimaAtualizacao": "2026-05-07T13:12:32.610Z",
+      "totalItens": 109
     },
     "estoque": [
       {
@@ -672,9 +672,9 @@
         "status": "DISPONIVEL USADO",
         "especificacoes": {
           "processador": "I5 - 6ª GER",
-          "ram": "08 GB RAM",
+          "ram": "04 GB RAM DDR3",
           "armazenamento": "SSD 480 GB",
-          "so": "WINDOWS 11 PRO OEM"
+          "so": "WINDOWS 10 PRO O&M"
         }
       },
       {
@@ -801,6 +801,20 @@
           "ram": "12 GB RAM",
           "armazenamento": "NVME SSD 256GB + HD 1 TB",
           "so": "WINDOWS 11 PRO OEM"
+        }
+      },
+      {
+        "idPatrimonio": "0272",
+        "numeroSerie": "PE02VR83",
+        "tipo": "NOTEBOOK",
+        "marca": "LENOVO",
+        "modelo": "V310 - 14IKB",
+        "status": "DISPONIVEL USADO",
+        "especificacoes": {
+          "processador": "I5 - 7ª GER",
+          "ram": "08 GB RAM",
+          "armazenamento": "SSD 240 GB",
+          "so": "WINDOWS 10 PRO O&M"
         }
       },
       {

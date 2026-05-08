@@ -9,11 +9,47 @@
   --color-bg: #f8fafc;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   background-color: var(--color-bg);
   color: var(--color-dark);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Toast animations */
+@keyframes toast-in {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes toast-out {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(100%); opacity: 0; }
+}
+.toast-enter {
+  animation: toast-in 0.35s cubic-bezier(0.21, 1.02, 0.73, 1) forwards;
+}
+.toast-exit {
+  animation: toast-out 0.3s cubic-bezier(0.06, 0.71, 0.55, 1) forwards;
+}
+
+/* Modal backdrop */
+@keyframes backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes modal-in {
+  from { opacity: 0; transform: scale(0.95) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.backdrop-enter {
+  animation: backdrop-in 0.2s ease-out forwards;
+}
+.modal-enter {
+  animation: modal-in 0.25s cubic-bezier(0.21, 1.02, 0.73, 1) forwards;
 }
 
 /* Custom scrollbar for better look */
