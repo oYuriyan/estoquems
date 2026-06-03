@@ -1,34 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import type { Quote, Equipamento } from '../types';
 
-// Reuse types from App.tsx (or move them to a separate file later)
-export interface Equipamento {
-  idPatrimonio: string;
-  idGlpi: string;
-  numeroSerie: string;
-  tipo: string;
-  marca: string;
-  modelo: string;
-  status: string;
-  fornecedor: string;
-  especificacoes: {
-    processador: string;
-    ram: string;
-    armazenamento: string;
-    tela?: string;
-    so?: string;
-  };
-}
-
-export interface Quote {
-  id: string;
-  name: string;
-  items: Equipamento[];
-  clientName?: string;
-  margin?: string;
-  validityDays?: number;
-  isReserved?: boolean;
-  reservedAt?: string;
-}
+// Re-export para compatibilidade com imports existentes
+export type { Equipamento, Quote };
 
 interface AppContextData {
   quotes: Quote[];

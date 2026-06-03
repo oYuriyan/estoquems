@@ -9,77 +9,9 @@ import logoOficial from './assets/logo_oficial.png';
 import watermarkOficial from './assets/watermark_oficial.png';
 import { generatePdfBlob } from './utils/generatePdf';
 import { useAppContext } from './contexts/AppContext';
+import type { Equipamento, Catalogo, GroupedItem, Quote, Toast, ConfirmDialog } from './types';
 
-interface Especificacoes {
-  processador: string;
-  ram: string;
-  armazenamento: string;
-  tela?: string;
-  so?: string;
-}
-
-interface Equipamento {
-  idPatrimonio: string;
-  idGlpi: string;
-  numeroSerie: string;
-  tipo: string;
-  marca: string;
-  modelo: string;
-  status: string;
-  fornecedor: string;
-  especificacoes: Especificacoes;
-  clienteAlocado?: string;
-  ordemServico?: string;
-  dataExpiracao?: string | null;
-}
-
-interface Metadados {
-  ultimaAtualizacao: string;
-  totalItens: number;
-}
-
-interface Catalogo {
-  metadados: Metadados;
-  estoque: Equipamento[];
-}
-
-interface GroupedItem {
-  key: string;
-  modelo: string;
-  marca: string;
-  tipo: string;
-  processador: string;
-  ram: string;
-  armazenamento: string;
-  so: string;
-  novos: number;
-  usados: number;
-  items: Equipamento[];
-}
-
-interface Quote {
-  id: string;
-  name: string;
-  items: Equipamento[];
-  clientName?: string;
-  margin?: string;
-  validityDays?: number;
-  isReserved?: boolean;
-  reservedAt?: string; // ISO timestamp when reservation was made
-}
-
-interface Toast {
-  id: string;
-  message: string;
-  type: 'success' | 'error' | 'info';
-  exiting?: boolean;
-}
-
-interface ConfirmDialog {
-  title: string;
-  message: string;
-  onConfirm: () => void;
-}
+// Tipos centralizados em src/types/index.ts — não redefinir aqui
 
 
 export default function App() {
@@ -98,6 +30,8 @@ export default function App() {
   const { quotes, setQuotes, activeQuoteId, setActiveQuoteId, salesperson, setSalesperson, isDarkMode, setIsDarkMode } = useAppContext();
   const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // QW-6: FAB mobile — controla o drawer de propostas no celular
+  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const [quoteStep, setQuoteStep] = useState<1 | 2 | 3>(1);
 
   useEffect(() => {
@@ -189,6 +123,21 @@ export default function App() {
 
 
 
+  // QW-5: Fuse memoizado — o índice é construído UMA VEZ quando o data muda,
+  // não a cada keystroke. Melhora performance em catálogos grandes.
+  const fuseInstance = useMemo(() => {
+    if (!data?.estoque) return null;
+    return new Fuse(data.estoque, {
+      keys: [
+        'modelo', 'marca', 'tipo', 'numeroSerie', 'idPatrimonio',
+        'especificacoes.processador', 'especificacoes.ram',
+        'especificacoes.armazenamento', 'especificacoes.so'
+      ],
+      threshold: 0.4,
+      ignoreLocation: true
+    });
+  }, [data]);
+
   const searchedEstoque = useMemo(() => {
     if (!data?.estoque) return [];
     if (!deferredSearch.trim()) return data.estoque;
@@ -209,18 +158,9 @@ export default function App() {
 
     if (tokenResults.length > 0) return tokenResults;
 
-    // Fallback fuzzy para erros de digitação
-    const fuse = new Fuse(data.estoque, {
-      keys: [
-        'modelo', 'marca', 'tipo', 'numeroSerie', 'idPatrimonio',
-        'especificacoes.processador', 'especificacoes.ram',
-        'especificacoes.armazenamento', 'especificacoes.so'
-      ],
-      threshold: 0.4,
-      ignoreLocation: true
-    });
-    return fuse.search(deferredSearch).map(result => result.item);
-  }, [data, deferredSearch]);
+    // Fallback fuzzy reutilizando o índice pré-construído
+    return fuseInstance ? fuseInstance.search(deferredSearch).map(r => r.item) : [];
+  }, [data, deferredSearch, fuseInstance]);
 
   const filteredEstoque = useMemo(() => {
     let res = searchedEstoque;
@@ -1514,6 +1454,96 @@ export default function App() {
           </div>
         </div>
       )}
+
+
+      {/* ── QW-6: FAB MOBILE (visível só em telas pequenas) ─────────────────── */}
+      <div className="md:hidden fixed bottom-5 right-5 z-50 flex flex-col items-end gap-3 print:hidden">
+
+        {/* Bottom Sheet drawer de propostas */}
+        {isMobileDrawerOpen && (
+          <>
+            {/* Backdrop */}
+            <div
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+              onClick={() => setIsMobileDrawerOpen(false)}
+            />
+            {/* Sheet */}
+            <div className="fixed bottom-0 left-0 right-0 bg-[#0B1120] rounded-t-2xl shadow-2xl z-50 flex flex-col max-h-[75vh] border-t border-white/10">
+              <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-white/5">
+                <span className="text-sm font-bold text-slate-200">Minhas Propostas</span>
+                <button onClick={() => setIsMobileDrawerOpen(false)} className="text-slate-400 hover:text-white transition-colors">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="overflow-y-auto flex-1 p-3 space-y-1.5">
+                {quotes.length === 0 && (
+                  <p className="text-center text-slate-500 text-sm py-6">Nenhuma proposta ainda.<br />Selecione itens para iniciar.</p>
+                )}
+                {quotes.map(q => (
+                  <button
+                    key={q.id}
+                    onClick={() => { setActiveQuoteId(q.id); setIsQuoteModalOpen(true); setIsMobileDrawerOpen(false); }}
+                    className={clsx(
+                      'w-full flex justify-between items-center px-3.5 py-2.5 rounded-xl text-left transition-all border',
+                      q.id === activeQuoteId
+                        ? 'bg-indigo-500/15 border-indigo-500/30 text-indigo-300'
+                        : 'bg-white/5 border-white/5 text-slate-300 hover:bg-white/10'
+                    )}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <FileText className="w-4 h-4 shrink-0 opacity-60" />
+                      <div className="min-w-0">
+                        <span className="text-[13px] font-semibold block truncate">{q.name}</span>
+                        {q.clientName && <span className="text-[11px] text-indigo-400 block truncate">{q.clientName}</span>}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                      {q.isReserved && <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />}
+                      {q.items.length > 0 && (
+                        <span className="bg-indigo-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                          {q.items.length}
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              <div className="p-3 pt-2 border-t border-white/5 grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => { addNewQuote(); setIsMobileDrawerOpen(false); }}
+                  className="flex items-center justify-center gap-2 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold transition-colors"
+                >
+                  <Plus className="w-4 h-4" /> Nova Proposta
+                </button>
+                {activeQuote && (
+                  <button
+                    onClick={() => { setIsQuoteModalOpen(true); setIsMobileDrawerOpen(false); }}
+                    className="flex items-center justify-center gap-2 py-2.5 bg-white/10 hover:bg-white/15 text-slate-200 rounded-xl text-sm font-bold transition-colors border border-white/10"
+                  >
+                    <FileText className="w-4 h-4" /> Ver Proposta
+                  </button>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* FAB Button */}
+        <button
+          onClick={() => setIsMobileDrawerOpen(prev => !prev)}
+          className="w-14 h-14 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white rounded-full shadow-lg shadow-indigo-500/30 flex items-center justify-center transition-all"
+          aria-label="Abrir propostas"
+        >
+          <ShoppingCart className="w-6 h-6" />
+          {cart.length > 0 && (
+            <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] font-black rounded-full w-5 h-5 flex items-center justify-center shadow-sm">
+              {cart.length > 9 ? '9+' : cart.length}
+            </span>
+          )}
+        </button>
+      </div>
 
     </div>
   );

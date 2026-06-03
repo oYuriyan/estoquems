@@ -14,15 +14,17 @@ services:
 
   n8n:
     image: n8nio/n8n:latest
-    user: "root"
-    ports:
-      - "5678:5678"
+    # QW-7: removed user:root — runs as default n8n user (uid 1000) for security
+    # QW-4: using expose instead of ports — n8n admin UI is NOT accessible externally,
+    #        only reachable internally via nginx proxy at /webhook/
+    expose:
+      - "5678"
     environment:
-      - N8N_HOST=localhost
+      - N8N_HOST=0.0.0.0
       - N8N_PORT=5678
       - N8N_PROTOCOL=http
       - NODE_ENV=production
-      - WEBHOOK_URL=http://localhost:5678/
+      - WEBHOOK_URL=http://nginx/
       - GENERIC_TIMEZONE=America/Sao_Paulo
       - N8N_USER_FOLDER=/home/node/
       - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=false
