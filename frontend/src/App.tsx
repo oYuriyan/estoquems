@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useDeferredValue } from 'react';
-import { Search, CheckCircle, AlertTriangle, Server, MemoryStick, HardDrive, Trash2, FileText, Send, X, LayoutDashboard, Monitor, ShoppingCart, Plus, Package, LayoutGrid, List, AlertCircle, Cpu, Info, Sun, Moon, Loader2 } from 'lucide-react';
+import { Search, CheckCircle, AlertTriangle, Server, MemoryStick, HardDrive, Trash2, FileText, Send, X, LayoutDashboard, Monitor, ShoppingCart, Plus, Package, LayoutGrid, List, AlertCircle, Cpu, Info, Sun, Moon, Loader2, Home, BookMarked } from 'lucide-react';
 import { differenceInHours, parseISO, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import clsx from 'clsx';
@@ -32,6 +32,8 @@ export default function App() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   // QW-6: FAB mobile — controla o drawer de propostas no celular
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
+  // Bottom nav tab ativa no mobile
+  const [mobileTab, setMobileTab] = useState<'catalogo' | 'propostas' | 'reservas'>('catalogo');
   const [quoteStep, setQuoteStep] = useState<1 | 2 | 3>(1);
 
   useEffect(() => {
@@ -101,25 +103,49 @@ export default function App() {
     }
   }, [addToast]);
 
+  // Sync GLPI com feedback progressivo — polling até o catálogo mudar (máx 30s)
   const syncGLPI = async () => {
+    if (isRefreshing) return;
     setIsRefreshing(true);
+    addToast('Sincronização acionada. Aguardando n8n processar...', 'info');
     try {
       await fetch('/webhook/atualizar_estoque', { method: 'GET', mode: 'no-cors' });
-      addToast('Sincronização GLPI acionada! O catálogo será atualizado em instantes.', 'success');
+    } catch { /* no-cors não lança erro mesmo com falha */ }
 
-      // Simula uma espera para o n8n terminar de gerar o arquivo e tenta baixar o novo
-      setTimeout(() => fetchCatalogo(true), 5000);
-    } catch (err) {
-      addToast('Erro ao acionar a sincronização GLPI.', 'error');
-      setIsRefreshing(false);
-    }
+    // Polling: tenta 6x em intervalos de 5s (30s total)
+    const snaphotTimestamp = data?.metadados?.ultimaAtualizacao ?? '';
+    let attempts = 0;
+    const poll = setInterval(async () => {
+      attempts++;
+      try {
+        const res = await fetch(`/catalogo.json?t=${Date.now()}`, { cache: 'no-store' });
+        const json = await res.json();
+        const parsed = Array.isArray(json) ? json[0] : json;
+        if (parsed?.metadados?.ultimaAtualizacao !== snaphotTimestamp) {
+          clearInterval(poll);
+          setData(parsed);
+          setIsRefreshing(false);
+          addToast('Catálogo atualizado com sucesso!', 'success');
+          return;
+        }
+      } catch { /* ignora erros de polling */ }
+      if (attempts >= 6) {
+        clearInterval(poll);
+        setIsRefreshing(false);
+        addToast('Sincronização acionada, mas o catálogo ainda não foi atualizado. Tente novamente em instantes.', 'info');
+      }
+    }, 5000);
   };
+
+  // Auto-refresh pausado quando qualquer modal está aberto (evita re-render durante interação)
+  const anyModalOpen = isQuoteModalOpen || !!confirmDialog || isMobileDrawerOpen;
 
   useEffect(() => {
     fetchCatalogo(true);
-    const interval = setInterval(() => fetchCatalogo(true), 60000); // Auto-refresh a cada 60s
+    if (anyModalOpen) return; // não agenda interval se modal aberto
+    const interval = setInterval(() => fetchCatalogo(true), 60000);
     return () => clearInterval(interval);
-  }, [fetchCatalogo]);
+  }, [fetchCatalogo, anyModalOpen]);
 
 
 
@@ -511,16 +537,18 @@ export default function App() {
   const handlePrint = async () => {
     if (!activeQuote) return;
     setIsGeneratingPdf(true);
-    
-    // TENTATIVA SÍNCRONA DE ABRIR ABA PARA BURLAR O POPUP BLOCKER NO MOBILE (quando não há Share API)
-    // Isso deve ser feito imediatamente após o clique, antes de qualquer "await".
+
+    // No mobile com Share API disponível: gera direto e compartilha (sem abrir aba)
+    // No PC ou sem Share API: gera e abre o Blob numa nova aba de forma limpa
     let newTab: Window | null = null;
-    const isLocalOrHttp = window.location.protocol === 'http:';
-    if (isLocalOrHttp || !navigator.canShare) {
-       newTab = window.open('', '_blank');
-       if (newTab) {
-          newTab.document.write('<html><body style="font-family:sans-serif; text-align:center; padding-top:20%; color:#333;"><h2>Gerando o documento...</h2><p>Aguarde, a proposta vai aparecer aqui.</p></body></html>');
-       }
+    const canUseShare = typeof navigator.canShare === 'function';
+
+    if (!canUseShare) {
+      // Abre a aba ANTES do await para não ser bloqueada pelo popup blocker
+      newTab = window.open('', '_blank');
+      if (newTab) {
+        newTab.document.write('<html><head><title>Proposta PDF</title></head><body style="margin:0;background:#0f172a;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:sans-serif;"><div style="text-align:center;color:#94a3b8"><div style="font-size:40px;margin-bottom:16px">⏳</div><p style="font-size:18px;font-weight:bold;color:#e2e8f0">Gerando PDF...</p><p style="font-size:14px">Isso leva apenas alguns segundos.</p></div></body></html>');
+      }
     }
 
     try {
@@ -529,56 +557,40 @@ export default function App() {
       const safeName = `${clientName}-${quoteName}`.replace(/[^a-z0-9]/gi, '_').toLowerCase();
       const filename = `proposta_${safeName}.pdf`;
 
-      // Gera o PDF nativamente via jsPDF (sem dependência de HTML/CSS)
       const pdfBlob = await generatePdfBlob(activeQuote, cart, logoOficial, watermarkOficial);
-      
       const file = new File([pdfBlob], filename, { type: 'application/pdf' });
-      
-      // PROGRESSIVE WEB APP APPROACH (Web Share API - Só funciona em HTTPS nativo ou em PWA instalados)
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+
+      // Mobile com Share API (HTTPS) — compartilha direto
+      if (canUseShare && navigator.canShare({ files: [file] })) {
         try {
-          if (newTab) newTab.close(); // Fecha a aba inutilizada, se a Share API estiver disponivel
-          await navigator.share({
-            files: [file],
-            title: `Proposta: ${activeQuote?.name}`,
-            text: 'Segue a proposta em anexo.'
-          });
-          addToast("PDF compartilhado com sucesso!", "success");
+          await navigator.share({ files: [file], title: `Proposta: ${activeQuote?.name}`, text: 'Segue a proposta em anexo.' });
+          addToast('PDF compartilhado com sucesso!', 'success');
           return;
         } catch (shareError: any) {
-          if (shareError.name !== 'AbortError') {
-             console.warn('Share API falhou, usando aba', shareError);
-          } else {
-             return;
-          }
+          if (shareError.name === 'AbortError') return; // usuário cancelou
+          // Share falhou — cai no fallback de aba
         }
       }
 
-      // FALLBACK SEGURO
+      // Fallback: injetar o PDF na aba já aberta (ou criar nova)
       const url = URL.createObjectURL(pdfBlob);
       if (newTab) {
-         // O celular aceitará injetar a URL em uma aba recém-criada pelo click do usuario
-         newTab.location.href = url;
-         
-         // Injeta título se possível
-         setTimeout(() => { if(newTab) newTab.document.title = filename; }, 500);
+        newTab.location.href = url;
       } else {
-         // Fallback clássico a.click (Funciona mais no PC)
-         const link = document.createElement('a');
-         link.href = url;
-         link.download = filename;
-         link.target = '_blank';
-         document.body.appendChild(link);
-         link.click();
-         document.body.removeChild(link);
+        const tab = window.open(url, '_blank');
+        if (!tab) {
+          // Último recurso: download direto
+          const link = document.createElement('a');
+          link.href = url; link.download = filename;
+          document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        }
       }
-      
-      addToast("PDF gerado e enviado para nova aba com sucesso!", "success");
+      addToast('PDF gerado com sucesso!', 'success');
     } catch (error) {
       if (newTab) newTab.close();
       const errorMsg = error instanceof Error ? error.message : String(error);
-      console.error("Erro ao gerar PDF:", errorMsg);
-      addToast(`Erro ao gerar o PDF: ${errorMsg}.`, "error");
+      console.error('Erro ao gerar PDF:', errorMsg);
+      addToast(`Erro ao gerar o PDF: ${errorMsg}.`, 'error');
     } finally {
       setIsGeneratingPdf(false);
     }
@@ -809,22 +821,11 @@ export default function App() {
               <Sun className={clsx("w-4 h-4 absolute transition-all duration-500", isDarkMode ? "rotate-90 opacity-0 scale-50" : "rotate-0 opacity-100 scale-100")} />
               <Moon className={clsx("w-4 h-4 absolute transition-all duration-500", isDarkMode ? "rotate-0 opacity-100 scale-100" : "-rotate-90 opacity-0 scale-50")} />
             </button>
-
-            {activeQuote && cart.length > 0 && (
-              <button
-                onClick={() => setIsQuoteModalOpen(true)}
-                className="md:hidden flex items-center gap-2 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold text-sm transition-colors shadow-sm whitespace-nowrap"
-              >
-                <FileText className="w-3.5 h-3.5" />
-                <span>{activeQuote.name}</span>
-                <span className="bg-white/20 text-[10px] font-bold px-1.5 py-0.5 rounded-full">{cart.length}</span>
-              </button>
-            )}
           </div>
         </header>
 
-        {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-6 bg-[#f1f5f9] dark:bg-[#0d1117]">
+        {/* Scrollable Content — pb-20 garante que o conteúdo não fique atrás da bottom bar no mobile */}
+        <div className="flex-1 overflow-y-auto p-4 md:p-6 pb-24 md:pb-6 bg-[#f1f5f9] dark:bg-[#0d1117]">
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
             <button
@@ -1456,94 +1457,149 @@ export default function App() {
       )}
 
 
-      {/* ── QW-6: FAB MOBILE (visível só em telas pequenas) ─────────────────── */}
-      <div className="md:hidden fixed bottom-5 right-5 z-50 flex flex-col items-end gap-3 print:hidden">
-
-        {/* Bottom Sheet drawer de propostas */}
-        {isMobileDrawerOpen && (
-          <>
-            {/* Backdrop */}
-            <div
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm"
-              onClick={() => setIsMobileDrawerOpen(false)}
-            />
-            {/* Sheet */}
-            <div className="fixed bottom-0 left-0 right-0 bg-[#0B1120] rounded-t-2xl shadow-2xl z-50 flex flex-col max-h-[75vh] border-t border-white/10">
-              <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-white/5">
-                <span className="text-sm font-bold text-slate-200">Minhas Propostas</span>
-                <button onClick={() => setIsMobileDrawerOpen(false)} className="text-slate-400 hover:text-white transition-colors">
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <div className="overflow-y-auto flex-1 p-3 space-y-1.5">
-                {quotes.length === 0 && (
-                  <p className="text-center text-slate-500 text-sm py-6">Nenhuma proposta ainda.<br />Selecione itens para iniciar.</p>
-                )}
-                {quotes.map(q => (
-                  <button
-                    key={q.id}
-                    onClick={() => { setActiveQuoteId(q.id); setIsQuoteModalOpen(true); setIsMobileDrawerOpen(false); }}
-                    className={clsx(
-                      'w-full flex justify-between items-center px-3.5 py-2.5 rounded-xl text-left transition-all border',
-                      q.id === activeQuoteId
-                        ? 'bg-indigo-500/15 border-indigo-500/30 text-indigo-300'
-                        : 'bg-white/5 border-white/5 text-slate-300 hover:bg-white/10'
-                    )}
-                  >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <FileText className="w-4 h-4 shrink-0 opacity-60" />
-                      <div className="min-w-0">
-                        <span className="text-[13px] font-semibold block truncate">{q.name}</span>
-                        {q.clientName && <span className="text-[11px] text-indigo-400 block truncate">{q.clientName}</span>}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1.5 shrink-0 ml-2">
-                      {q.isReserved && <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />}
-                      {q.items.length > 0 && (
-                        <span className="bg-indigo-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
-                          {q.items.length}
-                        </span>
-                      )}
-                    </div>
-                  </button>
-                ))}
-              </div>
-
-              <div className="p-3 pt-2 border-t border-white/5 grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => { addNewQuote(); setIsMobileDrawerOpen(false); }}
-                  className="flex items-center justify-center gap-2 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold transition-colors"
-                >
-                  <Plus className="w-4 h-4" /> Nova Proposta
-                </button>
-                {activeQuote && (
-                  <button
-                    onClick={() => { setIsQuoteModalOpen(true); setIsMobileDrawerOpen(false); }}
-                    className="flex items-center justify-center gap-2 py-2.5 bg-white/10 hover:bg-white/15 text-slate-200 rounded-xl text-sm font-bold transition-colors border border-white/10"
-                  >
-                    <FileText className="w-4 h-4" /> Ver Proposta
-                  </button>
-                )}
-              </div>
+      {/* ── OVERLAY DE LOADING DO PDF (in-app, sem aba em branco) ─────────── */}
+      {isGeneratingPdf && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm print:hidden">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl px-10 py-8 flex flex-col items-center gap-4 max-w-xs w-full mx-4">
+            <div className="w-14 h-14 rounded-full bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center">
+              <Loader2 className="w-7 h-7 text-indigo-500 animate-spin" />
             </div>
-          </>
-        )}
+            <div className="text-center">
+              <p className="font-bold text-slate-800 dark:text-slate-100 text-base">Gerando PDF</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Isso leva apenas alguns segundos...</p>
+            </div>
+          </div>
+        </div>
+      )}
 
-        {/* FAB Button */}
-        <button
-          onClick={() => setIsMobileDrawerOpen(prev => !prev)}
-          className="w-14 h-14 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white rounded-full shadow-lg shadow-indigo-500/30 flex items-center justify-center transition-all"
-          aria-label="Abrir propostas"
-        >
-          <ShoppingCart className="w-6 h-6" />
-          {cart.length > 0 && (
-            <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] font-black rounded-full w-5 h-5 flex items-center justify-center shadow-sm">
-              {cart.length > 9 ? '9+' : cart.length}
-            </span>
+      {/* ── BOTTOM NAVIGATION BAR (mobile only — oculta quando modal aberto) ── */}
+      {!isQuoteModalOpen && !confirmDialog && (
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 print:hidden">
+          {/* Bottom Sheet drawer de propostas (aberto pelo tab Propostas) */}
+          {isMobileDrawerOpen && (
+            <>
+              <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsMobileDrawerOpen(false)} />
+              <div className="fixed bottom-16 left-0 right-0 bg-[#0B1120] rounded-t-2xl shadow-2xl flex flex-col max-h-[70vh] border-t border-white/10">
+                <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-white/5">
+                  <span className="text-sm font-bold text-slate-200">Minhas Propostas</span>
+                  <button onClick={() => setIsMobileDrawerOpen(false)} className="text-slate-400 p-1"><X className="w-5 h-5" /></button>
+                </div>
+                <div className="overflow-y-auto flex-1 p-3 space-y-1.5">
+                  {quotes.length === 0 && (
+                    <p className="text-center text-slate-500 text-sm py-6">Nenhuma proposta ainda.<br />Selecione itens para iniciar.</p>
+                  )}
+                  {quotes.map(q => (
+                    <button
+                      key={q.id}
+                      onClick={() => { setActiveQuoteId(q.id); setIsQuoteModalOpen(true); setIsMobileDrawerOpen(false); }}
+                      className={clsx(
+                        'w-full flex justify-between items-center px-3.5 py-3 rounded-xl text-left transition-all border',
+                        q.id === activeQuoteId
+                          ? 'bg-indigo-500/15 border-indigo-500/30 text-indigo-300'
+                          : 'bg-white/5 border-white/5 text-slate-300 hover:bg-white/10'
+                      )}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <FileText className="w-4 h-4 shrink-0 opacity-60" />
+                        <div className="min-w-0">
+                          <span className="text-[13px] font-semibold block truncate">{q.name}</span>
+                          {q.clientName && <span className="text-[11px] text-indigo-400 block truncate">{q.clientName}</span>}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                        {q.isReserved && <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />}
+                        {q.items.length > 0 && (
+                          <span className="bg-indigo-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">{q.items.length}</span>
+                        )}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+                <div className="p-3 border-t border-white/5 grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => { addNewQuote(); setIsMobileDrawerOpen(false); }}
+                    className="flex items-center justify-center gap-2 py-3 bg-indigo-600 text-white rounded-xl text-sm font-bold"
+                  >
+                    <Plus className="w-4 h-4" /> Nova Proposta
+                  </button>
+                  {activeQuote && (
+                    <button
+                      onClick={() => { setIsQuoteModalOpen(true); setIsMobileDrawerOpen(false); }}
+                      className="flex items-center justify-center gap-2 py-3 bg-white/10 text-slate-200 rounded-xl text-sm font-bold border border-white/10"
+                    >
+                      <FileText className="w-4 h-4" /> Ver Proposta
+                    </button>
+                  )}
+                </div>
+              </div>
+            </>
           )}
-        </button>
-      </div>
+
+          {/* A barra em si */}
+          <div className="bg-[#0B1120] border-t border-white/10 px-2 pb-safe">
+            <div className="flex items-stretch h-16">
+
+              {/* Tab: Catálogo */}
+              <button
+                onClick={() => { setMobileTab('catalogo'); setIsMobileDrawerOpen(false); resetCatalog(); }}
+                className={clsx(
+                  'flex-1 flex flex-col items-center justify-center gap-1 transition-colors rounded-xl mx-0.5 my-1',
+                  mobileTab === 'catalogo' ? 'text-indigo-400' : 'text-slate-500 hover:text-slate-300'
+                )}
+              >
+                <Home className="w-5 h-5" />
+                <span className="text-[10px] font-semibold">Catálogo</span>
+              </button>
+
+              {/* Tab: Propostas — botão central destacado */}
+              <button
+                onClick={() => { setMobileTab('propostas'); setIsMobileDrawerOpen(prev => !prev); }}
+                className="flex-1 flex flex-col items-center justify-center gap-1 transition-colors rounded-xl mx-0.5 my-1 relative"
+              >
+                <div className={clsx(
+                  'relative flex items-center justify-center w-10 h-10 rounded-full transition-all',
+                  mobileTab === 'propostas' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/40' : 'bg-white/5 text-slate-400'
+                )}>
+                  <ShoppingCart className="w-5 h-5" />
+                  {cart.length > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[9px] font-black rounded-full w-4 h-4 flex items-center justify-center">
+                      {cart.length > 9 ? '9+' : cart.length}
+                    </span>
+                  )}
+                </div>
+                <span className={clsx('text-[10px] font-semibold', mobileTab === 'propostas' ? 'text-indigo-400' : 'text-slate-500')}>
+                  Propostas
+                </span>
+              </button>
+
+              {/* Tab: Reservas */}
+              <button
+                onClick={() => { setMobileTab('reservas'); setIsMobileDrawerOpen(false); }}
+                className={clsx(
+                  'flex-1 flex flex-col items-center justify-center gap-1 transition-colors rounded-xl mx-0.5 my-1 relative',
+                  mobileTab === 'reservas' ? 'text-emerald-400' : 'text-slate-500 hover:text-slate-300'
+                )}
+              >
+                <div className="relative">
+                  <BookMarked className="w-5 h-5" />
+                  {reservedProposals.length > 0 && (
+                    <span className={clsx(
+                      'absolute -top-1.5 -right-1.5 text-[9px] font-black rounded-full w-4 h-4 flex items-center justify-center',
+                      reservedProposals.some(r => r.isExpired) ? 'bg-red-500 text-white' :
+                      reservedProposals.some(r => r.isExpiringSoon) ? 'bg-amber-500 text-white' :
+                      'bg-emerald-500 text-white'
+                    )}>
+                      {reservedProposals.length}
+                    </span>
+                  )}
+                </div>
+                <span className="text-[10px] font-semibold">Reservas</span>
+              </button>
+
+            </div>
+          </div>
+        </nav>
+      )}
 
     </div>
   );
