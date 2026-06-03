@@ -538,18 +538,9 @@ export default function App() {
     if (!activeQuote) return;
     setIsGeneratingPdf(true);
 
-    // No mobile com Share API disponível: gera direto e compartilha (sem abrir aba)
-    // No PC ou sem Share API: gera e abre o Blob numa nova aba de forma limpa
-    let newTab: Window | null = null;
-    const canUseShare = typeof navigator.canShare === 'function';
-
-    if (!canUseShare) {
-      // Abre a aba ANTES do await para não ser bloqueada pelo popup blocker
-      newTab = window.open('', '_blank');
-      if (newTab) {
-        newTab.document.write('<html><head><title>Proposta PDF</title></head><body style="margin:0;background:#0f172a;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:sans-serif;"><div style="text-align:center;color:#94a3b8"><div style="font-size:40px;margin-bottom:16px">⏳</div><p style="font-size:18px;font-weight:bold;color:#e2e8f0">Gerando PDF...</p><p style="font-size:14px">Isso leva apenas alguns segundos.</p></div></body></html>');
-      }
-    }
+    // Detecta se está rodando como PWA instalado (standalone) ou no mobile
+    const isPwa = window.matchMedia('(display-mode: standalone)').matches;
+    const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
     try {
       const clientName = activeQuote?.clientName || 'Cliente';
@@ -560,34 +551,38 @@ export default function App() {
       const pdfBlob = await generatePdfBlob(activeQuote, cart, logoOficial, watermarkOficial);
       const file = new File([pdfBlob], filename, { type: 'application/pdf' });
 
-      // Mobile com Share API (HTTPS) — compartilha direto
-      if (canUseShare && navigator.canShare({ files: [file] })) {
+      // --- Estratégia 1: Share API (HTTPS + mobile) ---
+      // A mais elegante: abre a planilha nativa de compartilhamento do SO
+      if (typeof navigator.canShare === 'function' && navigator.canShare({ files: [file] })) {
         try {
           await navigator.share({ files: [file], title: `Proposta: ${activeQuote?.name}`, text: 'Segue a proposta em anexo.' });
           addToast('PDF compartilhado com sucesso!', 'success');
           return;
         } catch (shareError: any) {
-          if (shareError.name === 'AbortError') return; // usuário cancelou
-          // Share falhou — cai no fallback de aba
+          if (shareError.name === 'AbortError') return; // usuário cancelou o share
+          // Share falhou por outro motivo — cai na estratégia 2
         }
       }
 
-      // Fallback: injetar o PDF na aba já aberta (ou criar nova)
+      // --- Estratégia 2: Download direto via <a> (PWA standalone ou mobile) ---
+      // NUNCA abre nova aba — usa download inline. Funciona em HTTP/HTTPS.
+      // É a estratégia correta para PWA instalado onde window.open abre o Chrome externo.
       const url = URL.createObjectURL(pdfBlob);
-      if (newTab) {
-        newTab.location.href = url;
-      } else {
-        const tab = window.open(url, '_blank');
-        if (!tab) {
-          // Último recurso: download direto
-          const link = document.createElement('a');
-          link.href = url; link.download = filename;
-          document.body.appendChild(link); link.click(); document.body.removeChild(link);
-        }
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      // No iOS, <a download> não funciona — força abertura no próprio contexto
+      if (isPwa || isMobileDevice) {
+        link.target = '_self';
       }
-      addToast('PDF gerado com sucesso!', 'success');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      // Revoga a URL após um delay para garantir que o download iniciou
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+
+      addToast('PDF gerado! Verifique seus downloads.', 'success');
     } catch (error) {
-      if (newTab) newTab.close();
       const errorMsg = error instanceof Error ? error.message : String(error);
       console.error('Erro ao gerar PDF:', errorMsg);
       addToast(`Erro ao gerar o PDF: ${errorMsg}.`, 'error');
@@ -595,6 +590,8 @@ export default function App() {
       setIsGeneratingPdf(false);
     }
   };
+
+
 
   const resetCatalog = () => {
     setSearch('');
