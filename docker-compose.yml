@@ -10,6 +10,33 @@ services:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
       - n8n
+      - api
+    restart: unless-stopped
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: estoque_user
+      POSTGRES_PASSWORD: TROQUE_A_SENHA
+      POSTGRES_DB: estoque_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    expose:
+      - "8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://estoque_user:TROQUE_A_SENHA@db:5432/estoque_db
+      - JWT_SECRET_KEY=TROQUE_PARA_UM_SEGREDO_FORTE_DE_64_CHARS
+      - FRONTEND_ORIGIN=http://localhost:3030
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - db
     restart: unless-stopped
 
   n8n:
@@ -36,3 +63,4 @@ services:
 
 volumes:
   n8n_data:
+  postgres_data:

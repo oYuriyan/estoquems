@@ -26,3 +26,6 @@ dist-ssr
 # Data
 data/
 n8n_data/
+
+venv/
+__pycache__/
