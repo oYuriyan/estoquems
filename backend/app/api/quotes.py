@@ -58,8 +58,9 @@ async def create_quote(
     db.add(quote)
     await db.flush() # obtemos o ID da quote
     
-    # 3. Associa os itens
+    # 3. Associa os itens e atualiza o status
     for eq in equipments:
+        eq.status = EquipmentStatus.RESERVED
         q_item = QuoteItem(quote_id=quote.id, equipment_id=eq.id)
         db.add(q_item)
         
@@ -67,3 +68,32 @@ async def create_quote(
     await db.refresh(quote)
     setattr(quote, 'items', equipments)
     return quote
+
+@router.post("/{quote_id}/cancel")
+async def cancel_quote(
+    quote_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    query = select(Quote).where(
+        Quote.id == quote_id, 
+        Quote.salesperson_id == current_user.id
+    ).options(selectinload(Quote.items).selectinload(QuoteItem.equipment))
+    
+    result = await db.execute(query)
+    quote = result.scalar_one_or_none()
+    
+    if not quote:
+        raise HTTPException(status_code=404, detail="Proposta não encontrada.")
+        
+    if quote.status == QuoteStatus.CANCELLED:
+        raise HTTPException(status_code=400, detail="A proposta já está cancelada.")
+        
+    # Libera os equipamentos
+    for item in quote.items:
+        if item.equipment:
+            item.equipment.status = EquipmentStatus.AVAILABLE
+            
+    quote.status = QuoteStatus.CANCELLED
+    await db.commit()
+    return {"status": "success", "message": "Reserva cancelada e itens devolvidos ao estoque."}

@@ -20,6 +20,9 @@ import { usePdf }      from './hooks/usePdf';
 // Types
 import type { GroupedItem, Equipamento } from './types';
 
+// API
+import { apiFetch } from './utils/api';
+
 // Layout
 import { LoginScreen }    from './components/layout/LoginScreen';
 import { SkeletonLoader } from './components/layout/SkeletonLoader';
@@ -187,18 +190,21 @@ export default function App() {
     if (!navigator.onLine) { addToast('Você está offline.', 'error'); return; }
     setIsSubmitting(true);
     try {
-      const res = await fetch('/webhook/reservar_ativos', {
+      const res = await apiFetch('/api/quotes/', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          propostaId: activeQuote.id, nomeProposta: activeQuote.name,
-          cliente: activeQuote.clientName || 'Não informado',
-          validadeDias: activeQuote.validityDays || 2, vendedor: salesperson,
-          itens: cart.map(i => ({ idPatrimonio: i.idPatrimonio, numeroSerie: i.numeroSerie, modelo: i.modelo, statusOriginal: i.status, idGlpi: i.idGlpi })),
+          name: activeQuote.name, 
+          client_name: activeQuote.clientName || 'Não informado',
+          validity_days: activeQuote.validityDays || 2, 
+          margin: activeQuote.margin || '',
+          equipment_ids: cart.map(i => (i as any).id || i.idPatrimonio) // fallback se id missing no mock
         }),
       });
       if (!res.ok) throw new Error(res.status === 409 ? 'Alguns itens não estão mais disponíveis.' : 'Erro ao comunicar com o sistema.');
-      updateQuote(activeQuoteId, { isReserved: true, reservedAt: new Date().toISOString() });
+      
+      const createdQuote = await res.json();
+      
+      updateQuote(activeQuoteId, { isReserved: true, reservedAt: new Date().toISOString(), backendId: createdQuote.id });
       addToast('Reserva realizada com sucesso!', 'success');
       setTimeout(() => fetchCatalogo(true), 1500);
     } catch (err: any) {
@@ -211,13 +217,12 @@ export default function App() {
     showConfirm('Cancelar Reserva', 'Os itens voltarão para o estoque e o GLPI será atualizado.', async () => {
       setIsSubmitting(true);
       try {
-        const res = await fetch('/webhook/cancelar_reserva', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ propostaId: activeQuote.id, vendedor: salesperson,
-            itens: cart.map(i => ({ idPatrimonio: i.idPatrimonio, idGlpi: i.idGlpi, statusOriginal: i.status })) }),
+        const backendId = (activeQuote as any).backendId || activeQuoteId; // Usa o ID retornado do backend
+        const res = await apiFetch(`/api/quotes/${backendId}/cancel`, {
+          method: 'POST'
         });
         if (!res.ok) throw new Error('Erro ao cancelar reserva.');
-        updateQuote(activeQuoteId, { isReserved: false });
+        updateQuote(activeQuoteId, { isReserved: false, backendId: undefined });
         addToast('Reserva cancelada com sucesso.', 'success');
         setTimeout(() => fetchCatalogo(true), 1500);
       } catch (err: any) {

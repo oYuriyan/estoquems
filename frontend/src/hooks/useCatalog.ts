@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { Catalogo } from '../types';
+import { apiFetch } from '../utils/api';
 
 interface UseCatalogOptions {
   /** Pausa o polling enquanto um modal está aberto, evitando re-renders durante interação */
@@ -15,11 +16,21 @@ export function useCatalog({ pausePolling = false, onError }: UseCatalogOptions 
   const fetchCatalogo = useCallback(async (silent = true) => {
     if (!silent) setIsRefreshing(true);
     try {
-      const response = await fetch(`/catalogo.json?t=${Date.now()}`, { cache: 'no-store' });
+      const response = await apiFetch('/api/equipments');
       if (!response.ok) throw new Error('Falha ao carregar o catálogo.');
-      const json = await response.json();
-      const parsedData = Array.isArray(json) ? json[0] : json;
-      setData(parsedData);
+      
+      const equipamentos = await response.json();
+      
+      // Monta o objeto no formato antigo para não quebrar a UI
+      const mockCatalogo: Catalogo = {
+        metadados: {
+          ultimaAtualizacao: new Date().toISOString(),
+          totalItens: equipamentos.length
+        },
+        estoque: equipamentos
+      };
+      
+      setData(mockCatalogo);
     } catch (err: any) {
       console.error(err.message || 'Erro desconhecido ao carregar dados.');
       if (!silent) onError?.('Erro ao atualizar o catálogo.');

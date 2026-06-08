@@ -51,7 +51,8 @@ export interface GroupedItem {
 }
 
 export interface Quote {
-  id: string;
+  id: string; // ID local (UUID)
+  backendId?: string; // ID do banco de dados (FastAPI)
   name: string;
   items: Equipamento[];
   clientName?: string;
