@@ -16,7 +16,7 @@ export function useCatalog({ pausePolling = false, onError }: UseCatalogOptions 
   const fetchCatalogo = useCallback(async (silent = true) => {
     if (!silent) setIsRefreshing(true);
     try {
-      const response = await apiFetch('/api/equipments');
+      const response = await apiFetch('/api/equipments/');
       if (!response.ok) throw new Error('Falha ao carregar o catálogo.');
       
       const equipamentos = await response.json();
