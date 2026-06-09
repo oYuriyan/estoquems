@@ -43,6 +43,7 @@ class Equipment(Base):
     marca = Column(String, nullable=False)
     modelo = Column(String, nullable=False)
     status = Column(SQLEnum(EquipmentStatus), default=EquipmentStatus.AVAILABLE, nullable=False)
+    condicao = Column(String, default="USADO") # NOVO, USADO, etc
     fornecedor = Column(String)
     especificacoes = Column(JSON) # JSON com processador, ram, armazenamento, etc.
     

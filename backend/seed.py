@@ -39,9 +39,10 @@ async def seed():
                 tipo=item.get('tipo', ''),
                 marca=item.get('marca', ''),
                 modelo=item.get('modelo', ''),
+                status=EquipmentStatus.AVAILABLE,
+                condicao=item.get('status', 'USADO'),
                 fornecedor=item.get('fornecedor'),
-                especificacoes=item.get('especificacoes', {}),
-                status=EquipmentStatus.AVAILABLE
+                especificacoes=item.get('especificacoes', {})
             )
             session.add(eq)
         

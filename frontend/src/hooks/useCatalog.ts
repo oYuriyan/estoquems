@@ -21,13 +21,20 @@ export function useCatalog({ pausePolling = false, onError }: UseCatalogOptions 
       
       const equipamentos = await response.json();
       
+      // O frontend usa "status" para definir a condição física (NOVO, USADO).
+      // O backend usa "status" para disponibilidade e "condicao" para estado físico.
+      const equipamentosMapeados = equipamentos.map((eq: any) => ({
+        ...eq,
+        status: eq.condicao || eq.status //Fallback pro status se condicao nulo
+      }));
+      
       // Monta o objeto no formato antigo para não quebrar a UI
       const mockCatalogo: Catalogo = {
         metadados: {
           ultimaAtualizacao: new Date().toISOString(),
-          totalItens: equipamentos.length
+          totalItens: equipamentosMapeados.length
         },
-        estoque: equipamentos
+        estoque: equipamentosMapeados
       };
       
       setData(mockCatalogo);

@@ -35,6 +35,7 @@ class EquipmentBase(BaseModel):
     tipo: str
     marca: str
     modelo: str
+    condicao: Optional[str] = "USADO"
     fornecedor: Optional[str] = None
     especificacoes: Dict[str, Any]
 
