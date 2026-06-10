@@ -1,7 +1,7 @@
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional, List, Dict, Any
 from datetime import datetime
-from app.db.models import UserRole, EquipmentStatus, QuoteStatus
+from app.db.models import UserRole, QuoteStatus
 
 # ── Token ────────────────────────────────────────────────────────
 class Token(BaseModel):
@@ -18,6 +18,7 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str
+    role: Optional[UserRole] = UserRole.SALES
 
 class UserResponse(UserBase):
     id: str
@@ -35,16 +36,18 @@ class EquipmentBase(BaseModel):
     tipo: str
     marca: str
     modelo: str
-    condicao: Optional[str] = "USADO"
+    status: str
+    is_reserved: bool = False
+    is_active: bool = True
     fornecedor: Optional[str] = None
     especificacoes: Dict[str, Any]
 
 class EquipmentCreate(EquipmentBase):
-    status: EquipmentStatus = EquipmentStatus.AVAILABLE
+    status: str = "USADO"
 
 class EquipmentResponse(EquipmentBase):
     id: str
-    status: EquipmentStatus
+    status: str
     created_at: datetime
     updated_at: datetime
     
@@ -56,7 +59,14 @@ class QuoteCreate(BaseModel):
     client_name: Optional[str] = None
     margin: Optional[str] = None
     validity_days: int = 2
-    equipment_ids: List[str] = Field(..., description="IDs dos equipamentos (id, não id_patrimonio)")
+    equipment_ids: List[str] = Field(default_factory=list, description="IDs dos equipamentos (id, não id_patrimonio)")
+
+class QuoteUpdate(BaseModel):
+    name: Optional[str] = None
+    client_name: Optional[str] = None
+    margin: Optional[str] = None
+    validity_days: Optional[int] = None
+    equipment_ids: Optional[List[str]] = None
 
 class QuoteResponse(BaseModel):
     id: str

@@ -10,22 +10,26 @@ interface CatalogViewProps {
   cart: Equipamento[];
   sortConfig: { key: string; direction: 'asc' | 'desc' } | null;
   hasActiveFilters: boolean;
+  hasMore?: boolean;
+  isLoadingMore?: boolean;
+  onLoadMore?: () => void;
   onGroupClick: (group: GroupedItem) => void;
   onViewModeChange: (mode: 'cards' | 'list') => void;
   onSort: (key: string) => void;
   onResetFilters: () => void;
 }
 
-function SortHeader({ label, sortKey, sortConfig, onSort }: {
+function SortHeader({ label, sortKey, sortConfig, onSort, className = "" }: {
   label: string; sortKey: string;
   sortConfig: { key: string; direction: 'asc' | 'desc' } | null;
   onSort: (key: string) => void;
+  className?: string;
 }) {
   const arrow = sortConfig?.key === sortKey ? (sortConfig.direction === 'asc' ? ' ↑' : ' ↓') : '';
   return (
     <th
       onClick={() => onSort(sortKey)}
-      className="py-4 px-5 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 cursor-pointer hover:bg-slate-100 dark:hover:bg-[#161b22] select-none transition-colors"
+      className={clsx("py-4 px-3 md:px-5 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 cursor-pointer hover:bg-slate-100 dark:hover:bg-[#161b22] select-none transition-colors", className)}
     >
       {label}{arrow}
     </th>
@@ -34,8 +38,24 @@ function SortHeader({ label, sortKey, sortConfig, onSort }: {
 
 export function CatalogView({
   groupedEstoque, sortedGroupedEstoque, viewMode, cart, sortConfig,
-  hasActiveFilters, onGroupClick, onViewModeChange, onSort, onResetFilters,
+  hasActiveFilters, hasMore, isLoadingMore, onLoadMore, 
+  onGroupClick, onViewModeChange, onSort, onResetFilters,
 }: CatalogViewProps) {
+  // Agrupa os itens por Tipo (Desktop, Notebook, etc) para a visualização em Cards (Netflix style)
+  const groupedByTipo = groupedEstoque.reduce((acc, group) => {
+    const tipo = group.tipo || 'Outros';
+    if (!acc[tipo]) acc[tipo] = [];
+    acc[tipo].push(group);
+    return acc;
+  }, {} as Record<string, GroupedItem[]>);
+
+  // Ordena os tipos alfabeticamente para manter consistência, mas força NOTEBOOK para o topo
+  const tiposOrdenados = Object.keys(groupedByTipo).sort((a, b) => {
+    if (a.toUpperCase() === 'NOTEBOOK') return -1;
+    if (b.toUpperCase() === 'NOTEBOOK') return 1;
+    return a.localeCompare(b);
+  });
+
   return (
     <>
       <div className="flex items-center justify-between mb-4">
@@ -77,9 +97,18 @@ export function CatalogView({
           )}
         </div>
       ) : viewMode === 'cards' ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 pb-24">
-          {groupedEstoque.map(group => (
-            <ItemCard key={group.key} group={group} cart={cart} onClick={onGroupClick} />
+        <div className="space-y-8 pb-12">
+          {tiposOrdenados.map(tipo => (
+            <div key={tipo} className="relative">
+              <h3 className="text-sm font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-3 px-1 flex items-center gap-2">
+                {tipo} <span className="text-[10px] bg-slate-200 dark:bg-slate-800 text-slate-500 rounded-full px-2 py-0.5">{groupedByTipo[tipo].length}</span>
+              </h3>
+              <div className="flex overflow-x-auto md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5 hide-scrollbar snap-x snap-mandatory pt-3 pb-6 md:pb-2 -mx-4 px-4 md:mx-0 md:px-0">
+                {groupedByTipo[tipo].map(group => (
+                  <ItemCard key={group.key} group={group} cart={cart} onClick={onGroupClick} />
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       ) : (
@@ -89,10 +118,10 @@ export function CatalogView({
               <tr>
                 <SortHeader label="Marca"               sortKey="marca"           sortConfig={sortConfig} onSort={onSort} />
                 <SortHeader label="Modelo"              sortKey="modelo"          sortConfig={sortConfig} onSort={onSort} />
-                <SortHeader label="Processador"         sortKey="processador"     sortConfig={sortConfig} onSort={onSort} />
-                <SortHeader label="RAM"                 sortKey="ram"             sortConfig={sortConfig} onSort={onSort} />
-                <SortHeader label="Armazenamento"       sortKey="armazenamento"   sortConfig={sortConfig} onSort={onSort} />
-                <SortHeader label="Sistema Operacional" sortKey="so"              sortConfig={sortConfig} onSort={onSort} />
+                <SortHeader label="Processador"         sortKey="processador"     sortConfig={sortConfig} onSort={onSort} className="hidden md:table-cell" />
+                <SortHeader label="RAM"                 sortKey="ram"             sortConfig={sortConfig} onSort={onSort} className="hidden md:table-cell" />
+                <SortHeader label="Armaz."              sortKey="armazenamento"   sortConfig={sortConfig} onSort={onSort} className="hidden lg:table-cell" />
+                <SortHeader label="S.O."                sortKey="so"              sortConfig={sortConfig} onSort={onSort} className="hidden lg:table-cell" />
                 <SortHeader label="Qtd"                 sortKey="qtd"             sortConfig={sortConfig} onSort={onSort} />
                 <SortHeader label="Cotados"             sortKey="cotados"         sortConfig={sortConfig} onSort={onSort} />
               </tr>
@@ -106,20 +135,45 @@ export function CatalogView({
                     onClick={() => onGroupClick(group)}
                     className="hover:bg-slate-50 dark:hover:bg-slate-800/60 dark:bg-[#0f172a] cursor-pointer transition-all duration-200"
                   >
-                    <td className="py-4 px-5">
-                      <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800/50 px-2.5 py-1 rounded-md border border-slate-200 dark:border-slate-700/50 uppercase tracking-wide">
+                    <td className="py-4 px-3 md:px-5">
+                      <span className="text-[10px] md:text-[11px] font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800/50 px-2 md:px-2.5 py-1 rounded-md border border-slate-200 dark:border-slate-700/50 uppercase tracking-wide">
                         {group.marca}
                       </span>
                     </td>
-                    <td className="py-4 px-5">
-                      <div className="text-sm font-black text-slate-800 dark:text-slate-100">{group.modelo}</div>
-                      <div className="text-[10px] text-indigo-500/70 font-bold uppercase tracking-wider mt-0.5">{group.tipo}</div>
+                    <td className="py-4 px-3 md:px-5">
+                      <div className="flex items-center gap-2">
+                        {group.tipo?.toUpperCase() === 'DESKTOP' ? (
+                          <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center shrink-0">
+                            <svg className="w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                          </div>
+                        ) : (
+                          <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center shrink-0">
+                            <svg className="w-4 h-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12v3a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-3M3 8a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v4H3V8z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l1-2h2l1 2" />
+                            </svg>
+                          </div>
+                        )}
+                        <div>
+                          <div className="text-xs md:text-sm font-black text-slate-800 dark:text-slate-100 line-clamp-1">{group.modelo}</div>
+                          <div className="text-[9px] md:text-[10px] text-indigo-500/70 font-bold uppercase tracking-wider mt-0.5">{group.tipo}</div>
+                        </div>
+                      </div>
+                      
+                      {/* Condensed Specs for Mobile */}
+                      <div className="mt-2 text-[10px] text-slate-500 md:hidden flex flex-wrap gap-1">
+                        <span className="bg-slate-100 dark:bg-slate-800 px-1.5 rounded">{group.processador}</span>
+                        <span className="bg-slate-100 dark:bg-slate-800 px-1.5 rounded">{group.ram}</span>
+                        <span className="bg-slate-100 dark:bg-slate-800 px-1.5 rounded">{group.armazenamento}</span>
+                      </div>
                     </td>
-                    <td className="py-4 px-5 text-[13px] font-semibold text-slate-700 dark:text-slate-200">{group.processador}</td>
-                    <td className="py-4 px-5 text-[13px] font-semibold text-slate-700 dark:text-slate-200">{group.ram}</td>
-                    <td className="py-4 px-5 text-[13px] font-semibold text-slate-700 dark:text-slate-200">{group.armazenamento}</td>
-                    <td className="py-4 px-5 text-[13px] font-medium text-slate-500 dark:text-slate-400">{group.so}</td>
-                    <td className="py-3.5 px-5 text-center">
+                    <td className="py-4 px-5 text-[12px] lg:text-[13px] font-semibold text-slate-700 dark:text-slate-200 hidden md:table-cell">{group.processador}</td>
+                    <td className="py-4 px-5 text-[12px] lg:text-[13px] font-semibold text-slate-700 dark:text-slate-200 hidden md:table-cell">{group.ram}</td>
+                    <td className="py-4 px-5 text-[12px] lg:text-[13px] font-semibold text-slate-700 dark:text-slate-200 hidden lg:table-cell">{group.armazenamento}</td>
+                    <td className="py-4 px-5 text-[12px] lg:text-[13px] font-medium text-slate-500 dark:text-slate-400 hidden lg:table-cell">{group.so}</td>
+                    <td className="py-3.5 px-3 md:px-5 text-center">
                       <span className="inline-flex items-center justify-center bg-indigo-50 text-indigo-700 font-black px-2.5 py-1 rounded-lg text-sm border border-indigo-200">{group.items.length}</span>
                     </td>
                     <td className="py-3.5 px-5 text-center">
@@ -133,6 +187,23 @@ export function CatalogView({
               })}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Infinite Scroll trigger / Load More Button */}
+      {hasMore && groupedEstoque.length > 0 && (
+        <div className="flex justify-center mt-6 mb-8">
+          <button
+            onClick={onLoadMore}
+            disabled={isLoadingMore}
+            className="px-6 py-2.5 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-bold text-sm rounded-xl transition-all shadow-sm flex items-center gap-2"
+          >
+            {isLoadingMore ? (
+              <><span className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></span> Carregando...</>
+            ) : (
+              'Carregar mais itens'
+            )}
+          </button>
         </div>
       )}
     </>

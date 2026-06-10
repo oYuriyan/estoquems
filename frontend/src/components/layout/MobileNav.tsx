@@ -96,13 +96,13 @@ export function MobileNav({
         </>
       )}
 
-      {/* Barra de navegação */}
-      <div className="bg-[#0B1120] border-t border-white/10 px-2 pb-safe">
-        <div className="flex items-stretch h-16">
+      {/* Barra de navegação flutuante (Pill-shape) */}
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-[320px] bg-[#0B1120]/80 backdrop-blur-md border border-white/10 rounded-full shadow-2xl px-2">
+        <div className="flex items-center justify-between h-14">
           <button
             onClick={() => { onTabChange('catalogo'); onCloseDrawer(); onResetCatalog(); }}
             className={clsx(
-              'flex-1 flex flex-col items-center justify-center gap-1 transition-colors rounded-xl mx-0.5 my-1',
+              'flex-1 flex flex-col items-center justify-center gap-1 transition-colors rounded-full',
               mobileTab === 'catalogo' ? 'text-indigo-400' : 'text-slate-500 hover:text-slate-300',
             )}
           >
@@ -112,20 +112,20 @@ export function MobileNav({
 
           <button
             onClick={() => { onTabChange('propostas'); onToggleDrawer(); }}
-            className="flex-1 flex flex-col items-center justify-center gap-1 rounded-xl mx-0.5 my-1 relative"
+            className={clsx(
+              'flex-1 flex flex-col items-center justify-center gap-1 transition-colors rounded-full relative',
+              mobileTab === 'propostas' ? 'text-indigo-400' : 'text-slate-500 hover:text-slate-300'
+            )}
           >
-            <div className={clsx(
-              'relative flex items-center justify-center w-10 h-10 rounded-full transition-all',
-              mobileTab === 'propostas' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/40' : 'bg-white/5 text-slate-400',
-            )}>
+            <div className="relative">
               <ShoppingCart className="w-5 h-5" />
               {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[9px] font-black rounded-full w-4 h-4 flex items-center justify-center">
+                <span className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[9px] font-black rounded-full w-4 h-4 flex items-center justify-center">
                   {cartCount > 9 ? '9+' : cartCount}
                 </span>
               )}
             </div>
-            <span className={clsx('text-[10px] font-semibold', mobileTab === 'propostas' ? 'text-indigo-400' : 'text-slate-500')}>
+            <span className="text-[10px] font-semibold">
               Propostas
             </span>
           </button>
@@ -133,7 +133,7 @@ export function MobileNav({
           <button
             onClick={() => { onTabChange('reservas'); onCloseDrawer(); }}
             className={clsx(
-              'flex-1 flex flex-col items-center justify-center gap-1 transition-colors rounded-xl mx-0.5 my-1 relative',
+              'flex-1 flex flex-col items-center justify-center gap-1 transition-colors rounded-full relative',
               mobileTab === 'reservas' ? 'text-emerald-400' : 'text-slate-500 hover:text-slate-300',
             )}
           >

@@ -1,9 +1,9 @@
 import { format } from 'date-fns';
 import { parseISO, differenceInHours } from 'date-fns';
-import { CheckCircle, AlertTriangle, FileText, Plus, X } from 'lucide-react';
+import { CheckCircle, AlertTriangle, FileText, Plus, X, LogOut } from 'lucide-react';
 import clsx from 'clsx';
-import logoOficial from '../../assets/logo_oficial.png';
 import type { Quote } from '../../types';
+import type { User } from '../../contexts/AppContext';
 
 interface ReservedProposal {
   quote: Quote;
@@ -13,7 +13,7 @@ interface ReservedProposal {
 }
 
 interface SidebarProps {
-  salesperson: string;
+  user: User;
   quotes: Quote[];
   activeQuoteId: string | null;
   reservedProposals: ReservedProposal[];
@@ -24,41 +24,55 @@ interface SidebarProps {
   onDeleteQuote: (id: string) => void;
   onResetCatalog: () => void;
   onSyncGlpi: () => void;
+  onLogout: () => void;
 }
 
 export function Sidebar({
-  salesperson, quotes, activeQuoteId, reservedProposals,
+  user, quotes, activeQuoteId, reservedProposals,
   isRefreshing, ultimaAtualizacao,
-  onSelectQuote, onNewQuote, onDeleteQuote, onResetCatalog, onSyncGlpi,
-}: SidebarProps) {
+  onSelectQuote, onNewQuote, onDeleteQuote, onResetCatalog, onSyncGlpi, onLogout,
+  onOpenAdminPanel,
+}: SidebarProps & { onOpenAdminPanel: () => void }) {
   const parsedDate = parseISO(ultimaAtualizacao);
   const statusCritico = differenceInHours(new Date(), parsedDate) > 24;
 
   return (
-    <aside className="w-64 bg-[#0B1120] text-slate-300 flex-shrink-0 flex-col hidden md:flex print:hidden relative overflow-hidden">
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-48 bg-indigo-500/10 blur-[50px] rounded-full pointer-events-none" />
+    <aside className="w-64 bg-[#0B1120] dark:bg-[#0B1120]/80 backdrop-blur-xl border-r border-white/5 text-slate-300 flex-shrink-0 flex-col hidden md:flex print:hidden relative overflow-hidden shadow-[4px_0_24px_rgba(0,0,0,0.2)]">
+      <div className="absolute top-[-50px] left-1/2 -translate-x-1/2 w-64 h-64 bg-indigo-500/15 blur-[60px] rounded-full pointer-events-none" />
 
       {/* Logo + usuário */}
       <div className="p-5 pb-2 border-b border-white/5 flex flex-col items-center">
-        <img src={logoOficial} alt="Logo" className="h-11 w-auto object-contain mb-3 filter drop-shadow-md" />
-        <div className="text-[10px] uppercase font-bold text-indigo-300 tracking-wider flex items-center gap-1.5 bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-1 rounded-full">
-          <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          {salesperson}
+        {/* Limmus Logo */}
+        <div className="flex justify-center items-center gap-1.5 mb-4 select-none">
+          <div className="w-6 h-6 rounded-md bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+            <span className="text-white font-black text-sm leading-none">L</span>
+          </div>
+          <span className="text-lg font-black tracking-tight text-white">
+            Limmus<span className="text-indigo-400">.</span>
+          </span>
+        </div>
+        <div className="flex items-center gap-3 w-full justify-center">
+          <div className="text-[10px] uppercase font-bold text-indigo-300 tracking-wider flex items-center gap-1.5 bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-1 rounded-full text-center">
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+            <span className="truncate max-w-[140px]">{user.name}</span>
+          </div>
+          <button onClick={onLogout} title="Sair da Conta" className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors">
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
       </div>
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
-        <div className="px-3 mb-2 text-xs font-bold uppercase tracking-wider text-slate-500">Menu Principal</div>
         <button
           onClick={onResetCatalog}
-          className="w-full flex items-center gap-2.5 px-3 py-2.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 rounded-lg font-semibold text-sm transition-colors border border-indigo-500/20"
+          className="w-full flex items-center justify-center gap-2.5 px-3 py-3 bg-gradient-to-r from-indigo-600/20 to-purple-600/20 hover:from-indigo-500/30 hover:to-purple-500/30 text-indigo-300 rounded-xl font-bold text-xs transition-all border border-indigo-500/20 hover:border-indigo-400/40 hover:scale-[1.02] shadow-sm uppercase tracking-wider"
         >
-          Ver Todo o Catálogo
+          Catálogo
         </button>
 
         <div className="px-1 mt-6 mb-1 flex justify-between items-center">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Minhas Propostas</span>
+          <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Propostas Ativas</span>
           <button
             onClick={onNewQuote}
             className="text-slate-500 hover:text-indigo-400 transition-colors p-1 rounded-md hover:bg-indigo-500/10"
@@ -79,12 +93,15 @@ export function Sidebar({
             <button
               onClick={() => onSelectQuote(q.id)}
               className={clsx(
-                'w-full flex justify-between items-center px-3 py-2 rounded-lg font-medium transition-all text-left group text-sm',
+                'w-full flex justify-between items-center px-3 py-2.5 rounded-xl font-medium transition-all duration-300 text-left group text-sm relative overflow-hidden',
                 q.id === activeQuoteId
-                  ? 'bg-indigo-500/15 text-indigo-300 border border-indigo-500/25'
-                  : 'hover:bg-white/5 text-slate-400 hover:text-slate-200',
+                  ? 'bg-indigo-500/20 text-indigo-200 border border-indigo-400/30 shadow-[0_0_20px_rgba(99,102,241,0.15)] bg-gradient-to-r from-indigo-500/10 to-purple-500/10'
+                  : 'hover:bg-white/10 text-slate-400 hover:text-slate-200 hover:translate-x-1 border border-transparent',
               )}
             >
+              {q.id === activeQuoteId && (
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-indigo-400 rounded-l-xl shadow-[0_0_10px_rgba(99,102,241,0.8)] animate-pulse" />
+              )}
               <div className="flex items-center gap-2.5 min-w-0">
                 <FileText className="w-3.5 h-3.5 shrink-0 opacity-70" />
                 <div className="min-w-0">
@@ -124,10 +141,10 @@ export function Sidebar({
                   key={q.id}
                   onClick={() => onSelectQuote(q.id)}
                   className={clsx(
-                    'w-full px-2.5 py-2 rounded-md border text-left flex justify-between items-center gap-2 hover:opacity-80 transition-opacity',
-                    isExpired      ? 'bg-red-950/40 border-red-800/50 text-red-300'
-                    : isExpiringSoon ? 'bg-amber-950/40 border-amber-800/50 text-amber-300'
-                    :                  'bg-emerald-950/40 border-emerald-800/50 text-emerald-300',
+                    'w-full px-3 py-2.5 rounded-xl border text-left flex justify-between items-center gap-2 transition-all hover:-translate-y-0.5 shadow-sm',
+                    isExpired      ? 'bg-gradient-to-r from-red-950/40 to-red-900/20 border-red-800/50 text-red-300'
+                    : isExpiringSoon ? 'bg-gradient-to-r from-amber-950/40 to-amber-900/20 border-amber-800/50 text-amber-300'
+                    :                  'bg-gradient-to-r from-emerald-950/40 to-emerald-900/20 border-emerald-800/50 text-emerald-300',
                   )}
                 >
                   <div className="min-w-0">
@@ -154,10 +171,11 @@ export function Sidebar({
         <div>
           <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2 block">Status do Estoque</span>
           <div
-            onDoubleClick={onSyncGlpi}
-            title="Clique duplo para forçar sincronização com GLPI."
+            onDoubleClick={user.role === 'ADMIN' ? onSyncGlpi : undefined}
+            title={user.role === 'ADMIN' ? "Clique duplo para forçar sincronização com GLPI." : "Última sincronização do estoque."}
             className={clsx(
-              'px-3 py-2 rounded-lg flex items-center justify-center gap-2 text-xs font-bold border mb-2 select-none transition-colors cursor-default',
+              'px-3 py-2 rounded-lg flex items-center justify-center gap-2 text-xs font-bold border mb-2 select-none transition-colors',
+              user.role === 'ADMIN' ? 'cursor-pointer' : 'cursor-default opacity-80',
               statusCritico
                 ? 'bg-amber-950/30 text-amber-400 border-amber-900/40 hover:bg-amber-950/40'
                 : 'bg-emerald-950/30 text-emerald-400 border-emerald-900/40 hover:bg-emerald-950/40',
@@ -168,6 +186,15 @@ export function Sidebar({
             <span>{format(parsedDate, 'dd/MM HH:mm')}</span>
           </div>
         </div>
+
+        {user.role === 'ADMIN' && (
+          <button
+            onClick={onOpenAdminPanel}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 rounded-lg font-bold text-[10px] transition-colors border border-indigo-500/20 uppercase tracking-widest"
+          >
+            Configurações de Acesso
+          </button>
+        )}
       </div>
     </aside>
   );

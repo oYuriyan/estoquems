@@ -31,10 +31,10 @@ export async function generatePdfBlob(
 
   // Paleta
   const C = {
-    headerBg:    '#0f172a', // azul petróleo escuro — fundo do header (logo branca vai aparecer)
-    headerLine:  '#3b82f6', // linha azul accent abaixo do header
-    titleBlue:   '#3b82f6',
-    sectionBlue: '#1d4ed8',
+    headerBg:    '#0f172a',
+    headerLine:  '#6366f1', // Indigo mais vibrante
+    titleBlue:   '#6366f1',
+    sectionBlue: '#4f46e5',
     bodyText:    '#1e293b',
     mutedText:   '#64748b',
     borderLight: '#e2e8f0',
@@ -72,31 +72,40 @@ export async function generatePdfBlob(
 
     // ── HEADER ──────────────────────────────────────────────
     if (isFirstPage) {
-      const headerH = 28;
+      const headerH = 34;
       // Fundo escuro do header
       pdf.setFillColor(...rgb(C.headerBg));
       pdf.rect(0, 0, W, headerH, 'F');
 
       // Linha accent azul no rodapé do header
       pdf.setFillColor(...rgb(C.headerLine));
-      pdf.rect(0, headerH, W, 1.2, 'F');
+      pdf.rect(0, headerH, W, 1.5, 'F');
 
-      // Logo (branca — vai aparecer no fundo escuro)
+      // Logo (calculando a proporção correta para não esticar)
       if (logoB64) {
         try {
-          pdf.addImage(logoB64, 'PNG', M, 6.5, 40, 16);
+          const props = pdf.getImageProperties(logoB64);
+          const ratio = props.width / props.height;
+          const targetH = 12; // Altura menor e mais elegante
+          const targetW = targetH * ratio;
+          // Centralizar
+          pdf.addImage(logoB64, 'PNG', (W / 2) - (targetW / 2), 6, targetW, targetH);
         } catch { /* ignora */ }
+      } else {
+        // Logo Limmus Fallback
+        setFont('bold', 18);
+        pdf.setTextColor(255, 255, 255);
+        pdf.text('Limmus.', W / 2, 13, { align: 'center' });
       }
 
-      // Título à direita
-      setFont('bold', 16);
+      // Títulos
+      setFont('bold', 12);
       pdf.setTextColor(255, 255, 255);
-      pdf.text('PROPOSTA COMERCIAL', W - M, 12, { align: 'right' });
+      pdf.text('PROPOSTA COMERCIAL', W / 2, 24, { align: 'center' });
 
       setFont('normal', 8);
       pdf.setTextColor(180, 190, 210);
-      pdf.text(quote.name, W - M, 18, { align: 'right' });
-      pdf.text(`Emissão: ${format(new Date(), 'dd/MM/yyyy, HH:mm')}`, W - M, 23, { align: 'right' });
+      pdf.text(`${quote.name}  |  Emissão: ${format(new Date(), 'dd/MM/yyyy, HH:mm')}`, W / 2, 29, { align: 'center' });
     } else {
       // Header compacto para páginas seguintes
       const headerH = 12;
@@ -122,7 +131,7 @@ export async function generatePdfBlob(
 
     setFont('normal', 6);
     pdf.setTextColor(...rgb(C.footerText));
-    pdf.text('Documento eletrônico oficial — Micro Sistema Soluções (Micro Estoque)', M, H - 4.5);
+    pdf.text('Documento eletrônico oficial — Limmus (Sistema de Gestão)', M, H - 4.5);
     pdf.text(`Página ${pageNum} de ${totalPages}`, W - M, H - 4.5, { align: 'right' });
   };
 
@@ -152,7 +161,7 @@ export async function generatePdfBlob(
   await drawPageChrome(true, logoB64, wmB64, 1, totalPages);
 
   // Posição inicial do conteúdo (abaixo do header)
-  let y = 32; // header 28 + linha accent + espaço
+  let y = 42; // header 34 + linha accent + espaço
 
   // ── HELPER: seção com barra azul lateral ────────────────
   const sectionTitle = (title: string) => {

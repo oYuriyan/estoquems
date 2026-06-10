@@ -14,10 +14,13 @@ export function Header({ isDarkMode, search, onSearchChange, onToggleDarkMode }:
   return (
     <header className="bg-white dark:bg-[#161b22] px-6 py-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-3 z-10 border-b border-slate-200 dark:border-[#30363d] shadow-sm">
       <div>
-        <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">Micro Estoque</h1>
-        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-          {format(new Date(), "EEEE, d 'de' MMMM", { locale: ptBR })}
-        </p>
+        <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">Catálogo</h1>
+        <div className="flex items-center gap-2 mt-0.5">
+          <span className="text-[10px] uppercase tracking-widest font-bold text-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 px-2 py-0.5 rounded">Limmus</span>
+          <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+            {format(new Date(), "EEEE, d 'de' MMMM", { locale: ptBR })}
+          </span>
+        </div>
       </div>
 
       <div className="relative w-full md:w-auto flex items-center gap-2">

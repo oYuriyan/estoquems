@@ -1,11 +1,12 @@
 import asyncio
 import json
 import os
+# pyrefly: ignore [missing-import]
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from app.db.session import AsyncSessionLocal
-from app.db.models import Equipment, EquipmentStatus
+from app.db.models import Equipment
 
 async def seed():
     async with AsyncSessionLocal() as session:
@@ -39,8 +40,8 @@ async def seed():
                 tipo=item.get('tipo', ''),
                 marca=item.get('marca', ''),
                 modelo=item.get('modelo', ''),
-                status=EquipmentStatus.AVAILABLE,
-                condicao=item.get('status', 'USADO'),
+                status=item.get('status', 'USADO'),
+                is_reserved=False,
                 fornecedor=item.get('fornecedor'),
                 especificacoes=item.get('especificacoes', {})
             )

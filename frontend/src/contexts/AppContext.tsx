@@ -1,18 +1,28 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { apiFetch } from '../utils/api';
 import type { Quote, Equipamento } from '../types';
 
 // Re-export para compatibilidade com imports existentes
 export type { Equipamento, Quote };
+
+export interface User {
+  id?: string;
+  name: string;
+  email: string;
+  role: 'ADMIN' | 'SALES';
+}
 
 interface AppContextData {
   quotes: Quote[];
   setQuotes: React.Dispatch<React.SetStateAction<Quote[]>>;
   activeQuoteId: string | null;
   setActiveQuoteId: React.Dispatch<React.SetStateAction<string | null>>;
-  salesperson: string | null;
-  setSalesperson: React.Dispatch<React.SetStateAction<string | null>>;
+  user: User | null;
+  setUser: React.Dispatch<React.SetStateAction<User | null>>;
   isDarkMode: boolean;
   setIsDarkMode: React.Dispatch<React.SetStateAction<boolean>>;
+  refreshQuotes: () => Promise<void>;
+  wsMessage: string | null;
 }
 
 const AppContext = createContext<AppContextData | undefined>(undefined);
@@ -41,8 +51,86 @@ const loadPersistedActiveId = (): string | null => {
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [quotes, setQuotes] = useState<Quote[]>(loadPersistedQuotes);
   const [activeQuoteId, setActiveQuoteId] = useState<string | null>(loadPersistedActiveId);
-  const [salesperson, setSalesperson] = useState<string | null>(localStorage.getItem('microEstoque_salesperson'));
+  
+  // Lê o user persistido (se houver)
+  const [user, setUser] = useState<User | null>(() => {
+    try {
+      const saved = localStorage.getItem('microEstoque_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
   const [isDarkMode, setIsDarkMode] = useState(localStorage.getItem('microEstoque_theme') === 'dark');
+  const [wsMessage, setWsMessage] = useState<string | null>(null);
+
+  const refreshQuotes = async () => {
+    if (!user) return;
+    try {
+      const res = await apiFetch('/api/quotes/');
+      if (res.ok) {
+        const backendQuotes = await res.json();
+        // Mapeia do backend pro frontend
+        const mappedQuotes: Quote[] = backendQuotes.map((q: any) => ({
+          id: q.id,
+          name: q.name,
+          clientName: q.client_name,
+          margin: q.margin,
+          validityDays: q.validity_days,
+          isReserved: q.status === 'RESERVED',
+          reservedAt: q.reserved_at,
+          items: (q.items || []).map((eq: any) => ({
+             ...eq,
+             idPatrimonio: eq.idPatrimonio || eq.id_patrimonio,
+             numeroSerie: eq.numeroSerie || eq.numero_serie,
+             idGlpi: eq.idGlpi || eq.id_glpi
+          }))
+        }));
+        setQuotes(mappedQuotes);
+        // Atualiza activeQuoteId caso tenha sido apagada
+        setActiveQuoteId(prev => mappedQuotes.some(q => q.id === prev) ? prev : (mappedQuotes.length > 0 ? mappedQuotes[0].id : null));
+      }
+    } catch (err) {
+      console.error('Erro ao buscar propostas do backend', err);
+    }
+  };
+
+  // Carrega as propostas do backend ao logar
+  useEffect(() => {
+    if (user) {
+      refreshQuotes();
+    } else {
+      setQuotes([]);
+      setActiveQuoteId(null);
+    }
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Conexão WebSocket
+  useEffect(() => {
+    if (!user) return;
+    
+    // Determina a URL do WebSocket baseado na URL atual
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = process.env.NODE_ENV === 'development' 
+      ? `ws://localhost:3030/api/ws` 
+      : `${protocol}//${window.location.host}/api/ws`;
+      
+    const ws = new WebSocket(wsUrl);
+    
+    ws.onmessage = (event) => {
+      setWsMessage(event.data);
+      // Limpa mensagem após 1s para permitir receber mesmos eventos repetidos
+      setTimeout(() => setWsMessage(null), 1000);
+    };
+    
+    ws.onclose = () => console.log('WebSocket desconectado');
+    ws.onerror = (err) => console.error('WebSocket erro:', err);
+
+    return () => {
+      ws.close();
+    };
+  }, [user]);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY_QUOTES, JSON.stringify(quotes));
@@ -58,8 +146,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.setItem('microEstoque_theme', isDarkMode ? 'dark' : 'light');
   }, [isDarkMode]);
 
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem('microEstoque_user', JSON.stringify(user));
+    } else {
+      localStorage.removeItem('microEstoque_user');
+      // Limpa token também
+      localStorage.removeItem('microEstoque_token');
+    }
+  }, [user]);
+
   return (
-    <AppContext.Provider value={{ quotes, setQuotes, activeQuoteId, setActiveQuoteId, salesperson, setSalesperson, isDarkMode, setIsDarkMode }}>
+    <AppContext.Provider value={{ quotes, setQuotes, activeQuoteId, setActiveQuoteId, user, setUser, isDarkMode, setIsDarkMode, refreshQuotes, wsMessage }}>
       {children}
     </AppContext.Provider>
   );

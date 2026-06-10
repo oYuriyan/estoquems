@@ -1,21 +1,20 @@
-import { useState, useCallback } from 'react';
-import type { Toast } from '../types';
+import { toast } from 'sonner';
 
 export function useToast() {
-  const [toasts, setToasts] = useState<Toast[]>([]);
+  const addToast = (message: string, type: 'info' | 'success' | 'error' = 'info') => {
+    if (type === 'success') {
+      toast.success(message);
+    } else if (type === 'error') {
+      toast.error(message);
+    } else {
+      toast.info(message);
+    }
+  };
 
-  const addToast = useCallback((message: string, type: Toast['type'] = 'info') => {
-    const id = Date.now().toString();
-    setToasts(prev => [...prev, { id, message, type }]);
-    setTimeout(() => {
-      setToasts(prev => prev.map(t => t.id === id ? { ...t, exiting: true } : t));
-      setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 350);
-    }, 3500);
-  }, []);
+  const dismissToast = (id: string | number) => {
+    toast.dismiss(id);
+  };
 
-  const dismissToast = useCallback((id: string) => {
-    setToasts(prev => prev.filter(t => t.id !== id));
-  }, []);
-
-  return { toasts, addToast, dismissToast };
+  // toasts array não é mais necessário controlar manualmente
+  return { toasts: [], addToast, dismissToast };
 }

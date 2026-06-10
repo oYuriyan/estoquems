@@ -6,7 +6,7 @@ from sqlalchemy.future import select
 
 from app.core.config import get_settings
 from app.db.session import get_db
-from app.db.models import User
+from app.db.models import User, UserRole
 from app.schemas.all import TokenData
 
 settings = get_settings()
@@ -40,3 +40,12 @@ async def get_current_user(
         raise HTTPException(status_code=400, detail="Inactive user")
         
     return user
+
+async def get_current_active_superuser(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="The user doesn't have enough privileges"
+        )
+    return current_user

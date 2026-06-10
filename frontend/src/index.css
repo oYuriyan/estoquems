@@ -82,6 +82,39 @@ body {
   background-size: 1000px 100%;
 }
 
+@keyframes mesh-gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.animate-mesh {
+  background-size: 200% 200%;
+  animation: mesh-gradient 15s ease infinite;
+}
+
+/* Spotlight base class */
+.spotlight-card {
+  position: relative;
+  overflow: hidden;
+}
+.spotlight-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    800px circle at var(--mouse-x) var(--mouse-y),
+    rgba(99, 102, 241, 0.15),
+    transparent 40%
+  );
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  z-index: 10;
+}
+.spotlight-card:hover::before {
+  opacity: 1;
+}
+
 /* ───────────────────────────────────────────
    SCROLLBARS
 ─────────────────────────────────────────── */
@@ -91,6 +124,15 @@ body {
 ::-webkit-scrollbar-thumb:hover { background: #64748b; }
 .dark ::-webkit-scrollbar-thumb { background: #334155; }
 .dark ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+/* Hide scrollbar for horizontal carousels */
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
 
 /* ───────────────────────────────────────────
    PRINT — always force white theme
