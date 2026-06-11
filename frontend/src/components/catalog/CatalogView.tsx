@@ -1,4 +1,5 @@
-import { Search, X, LayoutGrid, List } from 'lucide-react';
+import { Search, X, LayoutGrid, List, Cpu, MemoryStick, HardDrive } from 'lucide-react';
+import { useRef, useEffect } from 'react';
 import clsx from 'clsx';
 import { ItemCard } from './ItemCard';
 import type { GroupedItem, Equipamento } from '../../types';
@@ -6,6 +7,7 @@ import type { GroupedItem, Equipamento } from '../../types';
 interface CatalogViewProps {
   groupedEstoque: GroupedItem[];
   sortedGroupedEstoque: GroupedItem[];
+  totalGroups: number;
   viewMode: 'cards' | 'list';
   cart: Equipamento[];
   sortConfig: { key: string; direction: 'asc' | 'desc' } | null;
@@ -37,10 +39,25 @@ function SortHeader({ label, sortKey, sortConfig, onSort, className = "" }: {
 }
 
 export function CatalogView({
-  groupedEstoque, sortedGroupedEstoque, viewMode, cart, sortConfig,
+  groupedEstoque, sortedGroupedEstoque, totalGroups, viewMode, cart, sortConfig,
   hasActiveFilters, hasMore, isLoadingMore, onLoadMore, 
   onGroupClick, onViewModeChange, onSort, onResetFilters,
 }: CatalogViewProps) {
+  const observerTarget = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      entries => {
+        if (entries[0].isIntersecting && hasMore && !isLoadingMore && onLoadMore) {
+          onLoadMore();
+        }
+      },
+      { threshold: 0.1, rootMargin: '300px' }
+    );
+
+    if (observerTarget.current) observer.observe(observerTarget.current);
+    return () => observer.disconnect();
+  }, [hasMore, isLoadingMore, onLoadMore]);
   // Agrupa os itens por Tipo (Desktop, Notebook, etc) para a visualização em Cards (Netflix style)
   const groupedByTipo = groupedEstoque.reduce((acc, group) => {
     const tipo = group.tipo || 'Outros';
@@ -60,7 +77,7 @@ export function CatalogView({
     <>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">
-          {groupedEstoque.length} agrupamento{groupedEstoque.length !== 1 ? 's' : ''}
+          {totalGroups} agrupamento{totalGroups !== 1 ? 's' : ''}
         </h2>
         <div className="flex items-center gap-1 bg-slate-100 dark:bg-[#161b22] rounded-lg p-1 border border-slate-200 dark:border-[#30363d]">
           <button
@@ -163,10 +180,10 @@ export function CatalogView({
                       </div>
                       
                       {/* Condensed Specs for Mobile */}
-                      <div className="mt-2 text-[10px] text-slate-500 md:hidden flex flex-wrap gap-1">
-                        <span className="bg-slate-100 dark:bg-slate-800 px-1.5 rounded">{group.processador}</span>
-                        <span className="bg-slate-100 dark:bg-slate-800 px-1.5 rounded">{group.ram}</span>
-                        <span className="bg-slate-100 dark:bg-slate-800 px-1.5 rounded">{group.armazenamento}</span>
+                      <div className="mt-2 text-[10px] text-slate-500 md:hidden flex flex-col gap-1.5">
+                        <div className="flex items-center gap-1.5"><Cpu className="w-3 h-3 text-indigo-400" /> <span className="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-slate-600 dark:text-slate-300 font-medium">{group.processador}</span></div>
+                        <div className="flex items-center gap-1.5"><MemoryStick className="w-3 h-3 text-emerald-400" /> <span className="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-slate-600 dark:text-slate-300 font-medium">{group.ram}</span></div>
+                        <div className="flex items-center gap-1.5"><HardDrive className="w-3 h-3 text-amber-400" /> <span className="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-slate-600 dark:text-slate-300 font-medium">{group.armazenamento}</span></div>
                       </div>
                     </td>
                     <td className="py-4 px-5 text-[12px] lg:text-[13px] font-semibold text-slate-700 dark:text-slate-200 hidden md:table-cell">{group.processador}</td>
@@ -190,20 +207,15 @@ export function CatalogView({
         </div>
       )}
 
-      {/* Infinite Scroll trigger / Load More Button */}
+      {/* Infinite Scroll trigger */}
       {hasMore && groupedEstoque.length > 0 && (
-        <div className="flex justify-center mt-6 mb-8">
-          <button
-            onClick={onLoadMore}
-            disabled={isLoadingMore}
-            className="px-6 py-2.5 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-bold text-sm rounded-xl transition-all shadow-sm flex items-center gap-2"
-          >
-            {isLoadingMore ? (
-              <><span className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></span> Carregando...</>
-            ) : (
-              'Carregar mais itens'
-            )}
-          </button>
+        <div ref={observerTarget} className="flex justify-center mt-6 mb-8 w-full h-10">
+          {isLoadingMore && (
+            <div className="flex items-center gap-2 text-indigo-500 font-bold text-sm">
+              <span className="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></span>
+              Carregando mais...
+            </div>
+          )}
         </div>
       )}
     </>

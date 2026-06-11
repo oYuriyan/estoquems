@@ -112,7 +112,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     
     // Determina a URL do WebSocket baseado na URL atual
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = process.env.NODE_ENV === 'development' 
+    const wsUrl = import.meta.env.DEV 
       ? `ws://localhost:3030/api/ws` 
       : `${protocol}//${window.location.host}/api/ws`;
       

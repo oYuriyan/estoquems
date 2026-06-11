@@ -92,10 +92,10 @@ export async function generatePdfBlob(
           pdf.addImage(logoB64, 'PNG', (W / 2) - (targetW / 2), 6, targetW, targetH);
         } catch { /* ignora */ }
       } else {
-        // Logo Limmus Fallback
-        setFont('bold', 18);
-        pdf.setTextColor(255, 255, 255);
-        pdf.text('Limmus.', W / 2, 13, { align: 'center' });
+        // Logo Micro Sistema Fallback
+        pdf.setFontSize(22);
+        pdf.setTextColor(...rgb(C.headerLine));
+        pdf.text('Micro Sistema.', W / 2, 13, { align: 'center' });
       }
 
       // Títulos
@@ -131,7 +131,7 @@ export async function generatePdfBlob(
 
     setFont('normal', 6);
     pdf.setTextColor(...rgb(C.footerText));
-    pdf.text('Documento eletrônico oficial — Limmus (Sistema de Gestão)', M, H - 4.5);
+    pdf.text('Documento eletrônico oficial — Micro Sistema', M, H - 4.5);
     pdf.text(`Página ${pageNum} de ${totalPages}`, W - M, H - 4.5, { align: 'right' });
   };
 

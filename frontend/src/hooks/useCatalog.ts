@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { Catalogo } from '../types';
+import type { GroupedItem } from '../types';
 import { apiFetch } from '../utils/api';
 
 interface UseCatalogOptions {

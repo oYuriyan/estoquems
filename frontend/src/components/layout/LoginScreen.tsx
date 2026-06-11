@@ -81,14 +81,14 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
       <div className="bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl p-8 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.5)] w-full max-w-sm text-center relative z-10 border border-white/20 dark:border-white/5 overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-2 bg-indigo-600" />
         
-        {/* Nova Identidade Visual: Limmus */}
+        {/* Nova Identidade Visual: Sistema Estoque */}
         <div className="flex justify-center items-center gap-2 mb-6 select-none">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-            <span className="text-white font-black text-xl leading-none">L</span>
+            <span className="text-white font-black text-xl leading-none">S</span>
           </div>
-          <span className="text-2xl font-black tracking-tight text-slate-800 dark:text-white">
-            Limmus<span className="text-indigo-500">.</span>
-          </span>
+          <h1 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight">
+            Sistema Estoque<span className="text-indigo-500">.</span>
+          </h1>
         </div>
 
         <h1 className="text-2xl font-black text-slate-800 dark:text-slate-100 mb-2">

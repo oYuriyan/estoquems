@@ -27,13 +27,13 @@ async def get_quotes(
     quotes = result.scalars().all()
     
     # Adaptar para o response model (montar a lista items com os equipamentos)
+    responses = []
     for q in quotes:
-        q.items_list = [item.equipment for item in q.items]
-        # Pydantic schema will read from the `items` relation if we structure it right, but since the relation is to QuoteItem, 
-        # we dynamically assign `items` attribute as a list of equipments to match Pydantic schema.
-        setattr(q, 'items', [item.equipment for item in q.items])
+        q_dict = q.__dict__.copy()
+        q_dict["items"] = [item.equipment for item in q.items if item.equipment]
+        responses.append(QuoteResponse.model_validate(q_dict))
         
-    return quotes
+    return responses
 
 @router.post("/draft", response_model=QuoteResponse)
 async def create_draft(
@@ -56,8 +56,10 @@ async def create_draft(
     # Reload with items
     result = await db.execute(select(Quote).where(Quote.id == quote.id).options(selectinload(Quote.items).selectinload(QuoteItem.equipment)))
     quote = result.scalar_one()
-    setattr(quote, 'items', [item.equipment for item in quote.items if item.equipment])
-    return quote
+    # Retorna o modelo Pydantic construindo o dict
+    q_dict = quote.__dict__.copy()
+    q_dict["items"] = [item.equipment for item in quote.items if item.equipment]
+    return QuoteResponse.model_validate(q_dict)
 
 @router.put("/{quote_id}", response_model=QuoteResponse)
 async def update_quote(
@@ -92,8 +94,9 @@ async def update_quote(
     
     result = await db.execute(select(Quote).where(Quote.id == quote.id).options(selectinload(Quote.items).selectinload(QuoteItem.equipment)))
     quote = result.scalar_one()
-    setattr(quote, 'items', [item.equipment for item in quote.items if item.equipment])
-    return quote
+    q_dict = quote.__dict__.copy()
+    q_dict["items"] = [item.equipment for item in quote.items if item.equipment]
+    return QuoteResponse.model_validate(q_dict)
 
 @router.post("/{quote_id}/reserve", response_model=QuoteResponse)
 async def reserve_quote(
@@ -115,7 +118,7 @@ async def reserve_quote(
         raise HTTPException(status_code=400, detail="A proposta não possui equipamentos.")
 
     # 1. Verifica e dá lock pessimista nos equipamentos (SELECT FOR UPDATE)
-    query = select(Equipment).where(Equipment.id.in_([eq.id for eq in equipments])).with_for_update()
+    query = select(Equipment).where(Equipment.id.in_([eq.id for eq in equipments])).with_for_update().execution_options(populate_existing=True)
     result = await db.execute(query)
     locked_equipments = result.scalars().all()
     
@@ -155,12 +158,17 @@ async def reserve_quote(
             res = await client.post("http://n8n:5678/webhook/reservar_ativos", json=n8n_payload)
             res.raise_for_status()
     except Exception as e:
+        import logging
+        logging.error(f"Falha ao notificar N8N: {str(e)}")
+        # GLPI is the single source of truth, MUST rollback if n8n fails.
         await db.rollback()
-        raise HTTPException(status_code=502, detail=f"Erro ao sincronizar reserva com o n8n/GLPI: {str(e)}")
+        raise HTTPException(
+            status_code=502,
+            detail="Erro ao comunicar com o sistema do GLPI para validar a reserva. Tente novamente."
+        )
         
     await db.commit()
     await db.refresh(quote)
-    setattr(quote, 'items', locked_equipments)
 
     # 5. Broadcast websocket para todos os clientes atualizarem a tela silenciosamente
     try:
@@ -168,7 +176,9 @@ async def reserve_quote(
     except Exception:
         pass
 
-    return quote
+    q_dict = quote.__dict__.copy()
+    q_dict["items"] = locked_equipments
+    return QuoteResponse.model_validate(q_dict)
 
 @router.delete("/{quote_id}")
 async def delete_quote(

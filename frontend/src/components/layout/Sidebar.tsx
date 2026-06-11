@@ -42,13 +42,13 @@ export function Sidebar({
 
       {/* Logo + usuário */}
       <div className="p-5 pb-2 border-b border-white/5 flex flex-col items-center">
-        {/* Limmus Logo */}
+        {/* Micro Sistema Logo */}
         <div className="flex justify-center items-center gap-1.5 mb-4 select-none">
           <div className="w-6 h-6 rounded-md bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-            <span className="text-white font-black text-sm leading-none">L</span>
+            <span className="text-white font-black text-sm leading-none">S</span>
           </div>
           <span className="text-lg font-black tracking-tight text-white">
-            Limmus<span className="text-indigo-400">.</span>
+            Sistema Estoque<span className="text-indigo-400">.</span>
           </span>
         </div>
         <div className="flex items-center gap-3 w-full justify-center">
@@ -66,9 +66,17 @@ export function Sidebar({
       <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
         <button
           onClick={onResetCatalog}
-          className="w-full flex items-center justify-center gap-2.5 px-3 py-3 bg-gradient-to-r from-indigo-600/20 to-purple-600/20 hover:from-indigo-500/30 hover:to-purple-500/30 text-indigo-300 rounded-xl font-bold text-xs transition-all border border-indigo-500/20 hover:border-indigo-400/40 hover:scale-[1.02] shadow-sm uppercase tracking-wider"
+          className="w-full flex items-center justify-center gap-2.5 px-3 py-3 bg-gradient-to-r from-indigo-600/20 to-purple-600/20 hover:from-indigo-500/30 hover:to-purple-500/30 text-indigo-300 rounded-xl font-bold text-xs transition-all border border-indigo-500/20 hover:border-indigo-400/40 hover:scale-[1.02] shadow-sm uppercase tracking-wider mb-2"
         >
-          Catálogo
+          Visão Geral do Catálogo
+        </button>
+
+        <button
+          disabled
+          className="w-full flex items-center justify-between px-3 py-2.5 bg-white/5 opacity-50 cursor-not-allowed rounded-xl font-bold text-[11px] text-slate-400 border border-white/5 uppercase tracking-wider"
+        >
+          <span className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-slate-500" /> Relatórios</span>
+          <span className="text-[8px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded uppercase font-black">Em breve</span>
         </button>
 
         <div className="px-1 mt-6 mb-1 flex justify-between items-center">

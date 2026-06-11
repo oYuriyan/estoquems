@@ -1,6 +1,5 @@
-import { useState, useEffect, useMemo, useDeferredValue } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { differenceInHours } from 'date-fns';
-import Fuse from 'fuse.js';
 import clsx from 'clsx';
 
 // Assets
@@ -62,14 +61,10 @@ export default function App() {
   const [isSubmitting, setIsSubmitting]   = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
-  const deferredSearch = useDeferredValue(search);
-
   // ── Hooks ─────────────────────────────────────────────────────────────────
   const { addToast }     = useToast();
   const { confirmDialog, showConfirm, dismissConfirm } = useConfirm();
   const { generatePdf }                        = usePdf({ onSuccess: addToast, onError: addToast, setGenerating: setIsGeneratingPdf });
-
-  const anyModalOpen = isQuoteModalOpen || !!confirmDialog || isMobileDrawerOpen;
 
   const anyModalOpen = isQuoteModalOpen || !!confirmDialog || isMobileDrawerOpen;
 
@@ -202,7 +197,7 @@ export default function App() {
       g.items.forEach(i => { text += `Número de Série: ${i.numeroSerie} | ID: ${i.idPatrimonio}\n`; });
       if (idx < arr.length - 1) text += '\n';
     });
-    text += '\n_Gerado via Limmus_';
+    text += '\n_Gerado via Micro Sistema_';
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
@@ -258,6 +253,7 @@ export default function App() {
           <CatalogView
             groupedEstoque={sortedGroupedEstoque}
             sortedGroupedEstoque={sortedGroupedEstoque}
+            totalGroups={data?.metadados?.totalGroups || sortedGroupedEstoque.length}
             viewMode={viewMode}
             cart={cart}
             sortConfig={filters.sortKey ? { key: filters.sortKey, direction: filters.sortDir as 'asc'|'desc' } : null}
