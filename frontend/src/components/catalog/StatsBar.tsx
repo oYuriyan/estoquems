@@ -1,17 +1,15 @@
 import { Server, Package, HardDrive } from 'lucide-react';
 import clsx from 'clsx';
-import type { Equipamento } from '../../types';
 
 interface StatsBarProps {
-  estoque: Equipamento[];
+  totalItems: number;
+  totalNovos: number;
+  totalUsados: number;
   statusFilter: string | null;
   onFilterChange: (filter: string | null) => void;
 }
 
-export function StatsBar({ estoque, statusFilter, onFilterChange }: StatsBarProps) {
-  const total  = estoque.length;
-  const novos  = estoque.filter(i => i.status?.toUpperCase().includes('NOVO')).length;
-  const usados = total - novos;
+export function StatsBar({ totalItems, totalNovos, totalUsados, statusFilter, onFilterChange }: StatsBarProps) {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
@@ -28,7 +26,7 @@ export function StatsBar({ estoque, statusFilter, onFilterChange }: StatsBarProp
           <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 tracking-wider uppercase">Todos</span>
           <Server className="w-4 h-4 text-indigo-400" />
         </div>
-        <div className="text-2xl font-black text-slate-800 dark:text-slate-100">{total}</div>
+        <div className="text-2xl font-black text-slate-800 dark:text-slate-100">{totalItems}</div>
         <div className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">total encontrado</div>
       </button>
 
@@ -45,7 +43,7 @@ export function StatsBar({ estoque, statusFilter, onFilterChange }: StatsBarProp
           <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 tracking-wider uppercase">Novos</span>
           <Package className="w-4 h-4 text-blue-400" />
         </div>
-        <div className="text-2xl font-black text-blue-600 dark:text-blue-400">{novos}</div>
+        <div className="text-2xl font-black text-blue-600 dark:text-blue-400">{totalNovos}</div>
         <div className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">clique para filtrar</div>
       </button>
 
@@ -62,7 +60,7 @@ export function StatsBar({ estoque, statusFilter, onFilterChange }: StatsBarProp
           <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 tracking-wider uppercase">Usados</span>
           <HardDrive className="w-4 h-4 text-amber-400" />
         </div>
-        <div className="text-2xl font-black text-amber-600 dark:text-amber-400">{usados}</div>
+        <div className="text-2xl font-black text-amber-600 dark:text-amber-400">{totalUsados}</div>
         <div className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">clique para filtrar</div>
       </button>
     </div>

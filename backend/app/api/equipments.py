@@ -149,13 +149,18 @@ async def get_equipments_grouped(
     # Agrupar as marcas disponíveis para o filtro do frontend
     available_brands = sorted(list(set(eq.marca for eq in equipments)))
 
+    total_novos = sum(1 for eq in equipments if "NOVO" in str(eq.status).upper())
+    total_usados = len(equipments) - total_novos
+
     return {
         "groups": serialized_groups,
         "available_brands": available_brands,
         "total_groups": total_groups,
         "total_pages": total_pages,
         "current_page": page,
-        "total_equipments": len(equipments)
+        "total_equipments": len(equipments),
+        "total_novos": total_novos,
+        "total_usados": total_usados
     }
 
 @router.post("/sync")

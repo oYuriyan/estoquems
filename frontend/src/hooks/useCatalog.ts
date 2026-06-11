@@ -64,7 +64,12 @@ export function useCatalog({ pausePolling = false, onError }: UseCatalogOptions 
         if (resetPage || !prev) {
           return {
             groups: mappedGroups,
-            metadados: { totalEquipments: payload.total_equipments, totalGroups: payload.total_groups }
+            metadados: { 
+              totalEquipments: payload.total_equipments, 
+              totalGroups: payload.total_groups,
+              totalNovos: payload.total_novos,
+              totalUsados: payload.total_usados
+            }
           };
         }
         return {

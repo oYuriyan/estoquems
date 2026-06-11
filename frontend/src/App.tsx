@@ -239,7 +239,9 @@ export default function App() {
 
         <div className="flex-1 overflow-y-auto p-4 md:p-6 pb-32 md:pb-6 bg-[#f1f5f9] dark:bg-[#0d1117]" id="catalog-scroll-area">
           <StatsBar
-            estoque={data?.groups.flatMap(g => g.items) || []}
+            totalItems={data?.metadados?.totalEquipments || 0}
+            totalNovos={data?.metadados?.totalNovos || 0}
+            totalUsados={data?.metadados?.totalUsados || 0}
             statusFilter={filters.statusFilter}
             onFilterChange={(v) => setFilters(p => ({ ...p, statusFilter: v }))}
           />
