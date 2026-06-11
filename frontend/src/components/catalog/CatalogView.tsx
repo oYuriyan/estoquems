@@ -58,20 +58,8 @@ export function CatalogView({
     if (observerTarget.current) observer.observe(observerTarget.current);
     return () => observer.disconnect();
   }, [hasMore, isLoadingMore, onLoadMore]);
-  // Agrupa os itens por Tipo (Desktop, Notebook, etc) para a visualização em Cards (Netflix style)
-  const groupedByTipo = groupedEstoque.reduce((acc, group) => {
-    const tipo = group.tipo || 'Outros';
-    if (!acc[tipo]) acc[tipo] = [];
-    acc[tipo].push(group);
-    return acc;
-  }, {} as Record<string, GroupedItem[]>);
-
-  // Ordena os tipos alfabeticamente para manter consistência, mas força NOTEBOOK para o topo
-  const tiposOrdenados = Object.keys(groupedByTipo).sort((a, b) => {
-    if (a.toUpperCase() === 'NOTEBOOK') return -1;
-    if (b.toUpperCase() === 'NOTEBOOK') return 1;
-    return a.localeCompare(b);
-  });
+  // O agrupamento por tipo causava Layout Shifts pesados na paginação server-side.
+  // Agora usamos um Grid contínuo estilo E-commerce, que é perfeitamente fluido.
 
   return (
     <>
@@ -114,18 +102,9 @@ export function CatalogView({
           )}
         </div>
       ) : viewMode === 'cards' ? (
-        <div className="space-y-8 pb-12">
-          {tiposOrdenados.map(tipo => (
-            <div key={tipo} className="relative">
-              <h3 className="text-sm font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-3 px-1 flex items-center gap-2">
-                {tipo} <span className="text-[10px] bg-slate-200 dark:bg-slate-800 text-slate-500 rounded-full px-2 py-0.5">{groupedByTipo[tipo].length}</span>
-              </h3>
-              <div className="flex overflow-x-auto md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5 hide-scrollbar snap-x snap-mandatory pt-3 pb-6 md:pb-2 -mx-4 px-4 md:mx-0 md:px-0">
-                {groupedByTipo[tipo].map(group => (
-                  <ItemCard key={group.key} group={group} cart={cart} onClick={onGroupClick} />
-                ))}
-              </div>
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5 pb-12">
+          {groupedEstoque.map(group => (
+            <ItemCard key={group.key} group={group} cart={cart} onClick={onGroupClick} />
           ))}
         </div>
       ) : (

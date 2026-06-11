@@ -111,8 +111,8 @@ async def get_equipments_grouped(
         else:
             grouped_list.sort(key=lambda x: str(x.get(sort_key, "")), reverse=reverse)
     else:
-        # Default sort (por quantidade)
-        grouped_list.sort(key=lambda x: len(x["items"]), reverse=True)
+        # Default sort (por tipo e depois quantidade, para evitar layout shift no frontend durante paginação)
+        grouped_list.sort(key=lambda x: (str(x.get("tipo", "")).upper(), len(x["items"])), reverse=True)
 
     # Paginação
     total_groups = len(grouped_list)
