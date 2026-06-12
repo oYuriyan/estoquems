@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy import func, String, cast
+from sqlalchemy import func, String, cast, Text
 from sqlalchemy.orm import selectinload
 from typing import List, Optional
 import math
@@ -56,8 +56,7 @@ async def get_equipments_grouped(
             (Equipment.marca.ilike(search_term)) |
             (Equipment.tipo.ilike(search_term)) |
             (Equipment.numero_serie.ilike(search_term)) |
-            (Equipment.id_patrimonio.ilike(search_term)) |
-            (cast(Equipment.especificacoes, String).ilike(search_term))
+            (Equipment.id_patrimonio.ilike(search_term))
         )
 
     # Pegamos a lista bruta e agrupamos no python para montar a paginação correta 
