@@ -34,8 +34,7 @@ settings = get_settings()
 # ── Logging estruturado ───────────────────────────────────────────────────────
 logging.basicConfig(
     level=getattr(logging, settings.LOG_LEVEL.upper(), logging.INFO),
-    format="%(asctime)s [%(levelname)s] %(name)s — %(message)s — request_id=%(request_id)s",
-    defaults={"request_id": "-"},
+    format="%(asctime)s [%(levelname)s] %(name)s — %(message)s",
 )
 
 # Silencia logs verbosos de libs externas em produção
