@@ -3,12 +3,12 @@ import type { GroupedItem } from '../types';
 import { apiFetch } from '../utils/api';
 
 interface UseCatalogOptions {
-  /** Pausa o polling enquanto um modal está aberto, evitando re-renders durante interação */
   pausePolling?: boolean;
+  isAuthenticated?: boolean;
   onError?: (message: string) => void;
 }
 
-export function useCatalog({ pausePolling = false, onError }: UseCatalogOptions = {}) {
+export function useCatalog({ pausePolling = false, isAuthenticated = false, onError }: UseCatalogOptions = {}) {
   const [data, setData] = useState<{ groups: GroupedItem[], metadados: any } | null>(null);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -92,11 +92,12 @@ export function useCatalog({ pausePolling = false, onError }: UseCatalogOptions 
     }
   }, [filters, page, onError]);
 
-  // Se os filtros mudarem, reseta a página
+  // Se os filtros ou a autenticação mudarem, reseta a página (somente se autenticado)
   useEffect(() => {
+    if (!isAuthenticated) return;
     setLoading(true);
     fetchCatalogo(true, true);
-  }, [filters]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [filters, isAuthenticated]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /** Aciona sync GLPI via n8n e faz polling até o catálogo ser atualizado (máx 30s) */
   const syncGLPI = useCallback(async (onSuccess?: (msg: string) => void, onInfo?: (msg: string) => void) => {
@@ -152,11 +153,11 @@ export function useCatalog({ pausePolling = false, onError }: UseCatalogOptions 
 
   // Auto-refresh a cada 60s
   useEffect(() => {
-    if (pausePolling) return;
+    if (pausePolling || !isAuthenticated) return;
     // O auto refresh deve sempre ser silencioso e resetar para não ficar duplicando itens
     const interval = setInterval(() => fetchCatalogo(true, true), 60_000);
     return () => clearInterval(interval);
-  }, [fetchCatalogo, pausePolling]);
+  }, [fetchCatalogo, pausePolling, isAuthenticated]);
 
   return { 
     data, 

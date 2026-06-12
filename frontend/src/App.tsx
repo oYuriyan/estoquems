@@ -73,6 +73,7 @@ export default function App() {
     fetchCatalogo, syncGLPI 
   } = useCatalog({
     pausePolling: anyModalOpen,
+    isAuthenticated: !!user,
     onError: (msg) => addToast(msg, 'error'),
   });
 
