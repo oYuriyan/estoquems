@@ -19,3 +19,13 @@ python-multipart==0.0.12           # form data (login)
 # ── Utilities ────────────────────────────────────────────────────────────────
 python-dotenv==1.0.1
 httpx==0.28.0                      # cliente HTTP (para webhooks n8n)
+
+# ── Observabilidade ───────────────────────────────────────────────────────────
+sentry-sdk[fastapi]==2.19.2        # error tracking + performance (DSN via env)
+slowapi==0.1.9                     # rate limiting (Limiter baseado em limits)
+
+# ── Testes ────────────────────────────────────────────────────────────────────
+pytest==8.3.4
+pytest-asyncio==0.25.3
+anyio[asyncio]==4.8.0
+aiosqlite==0.20.0                  # SQLite async para testes in-memory
