@@ -35,12 +35,10 @@ export function QuoteDrawer({
             <FileText className="text-indigo-500 w-4 h-4 shrink-0" />
             <div className="min-w-0">
               <h2 className="text-base font-black text-slate-800 dark:text-slate-100 truncate">{quote.name}</h2>
-              {quote.isReserved ? (
+              {quote.isReserved && (
                 <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                   <CheckCircle className="w-2.5 h-2.5" /> Reservada
                 </span>
-              ) : (
-                <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400">Passo {quoteStep} de 3</span>
               )}
             </div>
           </div>
@@ -51,6 +49,46 @@ export function QuoteDrawer({
             <X className="w-4 h-4" />
           </button>
         </div>
+
+        {/* Stepper Visual */}
+        {!quote.isReserved && (
+          <div className="px-5 py-3 border-b border-slate-200/50 dark:border-slate-700/50 bg-slate-50/30 dark:bg-[#161b22]/50 flex justify-center items-center shrink-0">
+            <div className="flex items-center w-full max-w-sm">
+              {[
+                { step: 1, label: 'Itens' },
+                { step: 2, label: 'Cliente' },
+                { step: 3, label: 'Revisão' }
+              ].map((s, idx) => (
+                <div key={s.step} className="flex items-center flex-1 last:flex-none">
+                  <div className="flex flex-col items-center gap-1">
+                    <div className={clsx(
+                      'w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold transition-colors',
+                      quoteStep === s.step 
+                        ? 'bg-indigo-600 text-white ring-4 ring-indigo-500/20' 
+                        : quoteStep > s.step 
+                          ? 'bg-indigo-200 dark:bg-indigo-500/30 text-indigo-700 dark:text-indigo-300' 
+                          : 'bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                    )}>
+                      {quoteStep > s.step ? '✓' : s.step}
+                    </div>
+                    <span className={clsx(
+                      'text-[9px] font-bold uppercase tracking-wider',
+                      quoteStep >= s.step ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-500'
+                    )}>
+                      {s.label}
+                    </span>
+                  </div>
+                  {idx < 2 && (
+                    <div className={clsx(
+                      'flex-1 h-0.5 mx-2 -translate-y-2.5 transition-colors',
+                      quoteStep > s.step ? 'bg-indigo-300 dark:bg-indigo-500/50' : 'bg-slate-200 dark:bg-slate-800'
+                    )} />
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Content */}
         <div className="p-5 flex-1 overflow-y-auto space-y-5">

@@ -86,9 +86,16 @@ export function CatalogView({
       </div>
 
       {groupedEstoque.length === 0 ? (
-        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700/50 border-dashed p-16 text-center shadow-sm">
-          <Search className="w-14 h-14 text-slate-300 mx-auto mb-5" />
-          <p className="text-slate-600 dark:text-slate-300 text-lg font-bold mb-2">Nenhum equipamento encontrado</p>
+        <div className="bg-white dark:bg-[#161b22] rounded-2xl border border-slate-200 dark:border-[#30363d] border-dashed p-16 text-center shadow-sm">
+          <div className="flex justify-center mb-6 opacity-60">
+            <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M60 10L105 35V85L60 110L15 85V35L60 10Z" fill="#F1F5F9" className="dark:fill-slate-800" stroke="#CBD5E1" className="dark:stroke-slate-700" strokeWidth="2" strokeLinejoin="round"/>
+              <path d="M60 10L60 60M60 60L105 35M60 60L15 35" stroke="#CBD5E1" className="dark:stroke-slate-700" strokeWidth="2" strokeLinejoin="round"/>
+              <circle cx="60" cy="50" r="10" fill="#E2E8F0" className="dark:fill-slate-700"/>
+              <path d="M55 50L60 55L65 45" stroke="#94A3B8" className="dark:stroke-slate-500" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+          <p className="text-slate-700 dark:text-slate-200 text-xl font-black mb-2">Nenhum equipamento encontrado</p>
           <p className="text-slate-400 dark:text-slate-500 text-sm max-w-md mx-auto mb-5">
             Verifique os termos digitados ou tente buscar de forma mais genérica.
           </p>
@@ -103,8 +110,15 @@ export function CatalogView({
         </div>
       ) : viewMode === 'cards' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5 pb-12">
-          {groupedEstoque.map(group => (
-            <ItemCard key={group.key} group={group} cart={cart} onClick={onGroupClick} />
+          {groupedEstoque.map((group, index) => (
+            <ItemCard 
+              key={group.key} 
+              group={group} 
+              cart={cart} 
+              onClick={onGroupClick} 
+              className="animate-fade-slide-up"
+              style={{ animationDelay: `${Math.min(index * 0.05, 0.5)}s` }}
+            />
           ))}
         </div>
       ) : (

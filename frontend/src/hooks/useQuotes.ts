@@ -78,6 +78,9 @@ export function useQuotes() {
   }, [quotes.length, setQuotes, setActiveQuoteId]);
 
   const removeQuote = useCallback(async (id: string) => {
+    const backup = quotes.find(q => q.id === id);
+    if (!backup) return;
+
     const remaining = quotes.filter(q => q.id !== id);
     // Optimistic
     setQuotes(remaining);
@@ -85,13 +88,14 @@ export function useQuotes() {
       setActiveQuoteId(remaining.length > 0 ? remaining[0].id : null);
     }
     try {
-      await apiFetch(`/api/quotes/${id}`, { method: 'DELETE' });
+      const res = await apiFetch(`/api/quotes/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Falha na API');
     } catch (err) {
       console.error('Falha ao excluir proposta no backend', err);
-      // rollback?
-      refreshQuotes(); 
+      // rollback limpo
+      setQuotes(prev => [...prev, backup]);
     }
-  }, [quotes, activeQuoteId, setQuotes, setActiveQuoteId, refreshQuotes]);
+  }, [quotes, activeQuoteId, setQuotes, setActiveQuoteId]);
 
   const toggleCartItem = useCallback(async (item: Equipamento) => {
     let targetQuoteId = activeQuoteId;

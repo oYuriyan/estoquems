@@ -5,9 +5,11 @@ interface ItemCardProps {
   group: GroupedItem;
   cart: Equipamento[];
   onClick: (group: GroupedItem) => void;
+  className?: string;
+  style?: React.CSSProperties;
 }
 
-export function ItemCard({ group, cart, onClick }: ItemCardProps) {
+export function ItemCard({ group, cart, onClick, className, style }: ItemCardProps) {
   const isScarce = group.items.length === 1;
   const cartCountInGroup = cart.filter(c =>
     group.items.some(i => i.idPatrimonio === c.idPatrimonio)
@@ -25,7 +27,8 @@ export function ItemCard({ group, cart, onClick }: ItemCardProps) {
     <div
       onClick={() => onClick(group)}
       onMouseMove={handleMouseMove}
-      className="spotlight-card w-[85vw] sm:w-[320px] md:w-full shrink-0 md:shrink snap-start md:snap-align-none bg-white dark:bg-[#161b22] rounded-2xl border border-slate-200 dark:border-[#30363d] hover:border-indigo-400 dark:hover:border-indigo-500/60 hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300 cursor-pointer flex flex-col overflow-hidden relative group/card shadow-sm"
+      style={style}
+      className={`spotlight-card w-[85vw] sm:w-[320px] md:w-full shrink-0 md:shrink snap-start md:snap-align-none bg-white dark:bg-[#161b22] rounded-2xl border border-slate-200 dark:border-[#30363d] hover:border-indigo-400 dark:hover:border-indigo-500/60 hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300 cursor-pointer flex flex-col overflow-hidden relative group/card shadow-sm ${className || ''}`}
     >
       {isScarce && (
         <div className="absolute top-0 right-0 bg-red-500 text-white text-[10px] uppercase font-bold px-3 py-1 rounded-bl-lg animate-pulse shadow-sm z-10">

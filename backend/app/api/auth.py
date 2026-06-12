@@ -27,26 +27,6 @@ async def login_access_token(
     access_token = create_access_token(subject=user.email)
     return {"access_token": access_token, "token_type": "bearer"}
 
-@router.post("/register", response_model=UserResponse)
-async def register_user(
-    user_in: UserCreate, 
-    db: AsyncSession = Depends(get_db)
-):
-    result = await db.execute(select(User).where(User.email == user_in.email))
-    user = result.scalar_one_or_none()
-    if user:
-        raise HTTPException(status_code=400, detail="The user with this email already exists in the system.")
-        
-    user = User(
-        email=user_in.email,
-        name=user_in.name,
-        hashed_password=get_password_hash(user_in.password)
-    )
-    db.add(user)
-    await db.commit()
-    await db.refresh(user)
-    return user
-
 @router.get("/me", response_model=UserResponse)
 async def read_users_me(current_user: User = Depends(get_current_user)):
     return current_user

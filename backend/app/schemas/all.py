@@ -58,14 +58,14 @@ class QuoteCreate(BaseModel):
     name: str
     client_name: Optional[str] = None
     margin: Optional[str] = None
-    validity_days: int = 2
+    validity_days: int = Field(default=2, gt=0, le=365, description="Dias de validade da proposta")
     equipment_ids: List[str] = Field(default_factory=list, description="IDs dos equipamentos (id, não id_patrimonio)")
 
 class QuoteUpdate(BaseModel):
     name: Optional[str] = None
     client_name: Optional[str] = None
     margin: Optional[str] = None
-    validity_days: Optional[int] = None
+    validity_days: Optional[int] = Field(default=None, gt=0, le=365)
     equipment_ids: Optional[List[str]] = None
 
 class QuoteResponse(BaseModel):

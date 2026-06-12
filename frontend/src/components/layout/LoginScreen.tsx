@@ -10,10 +10,11 @@ interface LoginScreenProps {
 export function LoginScreen({ onLogin }: LoginScreenProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [isRegistering, setIsRegistering] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  
+  // Validação inline
+  const isEmailValid = email.length === 0 || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,21 +22,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
     setError('');
 
     try {
-      if (isRegistering) {
-        // Fluxo de Registro
-        const res = await fetch('/api/auth/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, email, password })
-        });
-        if (!res.ok) {
-          const d = await res.json();
-          throw new Error(d.detail || 'Erro ao registrar.');
-        }
-        // Após registrar com sucesso, faz o login automaticamente
-      }
-
-      // Fluxo de Login (ou login após o registro)
+      // Fluxo de Login
       const formData = new URLSearchParams();
       formData.append('username', email);
       formData.append('password', password);
@@ -92,10 +79,10 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
         </div>
 
         <h1 className="text-2xl font-black text-slate-800 dark:text-slate-100 mb-2">
-          {isRegistering ? 'Criar Conta' : 'Bem-vindo(a)'}
+          Bem-vindo(a)
         </h1>
         <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">
-          {isRegistering ? 'Cadastre-se para acessar o sistema.' : 'Acesse com suas credenciais para visualizar o catálogo e reservar equipamentos.'}
+          Acesse com suas credenciais para visualizar o catálogo e reservar equipamentos.
         </p>
 
         {error && (
@@ -105,24 +92,21 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {isRegistering && (
+          <div>
             <input
-              type="text"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              placeholder="Seu Nome"
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="E-mail"
               required
-              className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl font-medium text-slate-800 dark:text-slate-100 bg-slate-50 dark:bg-slate-900 focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+              className={`w-full px-4 py-3 border rounded-xl font-medium text-slate-800 dark:text-slate-100 bg-slate-50 dark:bg-slate-900 focus:ring-2 outline-none transition-all ${
+                !isEmailValid ? 'border-red-500 focus:ring-red-500/50' : 'border-slate-300 dark:border-slate-600 focus:ring-indigo-500'
+              }`}
             />
-          )}
-          <input
-            type="email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            placeholder="E-mail"
-            required
-            className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl font-medium text-slate-800 dark:text-slate-100 bg-slate-50 dark:bg-slate-900 focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
-          />
+            {!isEmailValid && (
+              <p className="text-red-500 text-xs text-left mt-1 ml-1 font-semibold">E-mail inválido.</p>
+            )}
+          </div>
           <input
             type="password"
             value={password}
@@ -133,24 +117,14 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
           />
           <button
             type="submit"
-            disabled={isLoading}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-70 disabled:cursor-wait text-white font-bold py-3.5 rounded-xl transition-colors shadow-sm flex justify-center items-center gap-2"
+            disabled={isLoading || !isEmailValid}
+            className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-70 disabled:cursor-not-allowed text-white font-bold py-3.5 rounded-xl transition-colors shadow-sm flex justify-center items-center gap-2"
           >
-            {isLoading ? <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : isRegistering ? 'Cadastrar' : 'Acessar Sistema'}
+            {isLoading ? <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : 'Acessar Sistema'}
           </button>
         </form>
 
-        <div className="mt-6">
-          <button
-            onClick={() => {
-              setIsRegistering(!isRegistering);
-              setError('');
-            }}
-            className="text-xs text-indigo-500 hover:text-indigo-400 font-bold transition-colors"
-          >
-            {isRegistering ? 'Já tem uma conta? Faça Login' : 'Ainda não tem conta? Crie aqui'}
-          </button>
-        </div>
+
       </div>
     </div>
   );
