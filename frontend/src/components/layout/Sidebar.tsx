@@ -42,13 +42,13 @@ export function Sidebar({
 
       {/* Logo + usuário */}
       <div className="p-5 pb-2 border-b border-white/5 flex flex-col items-center">
-        {/* Micro Sistema Logo */}
+        {/* Lummium Logo */}
         <div className="flex justify-center items-center gap-1.5 mb-4 select-none">
-          <div className="w-6 h-6 rounded-md bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-            <span className="text-white font-black text-sm leading-none">S</span>
+          <div className="w-6 h-6 rounded-md bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30">
+            <span className="text-white font-black text-sm leading-none">L</span>
           </div>
           <span className="text-lg font-black tracking-tight text-white">
-            Sistema Estoque<span className="text-indigo-400">.</span>
+            ummium<span className="text-cyan-500">.</span>
           </span>
         </div>
         <div className="flex items-center gap-3 w-full justify-center">

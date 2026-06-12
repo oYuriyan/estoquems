@@ -3,7 +3,7 @@ from functools import lru_cache
 
 class Settings(BaseSettings):
     # App Settings
-    APP_NAME: str = "Micro Estoque API"
+    APP_NAME: str = "Lummium API"
     APP_VERSION: str = "1.0.0"
     APP_ENV: str = "production"
 

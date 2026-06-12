@@ -78,7 +78,7 @@ export function useQuoteActions(
       g.items.forEach(i => { text += `Número de Série: ${i.numeroSerie} | ID: ${i.idPatrimonio}\n`; });
       if (idx < arr.length - 1) text += '\n';
     });
-    text += '\n_Gerado via Micro Sistema_';
+    text += '\n_Gerado via Lummium_';
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 

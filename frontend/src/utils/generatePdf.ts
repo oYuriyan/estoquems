@@ -92,10 +92,10 @@ export async function generatePdfBlob(
           pdf.addImage(logoB64, 'PNG', (W / 2) - (targetW / 2), 6, targetW, targetH);
         } catch { /* ignora */ }
       } else {
-        // Logo Micro Sistema Fallback
+        // Logo Lummium Fallback
         pdf.setFontSize(22);
         pdf.setTextColor(...rgb(C.headerLine));
-        pdf.text('Micro Sistema.', W / 2, 13, { align: 'center' });
+        pdf.text('Lummium.', W / 2, 13, { align: 'center' });
       }
 
       // Títulos
@@ -131,7 +131,7 @@ export async function generatePdfBlob(
 
     setFont('normal', 6);
     pdf.setTextColor(...rgb(C.footerText));
-    pdf.text('Documento eletrônico oficial — Micro Sistema', M, H - 4.5);
+    pdf.text('Documento eletrônico oficial — Lummium', M, H - 4.5);
     pdf.text(`Página ${pageNum} de ${totalPages}`, W - M, H - 4.5, { align: 'right' });
   };
 

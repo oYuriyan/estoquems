@@ -80,7 +80,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
 
         <div className="relative z-10 mb-24 max-w-lg">
           <h1 className="text-5xl font-black text-white leading-tight tracking-tight mb-6">
-            Inteligência e fluidez para o seu <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">Estoque.</span>
+            Inteligência e fluidez para o seu <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">Lummium.</span>
           </h1>
           <p className="text-lg text-indigo-100/80 leading-relaxed font-medium">
             Gerencie alocações, reserve equipamentos e mantenha tudo sincronizado com o GLPI através de uma interface desenhada para produtividade máxima.
@@ -88,7 +88,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
         </div>
         
         <div className="relative z-10 flex items-center gap-4 text-sm text-white/50 font-medium">
-          <span>&copy; {new Date().getFullYear()} Sistema Estoque</span>
+          <span>&copy; {new Date().getFullYear()} Lummium</span>
           <span className="w-1.5 h-1.5 rounded-full bg-white/20"></span>
           <span>Versão 1.0</span>
         </div>
@@ -109,7 +109,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
             {/* Logo e Nome mobile */}
             <div className="flex lg:hidden justify-center items-center gap-3 mb-8">
               <img src={logoOficial} alt="Logo" className="w-10 h-10 object-contain brightness-0 invert" />
-              <h2 className="text-2xl font-black text-white tracking-tight">Estoque<span className="text-indigo-500">.</span></h2>
+              <h2 className="text-2xl font-black text-white tracking-tight"><span className="text-cyan-500">L</span>ummium<span className="text-cyan-500">.</span></h2>
             </div>
 
             <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight mb-4">

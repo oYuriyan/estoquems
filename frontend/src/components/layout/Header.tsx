@@ -16,7 +16,7 @@ export function Header({ isDarkMode, search, onSearchChange, onToggleDarkMode }:
       <div>
         <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">Catálogo</h1>
         <div className="flex items-center gap-2 mt-0.5">
-          <span className="text-[10px] uppercase tracking-widest font-bold text-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 px-2 py-0.5 rounded">SISTEMA ESTOQUE</span>
+          <span className="text-[10px] uppercase tracking-widest font-bold text-cyan-500 bg-cyan-50 dark:bg-cyan-500/10 px-2 py-0.5 rounded">LUMMIUM</span>
           <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
             {format(new Date(), "EEEE, d 'de' MMMM", { locale: ptBR })}
           </span>

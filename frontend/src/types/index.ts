@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Fonte única de verdade para todos os tipos do sistema Micro Estoque
+// Fonte única de verdade para todos os tipos do sistema Lummium
 // Importar sempre daqui — nunca redefinir em outros arquivos
 // ─────────────────────────────────────────────────────────────────────────────
 
