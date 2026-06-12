@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { setToken } from '../../utils/api';
+import { Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
+import logoOficial from '../../assets/logo_oficial.png';
 
 import type { User } from '../../contexts/AppContext';
 
@@ -22,7 +24,6 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
     setError('');
 
     try {
-      // Fluxo de Login
       const formData = new URLSearchParams();
       formData.append('username', email);
       formData.append('password', password);
@@ -42,7 +43,6 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
       const data = await response.json();
       setToken(data.access_token);
 
-      // Agora busca os dados do usuário para pegar o nome e as flags (is_superuser)
       const meResponse = await fetch('/api/auth/me', {
         headers: { 'Authorization': `Bearer ${data.access_token}` }
       });
@@ -57,74 +57,152 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center font-sans p-4 relative bg-[#0B1120] overflow-hidden">
-      {/* Mesh Gradient Background */}
-      <div 
-        className="absolute inset-0 z-0 animate-mesh opacity-60"
-        style={{
-          backgroundImage: 'radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%), radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.15) 0px, transparent 50%), radial-gradient(at 100% 100%, rgba(59, 130, 246, 0.15) 0px, transparent 50%), radial-gradient(at 0% 100%, rgba(139, 92, 246, 0.15) 0px, transparent 50%)'
-        }}
-      />
-      <div className="bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl p-8 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.5)] w-full max-w-sm text-center relative z-10 border border-white/20 dark:border-white/5 overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-2 bg-indigo-600" />
+    <div className="min-h-screen w-full flex bg-[#0f172a] font-sans overflow-hidden">
+      
+      {/* ── LADO ESQUERDO: ARTE (Desktop) ── */}
+      <div className="hidden lg:flex lg:w-1/2 relative flex-col justify-between p-12 overflow-hidden border-r border-white/5 bg-[#0B1120]">
+        {/* Fundo Animado Mesh Gradient */}
+        <div 
+          className="absolute inset-0 z-0 animate-mesh opacity-80 mix-blend-screen"
+          style={{
+            backgroundImage: 'radial-gradient(at 20% 30%, rgba(99, 102, 241, 0.4) 0px, transparent 50%), radial-gradient(at 80% 80%, rgba(168, 85, 247, 0.3) 0px, transparent 50%), radial-gradient(at 90% 10%, rgba(59, 130, 246, 0.2) 0px, transparent 50%), radial-gradient(at 10% 90%, rgba(139, 92, 246, 0.3) 0px, transparent 50%)'
+          }}
+        />
         
-        {/* Nova Identidade Visual: Sistema Estoque */}
-        <div className="flex justify-center items-center gap-2 mb-6 select-none">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-            <span className="text-white font-black text-xl leading-none">S</span>
+        {/* Elementos de Overlay */}
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMDUiLz4KPC9zdmc+')] opacity-20 pointer-events-none" />
+
+        <div className="relative z-10">
+          <div className="w-14 h-14 bg-white/10 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-white/20 shadow-xl mb-6">
+            <img src={logoOficial} alt="Logo" className="w-8 h-8 object-contain drop-shadow-md brightness-0 invert" />
           </div>
-          <h1 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight">
-            Sistema Estoque<span className="text-indigo-500">.</span>
-          </h1>
         </div>
 
-        <h1 className="text-2xl font-black text-slate-800 dark:text-slate-100 mb-2">
-          Bem-vindo(a)
-        </h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">
-          Acesse com suas credenciais para visualizar o catálogo e reservar equipamentos.
-        </p>
+        <div className="relative z-10 mb-24 max-w-lg">
+          <h1 className="text-5xl font-black text-white leading-tight tracking-tight mb-6">
+            Inteligência e fluidez para o seu <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">Estoque.</span>
+          </h1>
+          <p className="text-lg text-indigo-100/80 leading-relaxed font-medium">
+            Gerencie alocações, reserve equipamentos e mantenha tudo sincronizado com o GLPI através de uma interface desenhada para produtividade máxima.
+          </p>
+        </div>
+        
+        <div className="relative z-10 flex items-center gap-4 text-sm text-white/50 font-medium">
+          <span>&copy; {new Date().getFullYear()} Sistema Estoque</span>
+          <span className="w-1.5 h-1.5 rounded-full bg-white/20"></span>
+          <span>Versão 1.0</span>
+        </div>
+      </div>
 
-        {error && (
-          <div className="bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-xs font-bold p-3 rounded-lg mb-4 border border-red-200 dark:border-red-800/50">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <input
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="E-mail"
-              required
-              className={`w-full px-4 py-3 border rounded-xl font-medium text-slate-800 dark:text-slate-100 bg-slate-50 dark:bg-slate-900 focus:ring-2 outline-none transition-all ${
-                !isEmailValid ? 'border-red-500 focus:ring-red-500/50' : 'border-slate-300 dark:border-slate-600 focus:ring-indigo-500'
-              }`}
-            />
-            {!isEmailValid && (
-              <p className="text-red-500 text-xs text-left mt-1 ml-1 font-semibold">E-mail inválido.</p>
-            )}
-          </div>
-          <input
-            type="password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            placeholder="Senha"
-            required
-            className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl font-medium text-slate-800 dark:text-slate-100 bg-slate-50 dark:bg-slate-900 focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+      {/* ── LADO DIREITO: FORMULÁRIO ── */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 relative">
+        {/* Background mobile (no desktop fica invisível ou coberto) */}
+        <div className="absolute inset-0 lg:hidden bg-[#0B1120] z-0">
+          <div 
+            className="absolute inset-0 animate-mesh opacity-40 mix-blend-screen"
+            style={{ backgroundImage: 'radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.3) 0px, transparent 50%), radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.3) 0px, transparent 50%)' }}
           />
-          <button
-            type="submit"
-            disabled={isLoading || !isEmailValid}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-70 disabled:cursor-not-allowed text-white font-bold py-3.5 rounded-xl transition-colors shadow-sm flex justify-center items-center gap-2"
-          >
-            {isLoading ? <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : 'Acessar Sistema'}
-          </button>
-        </form>
+        </div>
 
+        <div className="w-full max-w-md relative z-10 animate-fade-slide-up">
+          <div className="mb-10 text-center lg:text-left">
+            {/* Logo e Nome mobile */}
+            <div className="flex lg:hidden justify-center items-center gap-3 mb-8">
+              <img src={logoOficial} alt="Logo" className="w-10 h-10 object-contain brightness-0 invert" />
+              <h2 className="text-2xl font-black text-white tracking-tight">Estoque<span className="text-indigo-500">.</span></h2>
+            </div>
 
+            <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight mb-2">
+              Acesse sua conta
+            </h2>
+            <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">
+              Insira suas credenciais para continuar.
+            </p>
+          </div>
+
+          <div className="bg-white dark:bg-slate-800/50 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-slate-200 dark:border-white/10 relative overflow-hidden">
+            {/* Shine effect na borda superior do card */}
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-50" />
+
+            {error && (
+              <div className="bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-sm font-semibold p-4 rounded-xl mb-6 border border-red-200 dark:border-red-800/50 flex items-center gap-3">
+                <span className="flex-shrink-0 w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
+                {error}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+              
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">E-mail</label>
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-indigo-500 transition-colors">
+                    <Mail className="w-5 h-5" />
+                  </div>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    placeholder="voce@empresa.com"
+                    required
+                    className={`w-full pl-11 pr-4 py-3.5 border rounded-xl font-medium text-slate-800 dark:text-slate-100 bg-slate-50 dark:bg-slate-900/50 focus:bg-white dark:focus:bg-slate-900 outline-none transition-all shadow-sm ${
+                      !isEmailValid ? 'border-red-500 focus:ring-2 focus:ring-red-500/50' : 'border-slate-200 dark:border-slate-700/50 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10'
+                    }`}
+                  />
+                </div>
+                {!isEmailValid && (
+                  <p className="text-red-500 text-xs font-semibold mt-1.5 ml-1">Formato de e-mail inválido.</p>
+                )}
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">Senha</label>
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-indigo-500 transition-colors">
+                    <Lock className="w-5 h-5" />
+                  </div>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    className="w-full pl-11 pr-4 py-3.5 border border-slate-200 dark:border-slate-700/50 rounded-xl font-medium text-slate-800 dark:text-slate-100 bg-slate-50 dark:bg-slate-900/50 focus:bg-white dark:focus:bg-slate-900 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-sm"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading || !isEmailValid || !password}
+                className="group relative w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-300 dark:disabled:bg-slate-800 disabled:text-slate-500 text-white font-bold py-4 rounded-xl transition-all shadow-[0_4px_14px_0_rgba(99,102,241,0.39)] disabled:shadow-none hover:shadow-[0_6px_20px_rgba(99,102,241,0.23)] hover:-translate-y-[1px] active:translate-y-[0px] overflow-hidden mt-8"
+              >
+                {/* Shine effect animation */}
+                <div className="absolute inset-0 -translate-x-full group-hover:animate-shine bg-gradient-to-r from-transparent via-white/20 to-transparent z-0" />
+                
+                <span className="relative z-10 flex items-center justify-center gap-2">
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Autenticando...
+                    </>
+                  ) : (
+                    <>
+                      Entrar na Plataforma
+                      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    </>
+                  )}
+                </span>
+              </button>
+            </form>
+          </div>
+          
+          <div className="mt-8 text-center">
+            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+              Problemas para acessar? <a href="#" className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 hover:underline transition-colors">Contate o administrador</a>
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

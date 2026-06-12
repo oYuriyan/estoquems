@@ -104,6 +104,14 @@ html.dark body {
   animation: mesh-gradient 15s ease infinite;
 }
 
+@keyframes shine {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+.animate-shine {
+  animation: shine 1.5s infinite;
+}
+
 /* Spotlight base class */
 .spotlight-card {
   position: relative;
