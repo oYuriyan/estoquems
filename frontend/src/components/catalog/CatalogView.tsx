@@ -1,4 +1,4 @@
-import { Search, X, LayoutGrid, List, Cpu, MemoryStick, HardDrive } from 'lucide-react';
+import { X, LayoutGrid, List, Cpu, MemoryStick, HardDrive } from 'lucide-react';
 import { useRef, useEffect } from 'react';
 import clsx from 'clsx';
 import { ItemCard } from './ItemCard';
@@ -89,7 +89,7 @@ export function CatalogView({
         <div className="bg-white dark:bg-[#161b22] rounded-2xl border border-slate-200 dark:border-[#30363d] border-dashed p-16 text-center shadow-sm">
           <div className="flex justify-center mb-6 opacity-60">
             <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M60 10L105 35V85L60 110L15 85V35L60 10Z" fill="#F1F5F9" className="dark:fill-slate-800" stroke="#CBD5E1" className="dark:stroke-slate-700" strokeWidth="2" strokeLinejoin="round"/>
+              <path d="M60 10L105 35V85L60 110L15 85V35L60 10Z" fill="#F1F5F9" stroke="#CBD5E1" className="dark:fill-slate-800 dark:stroke-slate-700" strokeWidth="2" strokeLinejoin="round"/>
               <path d="M60 10L60 60M60 60L105 35M60 60L15 35" stroke="#CBD5E1" className="dark:stroke-slate-700" strokeWidth="2" strokeLinejoin="round"/>
               <circle cx="60" cy="50" r="10" fill="#E2E8F0" className="dark:fill-slate-700"/>
               <path d="M55 50L60 55L65 45" stroke="#94A3B8" className="dark:stroke-slate-500" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>

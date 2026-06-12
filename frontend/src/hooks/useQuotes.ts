@@ -4,7 +4,7 @@ import { apiFetch } from '../utils/api';
 import type { Equipamento, Quote } from '../types';
 
 export function useQuotes() {
-  const { quotes, setQuotes, activeQuoteId, setActiveQuoteId, refreshQuotes } = useAppContext();
+  const { quotes, setQuotes, activeQuoteId, setActiveQuoteId } = useAppContext();
   const [isSyncing, setIsSyncing] = useState(false);
 
   const activeQuote = useMemo(

@@ -19,10 +19,7 @@ import { useDebounce } from './hooks/useDebounce';
 import { useQuoteActions } from './hooks/useQuoteActions';
 
 // Types
-import type { GroupedItem, Equipamento } from './types';
-
-// API
-import { apiFetch } from './utils/api';
+import type { GroupedItem } from './types';
 
 // Layout
 import { LoginScreen }    from './components/layout/LoginScreen';
@@ -60,7 +57,6 @@ export default function App() {
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const [mobileTab, setMobileTab]         = useState<'catalogo' | 'propostas' | 'reservas'>('catalogo');
   const [quoteStep, setQuoteStep]         = useState<1 | 2 | 3>(1);
-  const [isSubmitting, setIsSubmitting]   = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [searchTerm, setSearchTerm]       = useState('');
 
