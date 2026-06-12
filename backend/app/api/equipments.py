@@ -57,10 +57,7 @@ async def get_equipments_grouped(
             (Equipment.tipo.ilike(search_term)) |
             (Equipment.numero_serie.ilike(search_term)) |
             (Equipment.id_patrimonio.ilike(search_term)) |
-            (cast(Equipment.especificacoes['processador'].astext, String).ilike(search_term)) |
-            (cast(Equipment.especificacoes['ram'].astext, String).ilike(search_term)) |
-            (cast(Equipment.especificacoes['armazenamento'].astext, String).ilike(search_term)) |
-            (cast(Equipment.especificacoes['so'].astext, String).ilike(search_term))
+            (cast(Equipment.especificacoes, String).ilike(search_term))
         )
 
     # Pegamos a lista bruta e agrupamos no python para montar a paginação correta 

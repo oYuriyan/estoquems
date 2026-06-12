@@ -159,9 +159,9 @@ export default function App() {
     showConfirm
   );
 
-  // ── Early returns ──────────────────────────────────────────────────────────  // 🚀 Early returns 🚀
+  // ── Early returns ──
   if (!user) return <LoginScreen onLogin={setUser} />;
-  if (loading)      return <SkeletonLoader />;
+  if (loading && !data) return <SkeletonLoader />;
 
   const ultimaAtualizacaoStr = data?.metadados?.ultimaAtualizacao || new Date().toISOString();
 

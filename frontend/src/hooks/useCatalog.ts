@@ -95,8 +95,8 @@ export function useCatalog({ pausePolling = false, isAuthenticated = false, onEr
   // Se os filtros ou a autenticação mudarem, reseta a página (somente se autenticado)
   useEffect(() => {
     if (!isAuthenticated) return;
-    setLoading(true);
-    fetchCatalogo(true, true);
+    if (!data) setLoading(true);
+    fetchCatalogo(false, true);
   }, [filters, isAuthenticated]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /** Aciona sync GLPI via n8n e faz polling até o catálogo ser atualizado (máx 30s) */
