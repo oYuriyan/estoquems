@@ -60,7 +60,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
     <div className="min-h-screen w-full flex bg-[#0f172a] font-sans overflow-hidden">
       
       {/* ── LADO ESQUERDO: ARTE (Desktop) ── */}
-      <div className="hidden lg:flex lg:w-1/2 relative flex-col justify-between p-12 overflow-hidden border-r border-white/5 bg-[#0B1120]">
+      <div className="hidden lg:flex lg:w-1/2 relative flex-col justify-between p-12 overflow-hidden bg-[#0B1120] shadow-[20px_0_50px_rgba(0,0,0,0.5)] z-20">
         {/* Fundo Animado Mesh Gradient */}
         <div 
           className="absolute inset-0 z-0 animate-mesh opacity-80 mix-blend-screen"
@@ -80,7 +80,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
 
         <div className="relative z-10 mb-24 max-w-lg">
           <h1 className="text-5xl font-black text-white leading-tight tracking-tight mb-6">
-            Inteligência e fluidez para o seu <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">Lummium.</span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">Lummium.</span> Inteligência e fluidez para o seu estoque.
           </h1>
           <p className="text-lg text-indigo-100/80 leading-relaxed font-medium">
             Gerencie alocações, reserve equipamentos e mantenha tudo sincronizado com o GLPI através de uma interface desenhada para produtividade máxima.

@@ -43,12 +43,9 @@ export function Sidebar({
       {/* Logo + usuário */}
       <div className="p-5 pb-2 border-b border-white/5 flex flex-col items-center">
         {/* Lummium Logo */}
-        <div className="flex justify-center items-center gap-1.5 mb-4 select-none">
-          <div className="w-6 h-6 rounded-md bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30">
-            <span className="text-white font-black text-sm leading-none">L</span>
-          </div>
-          <span className="text-lg font-black tracking-tight text-white">
-            ummium<span className="text-cyan-500">.</span>
+        <div className="flex justify-center items-center mb-6 select-none">
+          <span className="text-3xl font-black tracking-tight text-slate-800 dark:text-white drop-shadow-sm">
+            <span className="text-cyan-500">L</span>ummium<span className="text-cyan-500">.</span>
           </span>
         </div>
         <div className="flex items-center gap-3 w-full justify-center">
