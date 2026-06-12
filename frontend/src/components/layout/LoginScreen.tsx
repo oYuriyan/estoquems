@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { setToken } from '../../utils/api';
-import { Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Loader2, ShieldCheck } from 'lucide-react';
 import logoOficial from '../../assets/logo_oficial.png';
 
 import type { User } from '../../contexts/AppContext';
@@ -112,12 +112,13 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
               <h2 className="text-2xl font-black text-white tracking-tight">Estoque<span className="text-indigo-500">.</span></h2>
             </div>
 
-            <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight mb-2">
+            <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight mb-4">
               Acesse sua conta
             </h2>
-            <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">
-              Insira suas credenciais para continuar.
-            </p>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-300 text-xs font-bold uppercase tracking-wider">
+              <ShieldCheck className="w-4 h-4" />
+              Insira suas credenciais para continuar
+            </div>
           </div>
 
           <div className="bg-white dark:bg-slate-800/50 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-slate-200 dark:border-white/10 relative overflow-hidden">
@@ -199,7 +200,15 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
           
           <div className="mt-8 text-center">
             <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-              Problemas para acessar? <a href="#" className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 hover:underline transition-colors">Contate o administrador</a>
+              Problemas para acessar?{' '}
+              <a 
+                href="https://wa.me/5511967977042?text=Ol%C3%A1%2C%20estou%20com%20problemas%20para%20acessar%20o%20sistema." 
+                target="_blank" 
+                rel="noreferrer"
+                className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 hover:underline transition-colors font-bold"
+              >
+                Contate o Suporte
+              </a>
             </p>
           </div>
         </div>
