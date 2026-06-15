@@ -9,7 +9,7 @@ export interface TourStep {
   placement: 'bottom' | 'top' | 'left' | 'right';
 }
 
-export const TOUR_STEPS: TourStep[] = [
+export const FULL_TOUR_STEPS: TourStep[] = [
   {
     target: 'search',
     title: '🔍 Busca Inteligente',
@@ -40,35 +40,45 @@ export const TOUR_STEPS: TourStep[] = [
     description: 'Suas propostas ficam aqui, na barra lateral. Clique no "+" para criar uma nova, ou selecione uma existente para continuar editando.',
     placement: 'right',
   },
+  {
+    target: 'sidebar-quotes',
+    title: '✅ Seleção e Reserva',
+    description: 'Dentro da proposta, você seleciona os equipamentos desejados e pode reservá-los por 48 horas! Isso garante os itens para seu cliente.',
+    placement: 'right',
+  }
 ];
 
 export function useTour(isAuthenticated: boolean) {
   const [isActive, setIsActive] = useState(false);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
 
-  // Inicia o tour apenas APÓS o usuário estar autenticado e a UI principal estar montada.
-  // Se rodar antes do login, os elementos [data-tour] não existem no DOM ainda,
-  // e o OnboardingTour retorna null silenciosamente — o que causava o bug de tour invisível.
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const activeSteps = isMobile ? FULL_TOUR_STEPS.filter(s => s.target !== 'sidebar-quotes') : FULL_TOUR_STEPS;
+
   useEffect(() => {
     if (!isAuthenticated) return;
     const done = localStorage.getItem(TOUR_STORAGE_KEY);
     if (!done) {
-      // Delay generoso para garantir que o catálogo carregou e renderizou os elementos alvo
       const timer = setTimeout(() => setIsActive(true), 1200);
       return () => clearTimeout(timer);
     }
-  }, [isAuthenticated]); // Reage quando o usuário loga
-
+  }, [isAuthenticated]);
 
   const next = useCallback(() => {
     setCurrentStepIndex(prev => {
-      if (prev < TOUR_STEPS.length - 1) return prev + 1;
-      // Último passo: finaliza
+      if (prev < activeSteps.length - 1) return prev + 1;
       localStorage.setItem(TOUR_STORAGE_KEY, 'true');
       setIsActive(false);
       return 0;
     });
-  }, []);
+  }, [activeSteps.length]);
 
   const prev = useCallback(() => {
     setCurrentStepIndex(prev => Math.max(0, prev - 1));
@@ -88,9 +98,9 @@ export function useTour(isAuthenticated: boolean) {
 
   return {
     isActive,
-    currentStep: TOUR_STEPS[currentStepIndex],
+    currentStep: activeSteps[currentStepIndex],
     currentStepIndex,
-    totalSteps: TOUR_STEPS.length,
+    totalSteps: activeSteps.length,
     next,
     prev,
     skip,

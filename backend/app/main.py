@@ -31,11 +31,7 @@ from app.middleware.logging import RequestLoggingMiddleware
 # ─────────────────────────────────────────────────────────────────────────────
 settings = get_settings()
 
-# ── Logging estruturado ───────────────────────────────────────────────────────
-logging.basicConfig(
-    level=getattr(logging, settings.LOG_LEVEL.upper(), logging.INFO),
-    format="%(asctime)s [%(levelname)s] %(name)s — %(message)s",
-)
+# O Uvicorn já lida com a configuração base de logs no FastAPI
 
 # Silencia logs verbosos de libs externas em produção
 logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
@@ -135,7 +131,20 @@ app.state.ws_manager = manager
 
 
 @app.websocket("/api/ws")
-async def websocket_endpoint(websocket: WebSocket):
+async def websocket_endpoint(websocket: WebSocket, token: str = None):
+    if not token:
+        await websocket.close(code=1008)
+        return
+        
+    try:
+        from jose import jwt, JWTError
+        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+        if not payload.get("sub"):
+            raise JWTError()
+    except Exception:
+        await websocket.close(code=1008)
+        return
+
     await manager.connect(websocket)
     try:
         while True:

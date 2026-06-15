@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X, Shield, Trash2, UserPlus } from 'lucide-react';
 import type { User } from '../../contexts/AppContext';
+import { apiFetch } from '../../utils/api';
 
 interface AdminPanelProps {
   onClose: () => void;
@@ -26,9 +27,7 @@ export function AdminPanel({ onClose, currentUser }: AdminPanelProps) {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const res = await fetch('/api/users', {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('microEstoque_token')}` }
-      });
+      const res = await apiFetch('/api/users/');
       if (!res.ok) throw new Error('Falha ao carregar usuários');
       const data = await res.json();
       setUsers(data);
@@ -46,9 +45,8 @@ export function AdminPanel({ onClose, currentUser }: AdminPanelProps) {
   const handleDelete = async (id: string) => {
     if (!window.confirm('Tem certeza que deseja excluir este usuário?')) return;
     try {
-      const res = await fetch(`/api/users/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('microEstoque_token')}` }
+      const res = await apiFetch(`/api/users/${id}`, {
+        method: 'DELETE'
       });
       if (!res.ok) {
         const d = await res.json();
@@ -64,12 +62,8 @@ export function AdminPanel({ onClose, currentUser }: AdminPanelProps) {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const res = await fetch('/api/users', {
+      const res = await apiFetch('/api/users/', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('microEstoque_token')}`
-        },
         body: JSON.stringify({ name: newName, email: newEmail, password: newPassword, role: newRole })
       });
       if (!res.ok) {

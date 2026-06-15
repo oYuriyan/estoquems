@@ -68,7 +68,7 @@ export default function App() {
   } = useUIContext();
 
   // ── Tour de Onboarding ────────────────────────────────────────────────────
-  const { isActive: isTourActive, currentStep: tourStep, currentStepIndex, totalSteps, next: tourNext, prev: tourPrev, skip: tourSkip } = useTour(!!user);
+  const { isActive: isTourActive, currentStep: tourStep, currentStepIndex, totalSteps, next: tourNext, prev: tourPrev, skip: tourSkip, restart: tourRestart } = useTour(!!user);
 
   // ── Hooks de funcionalidade ────────────────────────────────────────────────
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
@@ -214,6 +214,7 @@ export default function App() {
           (msg) => addToast(msg, 'info'),
         )}
         onLogout={() => setUser(null)}
+        onRestartTour={tourRestart}
         onOpenAdminPanel={() => setIsAdminPanelOpen(true)}
       />
 
@@ -242,7 +243,6 @@ export default function App() {
           />
           <CatalogView
             groupedEstoque={sortedGroupedEstoque}
-            sortedGroupedEstoque={sortedGroupedEstoque}
             totalGroups={data?.metadados?.totalGroups || sortedGroupedEstoque.length}
             viewMode={viewMode}
             cart={cart}

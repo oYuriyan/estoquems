@@ -4,17 +4,14 @@ import type { GroupedItem, Equipamento } from '../../types';
 
 interface ItemCardProps {
   group: GroupedItem;
-  cart: Equipamento[];
+  cartCount: number;
   onClick: (group: GroupedItem) => void;
   className?: string;
   style?: React.CSSProperties;
 }
 
-function ItemCardComponent({ group, cart, onClick, className, style }: ItemCardProps) {
+function ItemCardComponent({ group, cartCount, onClick, className, style }: ItemCardProps) {
   const isScarce = group.items.length === 1;
-  const cartCountInGroup = cart.filter(c =>
-    group.items.some(i => i.idPatrimonio === c.idPatrimonio)
-  ).length;
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -36,9 +33,9 @@ function ItemCardComponent({ group, cart, onClick, className, style }: ItemCardP
           Última Unidade
         </div>
       )}
-      {cartCountInGroup > 0 && (
+      {cartCount > 0 && (
         <div className="absolute top-0 left-0 bg-amber-500 text-amber-950 text-[10px] uppercase font-bold px-3 py-1 rounded-br-lg shadow-sm z-10 flex items-center gap-1">
-          <ShoppingCart className="w-3 h-3" /> {cartCountInGroup} na cotação
+          <ShoppingCart className="w-3 h-3" /> {cartCount} na cotação
         </div>
       )}
 

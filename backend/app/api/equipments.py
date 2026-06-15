@@ -16,10 +16,12 @@ router = APIRouter()
 
 @router.get("/", response_model=List[EquipmentResponse])
 async def get_equipments(
-    skip: int = 0, limit: int = 1000, 
+    skip: int = 0, limit: int = 50, 
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    if limit > 100:
+        limit = 100
     result = await db.execute(select(Equipment).where(Equipment.is_active == True).offset(skip).limit(limit))
     return result.scalars().all()
 

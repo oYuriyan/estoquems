@@ -110,11 +110,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     if (!user) return;
     
+    const token = localStorage.getItem('microEstoque_token');
+    if (!token) return;
+
     // Determina a URL do WebSocket baseado na URL atual
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsUrl = import.meta.env.DEV 
-      ? `ws://localhost:3030/api/ws` 
-      : `${protocol}//${window.location.host}/api/ws`;
+      ? `ws://localhost:3030/api/ws?token=${token}` 
+      : `${protocol}//${window.location.host}/api/ws?token=${token}`;
       
     const ws = new WebSocket(wsUrl);
     

@@ -6,7 +6,6 @@ import type { GroupedItem, Equipamento } from '../../types';
 
 interface CatalogViewProps {
   groupedEstoque: GroupedItem[];
-  sortedGroupedEstoque: GroupedItem[];
   totalGroups: number;
   viewMode: 'cards' | 'list';
   cart: Equipamento[];
@@ -39,7 +38,7 @@ function SortHeader({ label, sortKey, sortConfig, onSort, className = "" }: {
 }
 
 function CatalogViewComponent({
-  groupedEstoque, sortedGroupedEstoque, totalGroups, viewMode, cart, sortConfig,
+  groupedEstoque, totalGroups, viewMode, cart, sortConfig,
   hasActiveFilters, hasMore, isLoadingMore, onLoadMore, 
   onGroupClick, onViewModeChange, onSort, onResetFilters,
 }: CatalogViewProps) {
@@ -110,16 +109,22 @@ function CatalogViewComponent({
         </div>
       ) : viewMode === 'cards' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5 pb-12" data-tour="catalog-grid">
-          {groupedEstoque.map((group, index) => (
-            <ItemCard 
-              key={group.key} 
-              group={group} 
-              cart={cart} 
-              onClick={onGroupClick} 
-              className="animate-fade-slide-up"
-              style={{ animationDelay: `${Math.min(index * 0.05, 0.5)}s` }}
-            />
-          ))}
+          {groupedEstoque.map((group, index) => {
+            const cartCountInGroup = cart.filter(c =>
+              group.items.some(i => i.idPatrimonio === c.idPatrimonio)
+            ).length;
+            
+            return (
+              <ItemCard 
+                key={group.key} 
+                group={group} 
+                cartCount={cartCountInGroup} 
+                onClick={onGroupClick} 
+                className="animate-fade-slide-up"
+                style={{ animationDelay: `${Math.min(index * 0.05, 0.5)}s` }}
+              />
+            );
+          })}
         </div>
       ) : (
         <div className="bg-white dark:bg-[#161b22] rounded-xl border border-slate-200 dark:border-[#30363d] shadow-sm overflow-hidden mb-8">
@@ -137,7 +142,7 @@ function CatalogViewComponent({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
-              {sortedGroupedEstoque.map(group => {
+              {groupedEstoque.map(group => {
                 const cartCount = cart.filter(c => group.items.some(i => i.idPatrimonio === c.idPatrimonio)).length;
                 return (
                   <tr

@@ -25,12 +25,13 @@ interface SidebarProps {
   onResetCatalog: () => void;
   onSyncGlpi: () => void;
   onLogout: () => void;
+  onRestartTour: () => void;
 }
 
 export function Sidebar({
   user, quotes, activeQuoteId, reservedProposals,
   isRefreshing, ultimaAtualizacao,
-  onSelectQuote, onNewQuote, onDeleteQuote, onResetCatalog, onSyncGlpi, onLogout,
+  onSelectQuote, onNewQuote, onDeleteQuote, onResetCatalog, onSyncGlpi, onLogout, onRestartTour,
   onOpenAdminPanel,
 }: SidebarProps & { onOpenAdminPanel: () => void }) {
   const parsedDate = parseISO(ultimaAtualizacao);
@@ -200,6 +201,13 @@ export function Sidebar({
             Configurações de Acesso
           </button>
         )}
+        
+        <button
+          onClick={onRestartTour}
+          className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-slate-800/50 hover:bg-slate-800 text-slate-400 hover:text-slate-200 rounded-lg font-bold text-[10px] transition-colors border border-white/5 uppercase tracking-widest mt-2"
+        >
+          Reiniciar Tutorial
+        </button>
       </div>
     </aside>
   );

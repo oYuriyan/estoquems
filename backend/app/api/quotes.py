@@ -215,7 +215,7 @@ async def cancel_quote(
     if not quote:
         raise HTTPException(status_code=404, detail="Proposta não encontrada.")
         
-    if quote.status == QuoteStatus.CANCELLED:
+    if quote.status == QuoteStatus.CANCELED:
         raise HTTPException(status_code=400, detail="A proposta já está cancelada.")
         
     # Libera os equipamentos
@@ -239,12 +239,11 @@ async def cancel_quote(
     }
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
-            # We assume the webhook is /webhook/cancelar_reserva based on the previous git check
             res = await client.post("http://n8n:5678/webhook/cancelar_reserva", json=n8n_payload)
-            # We don't raise for status here to guarantee local cleanup if n8n is down, or we could strict rollback.
-            # Usually cancellation should be best effort or queued. We'll log or ignore HTTP errors.
-    except Exception:
-        pass
+            res.raise_for_status()
+    except Exception as e:
+        import logging
+        logging.error(f"Falha ao notificar N8N sobre o cancelamento da reserva {quote.id}: {str(e)}")
         
     await db.commit()
 

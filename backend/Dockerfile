@@ -10,6 +10,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     libpq-dev \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Copia e instala dependências Python primeiro (cache layer)
@@ -29,4 +30,4 @@ EXPOSE 8000
 # Comando de inicialização
 # --workers 1: single worker para evitar conflito de migration no startup
 # A migração é executada pelo entrypoint antes do uvicorn
-CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 1"]
+CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 1 --proxy-headers --forwarded-allow-ips=\"*\""]

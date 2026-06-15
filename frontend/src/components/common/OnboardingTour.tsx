@@ -87,47 +87,49 @@ export function OnboardingTour({
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
   const [tooltipPos, setTooltipPos]  = useState<TooltipPosition | null>(null);
   const [visible, setVisible]        = useState(false);
+  const [closing, setClosing]        = useState(false);
   const tooltipRef  = useRef<HTMLDivElement>(null);
   const elRef       = useRef<HTMLElement | null>(null);
   const rafRef      = useRef<number>(0);
 
-  // ── Função que lê o rect atual do elemento e atualiza o estado ──────────
+  useEffect(() => {
+    if (isActive) setClosing(false);
+  }, [isActive]);
+
+  const handleSkip = () => {
+    setClosing(true);
+    setTimeout(onSkip, 250);
+  };
+
+  const handleNext = () => {
+    if (currentStepIndex === totalSteps - 1) {
+      setClosing(true);
+      setTimeout(onNext, 250);
+    } else {
+      onNext();
+    }
+  };
+
   const syncPosition = useCallback(() => {
     const el = elRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
-    setTargetRect(rect);
-    setTooltipPos(computePosition(rect, currentStep.placement));
+    
+    setTargetRect(prev => {
+      // Evita re-render se o elemento não mudou de posição nem tamanho (margem de 1px)
+      if (prev && 
+          Math.abs(prev.top - rect.top) < 1 &&
+          Math.abs(prev.left - rect.left) < 1 &&
+          Math.abs(prev.width - rect.width) < 1 &&
+          Math.abs(prev.height - rect.height) < 1) {
+        return prev;
+      }
+      setTooltipPos(computePosition(rect, currentStep.placement));
+      return rect;
+    });
   }, [currentStep.placement]);
 
-  // ── Loop contínuo de sincronização via rAF enquanto o tour estiver ativo ─
-  // Isso garante que o highlight e o tooltip sigam o elemento caso haja
-  // qualquer mudança de layout (resize, scroll, animações do fundo).
-  useEffect(() => {
-    if (!isActive) {
-      setVisible(false);
-      return;
-    }
-
-    let rafId: number;
-
-    const loop = () => {
-      const el = elRef.current;
-      if (el) {
-        const rect = el.getBoundingClientRect();
-        setTargetRect(rect);
-        setTooltipPos(computePosition(rect, currentStep.placement));
-      }
-      rafId = requestAnimationFrame(loop);
-    };
-
-    rafId = requestAnimationFrame(loop);
-    rafRef.current = rafId;
-
-    return () => cancelAnimationFrame(rafId);
-  }, [isActive, currentStep.placement]);
-
-  // ── Localiza o elemento alvo ao mudar de passo ────────────────────────────
+  // ── Localiza o elemento e inicia observadores (Resize + Scroll) ───────────
   useEffect(() => {
     if (!isActive) { setVisible(false); return; }
 
@@ -136,6 +138,9 @@ export function OnboardingTour({
     setVisible(false);
 
     let raf: number;
+    let observer: ResizeObserver | null = null;
+    let interval: NodeJS.Timeout | null = null;
+    let t: NodeJS.Timeout | null = null;
 
     const find = () => {
       const el = document.querySelector(`[data-tour="${currentStep.target}"]`) as HTMLElement | null;
@@ -145,13 +150,32 @@ export function OnboardingTour({
       }
       elRef.current = el;
       syncPosition();
+      
+      // Observa mudanças de dimensão no próprio elemento
+      observer = new ResizeObserver(() => syncPosition());
+      observer.observe(el);
+      
+      // Observa scroll e resize globais (capture=true para pegar scrolls de sub-elementos)
+      window.addEventListener('resize', syncPosition);
+      window.addEventListener('scroll', syncPosition, true);
+      
+      // Fallback a cada 500ms para layout shifts não capturados
+      interval = setInterval(syncPosition, 500);
+
       // Mostra o tooltip com fade-in após encontrar o elemento
-      const t = setTimeout(() => setVisible(true), 80);
-      return () => clearTimeout(t);
+      t = setTimeout(() => setVisible(true), 80);
     };
 
     raf = requestAnimationFrame(find);
-    return () => cancelAnimationFrame(raf);
+    
+    return () => {
+      cancelAnimationFrame(raf);
+      if (observer) observer.disconnect();
+      if (interval) clearInterval(interval);
+      if (t) clearTimeout(t);
+      window.removeEventListener('resize', syncPosition);
+      window.removeEventListener('scroll', syncPosition, true);
+    };
   }, [isActive, currentStep.target, syncPosition]);
 
   // ── Trava o scroll do body enquanto o tour está ativo ────────────────────
@@ -173,8 +197,9 @@ export function OnboardingTour({
       <div
         className="fixed inset-0 z-[9000] pointer-events-auto"
         style={{
-          // Spotlight: degradê radial cria o "buraco" sobre o elemento alvo
           background: `radial-gradient(ellipse ${targetRect.width + 40}px ${targetRect.height + 32}px at ${targetRect.left + targetRect.width / 2}px ${targetRect.top + targetRect.height / 2}px, transparent 0%, rgba(0,0,0,0.70) 100%)`,
+          opacity: (!closing && visible) ? 1 : 0,
+          transition: 'opacity 0.25s ease',
           cursor: 'not-allowed',
         }}
         // Previne propagação de qualquer evento de mouse/toque
@@ -190,9 +215,9 @@ export function OnboardingTour({
           left:   targetRect.left   - 6,
           width:  targetRect.width  + 12,
           height: targetRect.height + 12,
-          // Ring duplo: borda sólida + halo suave
+          opacity: (!closing && visible) ? 1 : 0,
           boxShadow: '0 0 0 3px rgba(99,102,241,0.9), 0 0 0 8px rgba(99,102,241,0.18)',
-          transition: 'top 0.15s ease, left 0.15s ease, width 0.15s ease, height 0.15s ease',
+          transition: 'opacity 0.25s ease, top 0.15s ease, left 0.15s ease, width 0.15s ease, height 0.15s ease',
         }}
       />
 
@@ -204,8 +229,8 @@ export function OnboardingTour({
           top:     tooltipPos.top,
           left:    tooltipPos.left,
           width:   TOOLTIP_WIDTH,
-          opacity: visible ? 1 : 0,
-          transform: visible ? 'translateY(0) scale(1)' : 'translateY(10px) scale(0.96)',
+          opacity: (!closing && visible) ? 1 : 0,
+          transform: (!closing && visible) ? 'translateY(0) scale(1)' : 'translateY(10px) scale(0.96)',
           transition: 'opacity 0.22s ease, transform 0.22s cubic-bezier(0.16,1,0.3,1), top 0.15s ease, left 0.15s ease',
         }}
       >
@@ -226,7 +251,7 @@ export function OnboardingTour({
               </span>
             </div>
             <button
-              onClick={onSkip}
+              onClick={handleSkip}
               title="Pular tutorial"
               className="text-slate-500 hover:text-slate-300 p-1 rounded-lg hover:bg-white/5 transition-colors"
             >
@@ -274,7 +299,7 @@ export function OnboardingTour({
                 </button>
               )}
               <button
-                onClick={onNext}
+                onClick={handleNext}
                 className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg transition-colors shadow-sm"
               >
                 {currentStepIndex === totalSteps - 1 ? 'Começar!' : 'Próximo'}
