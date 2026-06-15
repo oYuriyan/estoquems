@@ -42,7 +42,7 @@ export function ItemDetailModal({
           <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-full blur-2xl pointer-events-none" />
           <div>
             <div className="text-xs font-bold text-indigo-600 uppercase tracking-widest mb-1">
-              {group.tipo} · <span className="text-slate-500 dark:text-slate-400 bg-slate-200/60 px-1.5 py-0.5 rounded">{group.marca}</span>
+              {group.tipo} · <span className="text-slate-700 dark:text-slate-200 bg-slate-200 dark:bg-slate-700/80 px-2 py-0.5 rounded border border-slate-300 dark:border-slate-600 shadow-sm">{group.marca}</span>
             </div>
             <h2 className="text-2xl font-black text-slate-800 dark:text-slate-100">{group.modelo}</h2>
             <div className="flex gap-3 mt-3 text-sm font-semibold text-slate-700 dark:text-slate-200 flex-wrap">
@@ -82,7 +82,7 @@ export function ItemDetailModal({
             <span className="text-xs text-slate-400 font-medium">{selectedCount}/{group.items.length} selecionados</span>
           </div>
           <div className="flex items-center gap-2">
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Qtd:</label>
+            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Quantidade:</label>
             <select
               value={selectedCount}
               onChange={e => selectQuantity(Number(e.target.value))}

@@ -1,5 +1,5 @@
-import { X, LayoutGrid, List, Cpu, MemoryStick, HardDrive } from 'lucide-react';
-import { useRef, useEffect } from 'react';
+import { memo, useRef, useEffect } from 'react';
+import { X, LayoutGrid, List, Cpu, MemoryStick, HardDrive, Monitor } from 'lucide-react';
 import clsx from 'clsx';
 import { ItemCard } from './ItemCard';
 import type { GroupedItem, Equipamento } from '../../types';
@@ -38,7 +38,7 @@ function SortHeader({ label, sortKey, sortConfig, onSort, className = "" }: {
   );
 }
 
-export function CatalogView({
+function CatalogViewComponent({
   groupedEstoque, sortedGroupedEstoque, totalGroups, viewMode, cart, sortConfig,
   hasActiveFilters, hasMore, isLoadingMore, onLoadMore, 
   onGroupClick, onViewModeChange, onSort, onResetFilters,
@@ -109,7 +109,7 @@ export function CatalogView({
           )}
         </div>
       ) : viewMode === 'cards' ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5 pb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5 pb-12" data-tour="catalog-grid">
           {groupedEstoque.map((group, index) => (
             <ItemCard 
               key={group.key} 
@@ -126,13 +126,13 @@ export function CatalogView({
           <table className="w-full text-left border-collapse">
             <thead className="bg-slate-50 dark:bg-[#0d1117] border-b border-slate-200 dark:border-[#30363d]">
               <tr>
-                <SortHeader label="Marca"               sortKey="marca"           sortConfig={sortConfig} onSort={onSort} />
+                <SortHeader label="Marca"               sortKey="marca"           sortConfig={sortConfig} onSort={onSort} className="hidden md:table-cell" />
                 <SortHeader label="Modelo"              sortKey="modelo"          sortConfig={sortConfig} onSort={onSort} />
                 <SortHeader label="Processador"         sortKey="processador"     sortConfig={sortConfig} onSort={onSort} className="hidden md:table-cell" />
                 <SortHeader label="RAM"                 sortKey="ram"             sortConfig={sortConfig} onSort={onSort} className="hidden md:table-cell" />
                 <SortHeader label="Armaz."              sortKey="armazenamento"   sortConfig={sortConfig} onSort={onSort} className="hidden lg:table-cell" />
                 <SortHeader label="S.O."                sortKey="so"              sortConfig={sortConfig} onSort={onSort} className="hidden lg:table-cell" />
-                <SortHeader label="Qtd"                 sortKey="qtd"             sortConfig={sortConfig} onSort={onSort} />
+                <SortHeader label="Quantidade"          sortKey="qtd"             sortConfig={sortConfig} onSort={onSort} />
                 <SortHeader label="Cotados"             sortKey="cotados"         sortConfig={sortConfig} onSort={onSort} />
               </tr>
             </thead>
@@ -145,7 +145,7 @@ export function CatalogView({
                     onClick={() => onGroupClick(group)}
                     className="hover:bg-slate-50 dark:hover:bg-slate-800/60 dark:bg-[#0f172a] cursor-pointer transition-all duration-200"
                   >
-                    <td className="py-4 px-3 md:px-5">
+                    <td className="py-4 px-3 md:px-5 hidden md:table-cell">
                       <span className="text-[10px] md:text-[11px] font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800/50 px-2 md:px-2.5 py-1 rounded-md border border-slate-200 dark:border-slate-700/50 uppercase tracking-wide">
                         {group.marca}
                       </span>
@@ -167,8 +167,10 @@ export function CatalogView({
                           </div>
                         )}
                         <div>
-                          <div className="text-xs md:text-sm font-black text-slate-800 dark:text-slate-100 line-clamp-1">{group.modelo}</div>
-                          <div className="text-[9px] md:text-[10px] text-indigo-500/70 font-bold uppercase tracking-wider mt-0.5">{group.tipo}</div>
+                          <div className="text-xs md:text-sm font-black text-slate-800 dark:text-slate-100 line-clamp-2 md:line-clamp-1">{group.modelo}</div>
+                          <div className="text-[9px] md:text-[10px] text-indigo-500/70 font-bold uppercase tracking-wider mt-0.5">
+                            {group.tipo} <span className="md:hidden"> • {group.marca}</span>
+                          </div>
                         </div>
                       </div>
                       
@@ -179,10 +181,30 @@ export function CatalogView({
                         <div className="flex items-center gap-1.5"><HardDrive className="w-3 h-3 text-amber-400" /> <span className="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-slate-600 dark:text-slate-300 font-medium">{group.armazenamento}</span></div>
                       </div>
                     </td>
-                    <td className="py-4 px-5 text-[12px] lg:text-[13px] font-semibold text-slate-700 dark:text-slate-200 hidden md:table-cell">{group.processador}</td>
-                    <td className="py-4 px-5 text-[12px] lg:text-[13px] font-semibold text-slate-700 dark:text-slate-200 hidden md:table-cell">{group.ram}</td>
-                    <td className="py-4 px-5 text-[12px] lg:text-[13px] font-semibold text-slate-700 dark:text-slate-200 hidden lg:table-cell">{group.armazenamento}</td>
-                    <td className="py-4 px-5 text-[12px] lg:text-[13px] font-medium text-slate-500 dark:text-slate-400 hidden lg:table-cell">{group.so}</td>
+                    <td className="py-4 px-5 text-[12px] lg:text-[13px] font-semibold text-slate-700 dark:text-slate-200 hidden md:table-cell">
+                      <div className="flex items-center gap-2">
+                        <Cpu className="w-4 h-4 text-indigo-400 shrink-0" />
+                        {group.processador}
+                      </div>
+                    </td>
+                    <td className="py-4 px-5 text-[12px] lg:text-[13px] font-semibold text-slate-700 dark:text-slate-200 hidden md:table-cell">
+                      <div className="flex items-center gap-2">
+                        <MemoryStick className="w-4 h-4 text-emerald-400 shrink-0" />
+                        {group.ram}
+                      </div>
+                    </td>
+                    <td className="py-4 px-5 text-[12px] lg:text-[13px] font-semibold text-slate-700 dark:text-slate-200 hidden lg:table-cell">
+                      <div className="flex items-center gap-2">
+                        <HardDrive className="w-4 h-4 text-amber-400 shrink-0" />
+                        {group.armazenamento}
+                      </div>
+                    </td>
+                    <td className="py-4 px-5 text-[12px] lg:text-[13px] font-medium text-slate-500 dark:text-slate-400 hidden lg:table-cell">
+                      <div className="flex items-center gap-2">
+                        <Monitor className="w-4 h-4 text-slate-400 shrink-0" />
+                        {group.so}
+                      </div>
+                    </td>
                     <td className="py-3.5 px-3 md:px-5 text-center">
                       <span className="inline-flex items-center justify-center bg-indigo-50 text-indigo-700 font-black px-2.5 py-1 rounded-lg text-sm border border-indigo-200">{group.items.length}</span>
                     </td>
@@ -214,3 +236,5 @@ export function CatalogView({
     </>
   );
 }
+
+export const CatalogView = memo(CatalogViewComponent);

@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Cpu, MemoryStick, HardDrive, Monitor, ShoppingCart } from 'lucide-react';
 import type { GroupedItem, Equipamento } from '../../types';
 
@@ -9,7 +10,7 @@ interface ItemCardProps {
   style?: React.CSSProperties;
 }
 
-export function ItemCard({ group, cart, onClick, className, style }: ItemCardProps) {
+function ItemCardComponent({ group, cart, onClick, className, style }: ItemCardProps) {
   const isScarce = group.items.length === 1;
   const cartCountInGroup = cart.filter(c =>
     group.items.some(i => i.idPatrimonio === c.idPatrimonio)
@@ -82,3 +83,5 @@ export function ItemCard({ group, cart, onClick, className, style }: ItemCardPro
     </div>
   );
 }
+
+export const ItemCard = memo(ItemCardComponent);

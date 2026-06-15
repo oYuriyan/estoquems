@@ -4,6 +4,7 @@ import './index.css'
 import App from './App.tsx'
 
 import { AppProvider } from './contexts/AppContext'
+import { UIProvider }  from './contexts/UIContext'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { initSentry } from './lib/sentry'
 
@@ -15,7 +16,9 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ErrorBoundary>
       <AppProvider>
-        <App />
+        <UIProvider>
+          <App />
+        </UIProvider>
       </AppProvider>
     </ErrorBoundary>
   </StrictMode>,

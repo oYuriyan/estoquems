@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useCallback, useState } from 'react';
 import { differenceInHours } from 'date-fns';
 import clsx from 'clsx';
 
@@ -6,16 +6,17 @@ import clsx from 'clsx';
 import logoOficial from './assets/logo_oficial.png';
 import watermarkOficial from './assets/watermark_oficial.png';
 
-// Context
+// Contexts
 import { useAppContext } from './contexts/AppContext';
+import { useUIContext }  from './contexts/UIContext';
 
 // Hooks
-import { useCatalog }  from './hooks/useCatalog';
-import { useQuotes }   from './hooks/useQuotes';
-import { useToast }    from './hooks/useToast';
-import { useConfirm }  from './hooks/useConfirm';
-import { usePdf }      from './hooks/usePdf';
-import { useDebounce } from './hooks/useDebounce';
+import { useCatalog }      from './hooks/useCatalog';
+import { useQuotes }       from './hooks/useQuotes';
+import { useToast }        from './hooks/useToast';
+import { useConfirm }      from './hooks/useConfirm';
+import { usePdf }          from './hooks/usePdf';
+import { useDebounce }     from './hooks/useDebounce';
 import { useQuoteActions } from './hooks/useQuoteActions';
 
 // Types
@@ -29,50 +30,58 @@ import { Header }         from './components/layout/Header';
 import { MobileNav }      from './components/layout/MobileNav';
 
 // Catalog
-import { StatsBar }         from './components/catalog/StatsBar';
-import { FilterBar }        from './components/catalog/FilterBar';
-import { CatalogView }      from './components/catalog/CatalogView';
-import { ItemDetailModal }  from './components/catalog/ItemDetailModal';
+import { StatsBar }        from './components/catalog/StatsBar';
+import { FilterBar }       from './components/catalog/FilterBar';
+import { CatalogView }     from './components/catalog/CatalogView';
+import { ItemDetailModal } from './components/catalog/ItemDetailModal';
 
 // Quotes
 import { QuoteDrawer } from './components/quotes/QuoteDrawer';
 
 // Common
-import { Toaster } from 'sonner';
+import { Toaster }           from 'sonner';
 import { ConfirmDialog }     from './components/common/ConfirmDialog';
 import { PdfLoadingOverlay } from './components/common/PdfLoadingOverlay';
 import { AdminPanel }        from './components/layout/AdminPanel';
+import { OnboardingTour }   from './components/common/OnboardingTour';
+
+// Tour
+import { useTour } from './hooks/useTour';
 
 export default function App() {
-  // ── Global state ──────────────────────────────────────────────────────────
+  // ── Domínio (AppContext) ───────────────────────────────────────────────────
   const {
     quotes, activeQuoteId, user, setUser, isDarkMode, setIsDarkMode, wsMessage
   } = useAppContext();
 
-  // ── Local UI state ────────────────────────────────────────────────────────
-  const [viewMode, setViewMode]           = useState<'cards' | 'list'>('cards');
-  const [activeGroup, setActiveGroup]     = useState<GroupedItem | null>(null);
-  const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
-  const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
-  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
-  const [mobileTab, setMobileTab]         = useState<'catalogo' | 'propostas' | 'reservas'>('catalogo');
-  const [quoteStep, setQuoteStep]         = useState<1 | 2 | 3>(1);
+  // ── UI (UIContext) ─────────────────────────────────────────────────────────
+  const {
+    isQuoteModalOpen, setIsQuoteModalOpen,
+    isAdminPanelOpen, setIsAdminPanelOpen,
+    isMobileDrawerOpen, setIsMobileDrawerOpen,
+    mobileTab, setMobileTab,
+    quoteStep, setQuoteStep,
+    activeGroup, setActiveGroup,
+    viewMode, setViewMode,
+    searchTerm, setSearchTerm,
+    anyModalOpen,
+  } = useUIContext();
+
+  // ── Tour de Onboarding ────────────────────────────────────────────────────
+  const { isActive: isTourActive, currentStep: tourStep, currentStepIndex, totalSteps, next: tourNext, prev: tourPrev, skip: tourSkip } = useTour(!!user);
+
+  // ── Hooks de funcionalidade ────────────────────────────────────────────────
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
-  const [searchTerm, setSearchTerm]       = useState('');
-
-  // ── Hooks ─────────────────────────────────────────────────────────────────
-  const { addToast }     = useToast();
+  const { addToast }                          = useToast();
   const { confirmDialog, showConfirm, dismissConfirm } = useConfirm();
-  const { generatePdf }                        = usePdf({ onSuccess: addToast, onError: addToast, setGenerating: setIsGeneratingPdf });
+  const { generatePdf }                       = usePdf({ onSuccess: addToast, onError: addToast, setGenerating: setIsGeneratingPdf });
 
-  const anyModalOpen = isQuoteModalOpen || !!confirmDialog || isMobileDrawerOpen;
-
-  const { 
+  const {
     data, loading, isRefreshing, hasMore, loadMore,
     filters, setFilters, availableBrands,
-    fetchCatalogo, syncGLPI 
+    fetchCatalogo, syncGLPI
   } = useCatalog({
-    pausePolling: anyModalOpen,
+    pausePolling: anyModalOpen || !!confirmDialog,
     isAuthenticated: !!user,
     onError: (msg) => addToast(msg, 'error'),
   });
@@ -85,9 +94,12 @@ export default function App() {
   const debouncedSearch = useDebounce(searchTerm, 300);
 
   // ── Effects ───────────────────────────────────────────────────────────────
-  useEffect(() => { if (isQuoteModalOpen) setQuoteStep(1); }, [isQuoteModalOpen]);
+  // Reset stepper ao abrir modal de proposta
+  useEffect(() => { if (isQuoteModalOpen) setQuoteStep(1); }, [isQuoteModalOpen, setQuoteStep]);
+
+  // Aplica classe dark no document
   useEffect(() => { document.documentElement.classList.toggle('dark', isDarkMode); }, [isDarkMode]);
-  
+
   // Sincroniza o search debounce com os filtros da API
   useEffect(() => {
     setFilters(prev => {
@@ -101,15 +113,25 @@ export default function App() {
     if (filters.search === '' && searchTerm !== '') {
       setSearchTerm('');
     }
-  }, [filters.search]);
+  }, [filters.search, setSearchTerm]);
 
   // Escuta eventos WebSocket para recarregar silenciosamente o catálogo
   useEffect(() => {
     if (wsMessage === 'RESERVED' || wsMessage === 'CANCELED') {
-      fetchCatalogo(true, true); // true = silencioso, true = resetPage (recarrega tudo)
+      fetchCatalogo(true, true);
     }
   }, [wsMessage, fetchCatalogo]);
 
+  // Exibe toast quando sessão expira por 401 (evento emitido pelo AppContext)
+  useEffect(() => {
+    const handleShowToast = () => {
+      addToast('Sua sessão expirou. Por favor, faça login novamente.', 'error');
+    };
+    window.addEventListener('auth:show-toast', handleShowToast);
+    return () => window.removeEventListener('auth:show-toast', handleShowToast);
+  }, [addToast]);
+
+  // ── Memos ─────────────────────────────────────────────────────────────────
   const unavailableIds = useMemo(() => {
     if (!data?.groups) return new Set<string>();
     const estoqueIds = new Set(data.groups.flatMap(g => g.items).map(e => e.idPatrimonio));
@@ -132,22 +154,30 @@ export default function App() {
 
   const sortedGroupedEstoque = data?.groups || [];
 
-  // ── Handlers ──────────────────────────────────────────────────────────────
-  const resetCatalog = () => { 
+  // ── Handlers (estáveis com useCallback) ───────────────────────────────────
+  const resetCatalog = useCallback(() => {
     setFilters({ search: '', brand: null, statusFilter: null, sortKey: null, sortDir: 'desc' });
-    setViewMode('cards'); 
-  };
-  const requestSort  = (key: string) => {
+    setViewMode('cards');
+  }, [setFilters, setViewMode]);
+
+  const requestSort = useCallback((key: string) => {
     setFilters(prev => ({
       ...prev,
       sortKey: key,
       sortDir: prev.sortKey === key && prev.sortDir === 'desc' ? 'asc' : 'desc'
     }));
-  };
+  }, [setFilters]);
 
-  const handleSelectQuote = (id: string) => { setActiveQuoteId(id); setIsQuoteModalOpen(true); };
+  const handleSelectQuote = useCallback((id: string) => {
+    setActiveQuoteId(id);
+    setIsQuoteModalOpen(true);
+  }, [setActiveQuoteId, setIsQuoteModalOpen]);
 
-  const handleDeleteQuote = (id: string) => showConfirm('Excluir Proposta', `Deseja excluir esta proposta?`, () => removeQuote(id));
+  const handleDeleteQuote = useCallback((id: string) =>
+    showConfirm('Excluir Proposta', 'Deseja excluir esta proposta?', () => removeQuote(id)),
+  [showConfirm, removeQuote]);
+
+  const handleGroupClick = useCallback((group: GroupedItem) => setActiveGroup(group), [setActiveGroup]);
 
   const { isSubmitting, handleReserve, handleCancelReserve, handleWhatsApp } = useQuoteActions(
     activeQuoteId,
@@ -159,7 +189,7 @@ export default function App() {
     showConfirm
   );
 
-  // ── Early returns ──
+  // ── Early returns ──────────────────────────────────────────────────────────
   if (!user) return <LoginScreen onLogin={setUser} />;
   if (loading && !data) return <SkeletonLoader />;
 
@@ -221,7 +251,7 @@ export default function App() {
             hasMore={hasMore}
             isLoadingMore={isRefreshing}
             onLoadMore={loadMore}
-            onGroupClick={setActiveGroup}
+            onGroupClick={handleGroupClick}
             onViewModeChange={setViewMode}
             onSort={requestSort}
             onResetFilters={resetCatalog}
@@ -294,6 +324,19 @@ export default function App() {
           onOpenQuote={() => setIsQuoteModalOpen(true)}
           onNewQuote={addNewQuote}
           onResetCatalog={resetCatalog}
+        />
+      )}
+
+      {/* Onboarding Tour — só aparece na primeira visita */}
+      {isTourActive && tourStep && (
+        <OnboardingTour
+          isActive={isTourActive}
+          currentStep={tourStep}
+          currentStepIndex={currentStepIndex}
+          totalSteps={totalSteps}
+          onNext={tourNext}
+          onPrev={tourPrev}
+          onSkip={tourSkip}
         />
       )}
     </div>

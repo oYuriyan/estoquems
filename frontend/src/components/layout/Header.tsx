@@ -24,7 +24,7 @@ export function Header({ isDarkMode, search, onSearchChange, onToggleDarkMode }:
       </div>
 
       <div className="relative w-full md:w-auto flex items-center gap-2">
-        <div className="relative flex-1 md:w-80 group">
+        <div className="relative flex-1 md:w-80 group" data-tour="search">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <Search className="h-4 w-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
           </div>

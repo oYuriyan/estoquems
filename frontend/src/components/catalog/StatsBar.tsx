@@ -12,7 +12,7 @@ interface StatsBarProps {
 export function StatsBar({ totalItems, totalNovos, totalUsados, statusFilter, onFilterChange }: StatsBarProps) {
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4" data-tour="stats-bar">
       <button
         onClick={() => onFilterChange(null)}
         className={clsx(

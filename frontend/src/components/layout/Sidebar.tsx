@@ -76,7 +76,7 @@ export function Sidebar({
           <span className="text-[8px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded uppercase font-black">Em breve</span>
         </button>
 
-        <div className="px-1 mt-6 mb-1 flex justify-between items-center">
+        <div className="px-1 mt-6 mb-1 flex justify-between items-center" data-tour="sidebar-quotes">
           <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Propostas Ativas</span>
           <button
             onClick={onNewQuote}

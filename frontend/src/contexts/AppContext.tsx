@@ -132,6 +132,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
   }, [user]);
 
+  // Listener global para sessão expirada (evento disparado pelo apiFetch ao receber 401)
+  useEffect(() => {
+    const handleSessionExpired = () => {
+      // Limpa todos os dados de sessão
+      localStorage.removeItem('microEstoque_user');
+      localStorage.removeItem('microEstoque_token');
+      setUser(null);
+      // O Toast será exibido pelo App.tsx via window event, pois o Toaster só está disponível lá
+      window.dispatchEvent(new CustomEvent('auth:show-toast'));
+    };
+
+    window.addEventListener('auth:expired', handleSessionExpired);
+    return () => window.removeEventListener('auth:expired', handleSessionExpired);
+  }, []);
+
+
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY_QUOTES, JSON.stringify(quotes));
   }, [quotes]);
