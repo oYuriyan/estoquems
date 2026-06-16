@@ -131,8 +131,8 @@ export function useCatalog({ pausePolling = false, isAuthenticated = false, onEr
           try {
             // Avisa o backend para ler o novo catalogo.json e salvar no Postgres
             await apiFetch('/api/equipments/sync', { method: 'POST' });
-            // Recarrega do Postgres
-            await fetchCatalogo(false);
+            // Recarrega do Postgres (resetando a página para atualizar contagens e limpar duplicatas)
+            await fetchCatalogo(false, true);
             onSuccess?.('Catálogo atualizado e sincronizado com sucesso!');
           } catch (err) {
             console.error('Erro ao sincronizar com o banco de dados:', err);
