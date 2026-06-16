@@ -50,11 +50,11 @@ function ItemCardComponent({ group, cartCount, onClick, className, style }: Item
           {group.modelo}
         </h3>
 
-        <div className="mt-4 md:mt-5 space-y-2 md:space-y-2.5 text-[12px] md:text-[13px]">
-          <div className="flex items-center gap-2"><Cpu        className="w-4 h-4 text-indigo-400 shrink-0" /> <span className="font-semibold text-slate-700 dark:text-slate-200">{group.processador}</span></div>
-          <div className="flex items-center gap-2"><MemoryStick className="w-4 h-4 text-emerald-400 shrink-0" /> <span className="font-semibold text-slate-700 dark:text-slate-200">{group.ram}</span></div>
-          <div className="flex items-center gap-2"><HardDrive  className="w-4 h-4 text-amber-400 shrink-0" />  <span className="font-semibold text-slate-700 dark:text-slate-200">{group.armazenamento}</span></div>
-          <div className="flex items-center gap-2"><Monitor    className="w-4 h-4 text-slate-400 shrink-0" />  <span className="font-medium text-slate-600 dark:text-slate-300">{group.so}</span></div>
+        <div className="mt-3 md:mt-5 grid grid-cols-2 md:grid-cols-1 gap-y-2 gap-x-2 md:space-y-2.5 text-[11px] md:text-[13px]">
+          <div className="flex items-center gap-1.5 md:gap-2"><Cpu        className="w-3.5 h-3.5 md:w-4 md:h-4 text-indigo-400 shrink-0" /> <span className="font-semibold text-slate-700 dark:text-slate-200 truncate">{group.processador}</span></div>
+          <div className="flex items-center gap-1.5 md:gap-2"><MemoryStick className="w-3.5 h-3.5 md:w-4 md:h-4 text-emerald-400 shrink-0" /> <span className="font-semibold text-slate-700 dark:text-slate-200 truncate">{group.ram}</span></div>
+          <div className="flex items-center gap-1.5 md:gap-2"><HardDrive  className="w-3.5 h-3.5 md:w-4 md:h-4 text-amber-400 shrink-0" />  <span className="font-semibold text-slate-700 dark:text-slate-200 truncate">{group.armazenamento}</span></div>
+          <div className="flex items-center gap-1.5 md:gap-2"><Monitor    className="w-3.5 h-3.5 md:w-4 md:h-4 text-slate-400 shrink-0" />  <span className="font-medium text-slate-600 dark:text-slate-300 truncate">{group.so}</span></div>
         </div>
 
         <div className="mt-4 md:mt-5 flex gap-2 flex-wrap">
