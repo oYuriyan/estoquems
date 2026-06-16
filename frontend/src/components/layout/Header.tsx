@@ -1,6 +1,6 @@
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Search, Sun, Moon } from 'lucide-react';
+import { Search, Sun, Moon, LogOut } from 'lucide-react';
 import clsx from 'clsx';
 
 interface HeaderProps {
@@ -8,9 +8,10 @@ interface HeaderProps {
   search: string;
   onSearchChange: (value: string) => void;
   onToggleDarkMode: () => void;
+  onLogout: () => void;
 }
 
-export function Header({ isDarkMode, search, onSearchChange, onToggleDarkMode }: HeaderProps) {
+export function Header({ isDarkMode, search, onSearchChange, onToggleDarkMode, onLogout }: HeaderProps) {
   return (
     <header className="bg-white dark:bg-[#161b22] px-6 py-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-3 z-10 border-b border-slate-200 dark:border-[#30363d] shadow-sm">
       <div>
@@ -22,6 +23,15 @@ export function Header({ isDarkMode, search, onSearchChange, onToggleDarkMode }:
           </span>
         </div>
       </div>
+      
+      {/* Mobile Logout Button */}
+      <button 
+        onClick={onLogout} 
+        className="md:hidden absolute top-4 right-6 p-2 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+        title="Sair da Conta"
+      >
+        <LogOut className="w-5 h-5" />
+      </button>
 
       <div className="relative w-full md:w-auto flex items-center gap-2">
         <div className="relative flex-1 md:w-80 group" data-tour="search">

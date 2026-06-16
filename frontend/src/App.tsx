@@ -225,6 +225,7 @@ export default function App() {
           search={searchTerm}
           onSearchChange={setSearchTerm}
           onToggleDarkMode={() => setIsDarkMode(!isDarkMode)}
+          onLogout={() => setUser(null)}
         />
 
         <div className="flex-1 overflow-y-auto p-4 md:p-6 pb-32 md:pb-6 bg-[#f1f5f9] dark:bg-[#0d1117]" id="catalog-scroll-area">

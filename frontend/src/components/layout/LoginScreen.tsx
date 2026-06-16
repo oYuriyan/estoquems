@@ -104,7 +104,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
           />
         </div>
 
-        <div className="w-full max-w-md relative z-10 animate-fade-slide-up">
+        <div className="w-full max-w-md relative z-10 animate-fade-slide-up mx-auto flex flex-col justify-center">
           <div className="mb-10 text-center lg:text-left">
             {/* Logo e Nome mobile */}
             <div className="flex lg:hidden justify-center items-center gap-3 mb-8">

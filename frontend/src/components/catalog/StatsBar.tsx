@@ -12,7 +12,7 @@ interface StatsBarProps {
 export function StatsBar({ totalItems, totalNovos, totalUsados, statusFilter, onFilterChange }: StatsBarProps) {
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4" data-tour="stats-bar">
+    <div className="grid grid-cols-3 gap-2 md:gap-3 mb-4" data-tour="stats-bar">
       <button
         onClick={() => onFilterChange(null)}
         className={clsx(
@@ -22,12 +22,12 @@ export function StatsBar({ totalItems, totalNovos, totalUsados, statusFilter, on
             : 'border-slate-200 dark:border-[#30363d] hover:border-slate-300',
         )}
       >
-        <div className="flex justify-between items-start mb-2">
-          <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 tracking-wider uppercase">Todos</span>
-          <Server className="w-4 h-4 text-indigo-400" />
+        <div className="flex justify-between items-start mb-1 md:mb-2">
+          <span className="text-[9px] md:text-[10px] font-bold text-slate-500 dark:text-slate-400 tracking-wider uppercase">Todos</span>
+          <Server className="w-3.5 h-3.5 md:w-4 md:h-4 text-indigo-400" />
         </div>
-        <div className="text-2xl font-black text-slate-800 dark:text-slate-100">{totalItems}</div>
-        <div className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">total encontrado</div>
+        <div className="text-xl md:text-2xl font-black text-slate-800 dark:text-slate-100">{totalItems}</div>
+        <div className="text-[9px] md:text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 md:mt-1 truncate">total</div>
       </button>
 
       <button
@@ -39,12 +39,12 @@ export function StatsBar({ totalItems, totalNovos, totalUsados, statusFilter, on
             : 'border-slate-200 dark:border-[#30363d] hover:border-blue-200',
         )}
       >
-        <div className="flex justify-between items-start mb-2">
-          <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 tracking-wider uppercase">Novos</span>
-          <Package className="w-4 h-4 text-blue-400" />
+        <div className="flex justify-between items-start mb-1 md:mb-2">
+          <span className="text-[9px] md:text-[10px] font-bold text-slate-500 dark:text-slate-400 tracking-wider uppercase">Novos</span>
+          <Package className="w-3.5 h-3.5 md:w-4 md:h-4 text-blue-400" />
         </div>
-        <div className="text-2xl font-black text-blue-600 dark:text-blue-400">{totalNovos}</div>
-        <div className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">clique para filtrar</div>
+        <div className="text-xl md:text-2xl font-black text-blue-600 dark:text-blue-400">{totalNovos}</div>
+        <div className="text-[9px] md:text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 md:mt-1 truncate">filtrar</div>
       </button>
 
       <button
@@ -56,12 +56,12 @@ export function StatsBar({ totalItems, totalNovos, totalUsados, statusFilter, on
             : 'border-slate-200 dark:border-[#30363d] hover:border-amber-200',
         )}
       >
-        <div className="flex justify-between items-start mb-2">
-          <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 tracking-wider uppercase">Usados</span>
-          <HardDrive className="w-4 h-4 text-amber-400" />
+        <div className="flex justify-between items-start mb-1 md:mb-2">
+          <span className="text-[9px] md:text-[10px] font-bold text-slate-500 dark:text-slate-400 tracking-wider uppercase">Usados</span>
+          <HardDrive className="w-3.5 h-3.5 md:w-4 md:h-4 text-amber-400" />
         </div>
-        <div className="text-2xl font-black text-amber-600 dark:text-amber-400">{totalUsados}</div>
-        <div className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">clique para filtrar</div>
+        <div className="text-xl md:text-2xl font-black text-amber-600 dark:text-amber-400">{totalUsados}</div>
+        <div className="text-[9px] md:text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 md:mt-1 truncate">filtrar</div>
       </button>
     </div>
   );
