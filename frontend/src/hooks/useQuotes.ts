@@ -32,7 +32,7 @@ export function useQuotes() {
       if (patch.margin !== undefined) payload.margin = patch.margin;
       if (patch.validityDays !== undefined) payload.validity_days = patch.validityDays;
       if (patch.items !== undefined) {
-        payload.equipment_ids = patch.items.map(i => (i as Record<string, unknown>).id || i.idPatrimonio);
+        payload.equipment_ids = patch.items.map(i => (i as unknown as Record<string, unknown>).id || i.idPatrimonio);
       }
       
       // Apenas faz request se houver algo pra atualizar

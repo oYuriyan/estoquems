@@ -9,7 +9,16 @@ interface UseCatalogOptions {
 }
 
 export function useCatalog({ pausePolling = false, isAuthenticated = false, onError }: UseCatalogOptions = {}) {
-  const [data, setData] = useState<{ groups: GroupedItem[], metadados: Record<string, unknown> } | null>(null);
+  const [data, setData] = useState<{ 
+    groups: GroupedItem[], 
+    metadados: {
+      ultimaAtualizacao?: string;
+      totalEquipments?: number;
+      totalNovos?: number;
+      totalUsados?: number;
+      totalGroups?: number;
+    }
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   

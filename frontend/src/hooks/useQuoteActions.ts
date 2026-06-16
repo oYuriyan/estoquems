@@ -45,7 +45,7 @@ export function useQuoteActions(
     showConfirm('Cancelar Reserva', 'Os itens voltarão para o estoque e o GLPI será atualizado.', async () => {
       setIsSubmitting(true);
       try {
-        const backendId = (activeQuote as Record<string, unknown>).backendId || activeQuoteId;
+        const backendId = (activeQuote as unknown as Record<string, unknown>).backendId || activeQuoteId;
         const res = await apiFetch(`/api/quotes/${backendId}/cancel`, {
           method: 'POST'
         });

@@ -108,7 +108,7 @@ export function useTour(isAuthenticated: boolean) {
 
   return {
     isActive,
-    currentStep,
+    currentStep: activeSteps[currentStepIndex],
     currentStepIndex,
     totalSteps: activeSteps.length,
     next,
