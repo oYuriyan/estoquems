@@ -36,8 +36,8 @@ export function usePdf({ onSuccess, onError, setGenerating }: UsePdfOptions) {
           await navigator.share({ files: [file], title: `Proposta: ${activeQuote.name}`, text: 'Segue a proposta em anexo.' });
           onSuccess('PDF compartilhado com sucesso!');
           return;
-        } catch (e: any) {
-          if (e.name === 'AbortError') return;
+        } catch (e: unknown) {
+          if (e instanceof Error && e.name === 'AbortError') return;
         }
       }
 

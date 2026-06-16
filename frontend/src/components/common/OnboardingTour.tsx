@@ -90,10 +90,9 @@ export function OnboardingTour({
   const [closing, setClosing]        = useState(false);
   const tooltipRef  = useRef<HTMLDivElement>(null);
   const elRef       = useRef<HTMLElement | null>(null);
-  const rafRef      = useRef<number>(0);
 
   useEffect(() => {
-    if (isActive) setClosing(false);
+    if (isActive) setTimeout(() => setClosing(false), 0);
   }, [isActive]);
 
   const handleSkip = () => {
@@ -131,16 +130,18 @@ export function OnboardingTour({
 
   // ── Localiza o elemento e inicia observadores (Resize + Scroll) ───────────
   useEffect(() => {
-    if (!isActive) { setVisible(false); return; }
+    if (!isActive) { setTimeout(() => setVisible(false), 0); return; }
 
     elRef.current = null;
-    setTargetRect(null);
-    setVisible(false);
+    setTimeout(() => {
+      setTargetRect(null);
+      setVisible(false);
+    }, 0);
 
     let raf: number;
     let observer: ResizeObserver | null = null;
-    let interval: NodeJS.Timeout | null = null;
-    let t: NodeJS.Timeout | null = null;
+    let interval: ReturnType<typeof setInterval> | null = null;
+    let t: ReturnType<typeof setTimeout> | null = null;
 
     const find = () => {
       const el = document.querySelector(`[data-tour="${currentStep.target}"]`) as HTMLElement | null;

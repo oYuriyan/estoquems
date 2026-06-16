@@ -26,13 +26,13 @@ export function useQuotes() {
     if (quote?.isReserved) return;
 
     try {
-      const payload: any = {};
+      const payload: Record<string, unknown> = {};
       if (patch.name !== undefined) payload.name = patch.name;
       if (patch.clientName !== undefined) payload.client_name = patch.clientName;
       if (patch.margin !== undefined) payload.margin = patch.margin;
       if (patch.validityDays !== undefined) payload.validity_days = patch.validityDays;
       if (patch.items !== undefined) {
-        payload.equipment_ids = patch.items.map(i => (i as any).id || i.idPatrimonio);
+        payload.equipment_ids = patch.items.map(i => (i as Record<string, unknown>).id || i.idPatrimonio);
       }
       
       // Apenas faz request se houver algo pra atualizar

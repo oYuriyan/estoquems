@@ -35,8 +35,8 @@ export function useQuoteActions(
       updateQuote(activeQuoteId, { isReserved: true, reservedAt: new Date().toISOString(), backendId: reservedQuote.id });
       addToast('Reserva realizada com sucesso!', 'success');
       setTimeout(() => fetchCatalogo(true), 1500);
-    } catch (err: any) {
-      addToast(err.message || 'Erro desconhecido ao reservar.', 'error');
+    } catch (err: unknown) {
+      addToast(err instanceof Error ? err.message : 'Erro desconhecido ao reservar.', 'error');
     } finally { setIsSubmitting(false); }
   };
 
@@ -45,7 +45,7 @@ export function useQuoteActions(
     showConfirm('Cancelar Reserva', 'Os itens voltarão para o estoque e o GLPI será atualizado.', async () => {
       setIsSubmitting(true);
       try {
-        const backendId = (activeQuote as any).backendId || activeQuoteId;
+        const backendId = (activeQuote as Record<string, unknown>).backendId || activeQuoteId;
         const res = await apiFetch(`/api/quotes/${backendId}/cancel`, {
           method: 'POST'
         });
@@ -53,8 +53,8 @@ export function useQuoteActions(
         updateQuote(activeQuoteId, { isReserved: false, backendId: undefined });
         addToast('Reserva cancelada com sucesso.', 'success');
         setTimeout(() => fetchCatalogo(true), 1500);
-      } catch (err: any) {
-        addToast(err.message || 'Erro desconhecido ao cancelar.', 'error');
+      } catch (err: unknown) {
+        addToast(err instanceof Error ? err.message : 'Erro desconhecido ao cancelar.', 'error');
       } finally { setIsSubmitting(false); }
     });
   };

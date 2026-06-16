@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { Cpu, MemoryStick, HardDrive, Monitor, ShoppingCart } from 'lucide-react';
-import type { GroupedItem, Equipamento } from '../../types';
+import type { GroupedItem } from '../../types';
 
 interface ItemCardProps {
   group: GroupedItem;

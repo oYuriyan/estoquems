@@ -22,7 +22,7 @@ async def get_equipments(
 ):
     if limit > 100:
         limit = 100
-    result = await db.execute(select(Equipment).where(Equipment.is_active == True).offset(skip).limit(limit))
+    result = await db.execute(select(Equipment).where(Equipment.is_active).offset(skip).limit(limit))
     return result.scalars().all()
 
 @router.get("/grouped")
@@ -38,7 +38,7 @@ async def get_equipments_grouped(
     current_user: User = Depends(get_current_user)
 ):
     # 1. Base Query apenas com itens ativos
-    query = select(Equipment).where(Equipment.is_active == True)
+    query = select(Equipment).where(Equipment.is_active)
 
     # 2. Filtros
     if brand:

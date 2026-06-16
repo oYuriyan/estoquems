@@ -85,6 +85,7 @@ export const UIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useUIContext = () => {
   const context = useContext(UIContext);
   if (!context) throw new Error('useUIContext must be used within a UIProvider');

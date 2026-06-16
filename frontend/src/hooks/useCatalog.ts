@@ -9,7 +9,7 @@ interface UseCatalogOptions {
 }
 
 export function useCatalog({ pausePolling = false, isAuthenticated = false, onError }: UseCatalogOptions = {}) {
-  const [data, setData] = useState<{ groups: GroupedItem[], metadados: any } | null>(null);
+  const [data, setData] = useState<{ groups: GroupedItem[], metadados: Record<string, unknown> } | null>(null);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   
@@ -50,8 +50,10 @@ export function useCatalog({ pausePolling = false, isAuthenticated = false, onEr
       const payload = await response.json();
       
       // Converte snake_case para camelCase nos items
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const mappedGroups = payload.groups.map((g: any) => ({
         ...g,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         items: g.items.map((eq: any) => ({
           ...eq,
           idPatrimonio: eq.idPatrimonio || eq.id_patrimonio,
@@ -83,8 +85,8 @@ export function useCatalog({ pausePolling = false, isAuthenticated = false, onEr
       if (resetPage) setPage(2);
       else setPage(prev => prev + 1);
 
-    } catch (err: any) {
-      console.error(err.message || 'Erro desconhecido ao carregar dados.');
+    } catch (err: unknown) {
+      console.error(err instanceof Error ? err.message : 'Erro desconhecido ao carregar dados.');
       if (!silent) onError?.('Erro ao atualizar o catálogo.');
     } finally {
       if (resetPage) setLoading(false);
@@ -95,7 +97,8 @@ export function useCatalog({ pausePolling = false, isAuthenticated = false, onEr
   // Se os filtros ou a autenticação mudarem, reseta a página (somente se autenticado)
   useEffect(() => {
     if (!isAuthenticated) return;
-    if (!data) setLoading(true);
+    if (!data) setTimeout(() => setLoading(true), 0);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchCatalogo(false, true);
   }, [filters, isAuthenticated]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -112,7 +115,7 @@ export function useCatalog({ pausePolling = false, isAuthenticated = false, onEr
       const initialJson = await initialRes.json();
       const initialParsed = Array.isArray(initialJson) ? initialJson[0] : initialJson;
       snapshotTimestamp = initialParsed?.metadados?.ultimaAtualizacao ?? '';
-    } catch { }
+    } catch { /* ignore */ }
 
     try {
       await fetch('/webhook/atualizar_estoque', { method: 'GET', mode: 'no-cors' });
@@ -149,7 +152,7 @@ export function useCatalog({ pausePolling = false, isAuthenticated = false, onEr
         onInfo?.('Sincronização acionada, mas o catálogo ainda não foi atualizado. Tente em instantes.');
       }
     }, 5000);
-  }, [data, isRefreshing]);
+  }, [isRefreshing, fetchCatalogo]);
 
   // Auto-refresh a cada 60s
   useEffect(() => {

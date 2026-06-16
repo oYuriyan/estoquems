@@ -21,25 +21,27 @@ export function AdminPanel({ onClose, currentUser }: AdminPanelProps) {
   const [newRole, setNewRole] = useState<'ADMIN' | 'SALES'>('SALES');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Fetch users from API
-  // Actually, let's just fetch directly assuming token is in localStorage.
-  
-  const fetchUsers = async () => {
-    try {
-      setLoading(true);
-      const res = await apiFetch('/api/users/');
-      if (!res.ok) throw new Error('Falha ao carregar usuários');
-      const data = await res.json();
-      setUsers(data);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    let isMounted = true;
+    
+    const fetchUsers = async () => {
+      try {
+        const res = await apiFetch('/api/users/');
+        if (!res.ok) throw new Error('Falha ao carregar usuários');
+        const data = await res.json();
+        if (isMounted) setUsers(data);
+      } catch (err: unknown) {
+        if (isMounted) setError(err instanceof Error ? err.message : 'Erro desconhecido');
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
     fetchUsers();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const handleDelete = async (id: string) => {
@@ -53,8 +55,8 @@ export function AdminPanel({ onClose, currentUser }: AdminPanelProps) {
         throw new Error(d.detail || 'Falha ao excluir');
       }
       setUsers(prev => prev.filter(u => u.id !== id));
-    } catch (err: any) {
-      alert(err.message);
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Erro desconhecido');
     }
   };
 
@@ -74,8 +76,8 @@ export function AdminPanel({ onClose, currentUser }: AdminPanelProps) {
       setUsers(prev => [...prev, data]);
       setShowNew(false);
       setNewName(''); setNewEmail(''); setNewPassword('');
-    } catch (err: any) {
-      alert(err.message);
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Erro desconhecido');
     } finally {
       setIsSubmitting(false);
     }

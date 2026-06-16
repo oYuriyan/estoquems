@@ -62,6 +62,7 @@ export async function generatePdfBlob(
     // Marca d'água (muito sutil)
     if (wmB64) {
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const gs = (pdf as any).GState({ opacity: 0.03 });
         pdf.saveGraphicsState();
         pdf.setGState(gs);

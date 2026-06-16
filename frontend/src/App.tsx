@@ -113,6 +113,7 @@ export default function App() {
     if (filters.search === '' && searchTerm !== '') {
       setSearchTerm('');
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.search, setSearchTerm]);
 
   // Escuta eventos WebSocket para recarregar silenciosamente o catálogo

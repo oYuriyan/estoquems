@@ -54,14 +54,24 @@ export function useTour(isAuthenticated: boolean) {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const activeSteps = isMobile ? FULL_TOUR_STEPS.filter(s => s.target !== 'sidebar-quotes') : FULL_TOUR_STEPS;
-
+  const activeSteps = isMobile 
+    ? FULL_TOUR_STEPS.map((s): TourStep => 
+        s.target === 'sidebar-quotes' 
+          ? { 
+              ...s, 
+              target: 'mobile-nav', 
+              placement: 'top',
+              description: s.description.replace('na barra lateral', 'aqui embaixo').replace('Clique no "+"', 'Acesse o menu') 
+            } 
+          : s
+      )
+    : FULL_TOUR_STEPS;
   useEffect(() => {
     if (!isAuthenticated) return;
     const done = localStorage.getItem(TOUR_STORAGE_KEY);
@@ -98,7 +108,7 @@ export function useTour(isAuthenticated: boolean) {
 
   return {
     isActive,
-    currentStep: activeSteps[currentStepIndex],
+    currentStep,
     currentStepIndex,
     totalSteps: activeSteps.length,
     next,

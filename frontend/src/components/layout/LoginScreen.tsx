@@ -49,8 +49,8 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
       const meData = await meResponse.json();
 
       onLogin(meData);
-    } catch (err: any) {
-      setError(err.message || 'Erro ao conectar. Tente novamente.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Erro ao conectar. Tente novamente.');
     } finally {
       setIsLoading(false);
     }

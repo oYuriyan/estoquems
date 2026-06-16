@@ -15,6 +15,8 @@ async def setup_test_data():
     Cria 1 equipamento, 1 usuário e 5 propostas em draft para o mesmo usuário testar concorrência.
     Retorna os IDs para o teste e o token.
     """
+    from app.db.session import engine
+    await engine.dispose()
     async with AsyncSessionLocal() as db:
         # Create user
         user_email = f"test_race_{uuid.uuid4().hex[:8]}@example.com"

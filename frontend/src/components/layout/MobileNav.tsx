@@ -1,3 +1,4 @@
+import { format } from 'date-fns';
 import { Home, ShoppingCart, BookMarked, FileText, Plus, X, CheckCircle } from 'lucide-react';
 import clsx from 'clsx';
 import type { Quote } from '../../types';
@@ -6,6 +7,7 @@ interface ReservedProposal {
   quote: Quote;
   isExpired: boolean;
   isExpiringSoon: boolean;
+  expiresAt?: Date | null;
 }
 
 interface MobileNavProps {
@@ -30,6 +32,22 @@ export function MobileNav({
   isMobileDrawerOpen, activeQuote,
   onTabChange, onToggleDrawer, onCloseDrawer, onSelectQuote, onOpenQuote, onNewQuote, onResetCatalog,
 }: MobileNavProps) {
+
+  const handleTabClick = (tab: 'catalogo' | 'propostas' | 'reservas') => {
+    if (tab === 'catalogo') {
+      onTabChange('catalogo');
+      onCloseDrawer();
+      onResetCatalog();
+    } else {
+      if (mobileTab === tab) {
+         onToggleDrawer();
+      } else {
+         onTabChange(tab);
+         if (!isMobileDrawerOpen) onToggleDrawer();
+      }
+    }
+  };
+
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 print:hidden">
       {/* Bottom Sheet */}
@@ -38,42 +56,94 @@ export function MobileNav({
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={onCloseDrawer} />
           <div className="fixed bottom-16 left-0 right-0 bg-[#0B1120] rounded-t-2xl shadow-2xl flex flex-col max-h-[70vh] border-t border-white/10">
             <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-white/5">
-              <span className="text-sm font-bold text-slate-200">Minhas Propostas</span>
+              <span className="text-sm font-bold text-slate-200">
+                {mobileTab === 'reservas' ? 'Reservas Ativas' : 'Minhas Propostas'}
+              </span>
               <button onClick={onCloseDrawer} className="text-slate-400 p-1"><X className="w-5 h-5" /></button>
             </div>
 
             <div className="overflow-y-auto flex-1 p-3 space-y-1.5">
-              {quotes.length === 0 && (
-                <p className="text-center text-slate-500 text-sm py-6">Nenhuma proposta ainda.<br />Selecione itens para iniciar.</p>
-              )}
-              {quotes.map(q => (
-                <button
-                  key={q.id}
-                  onClick={() => { onSelectQuote(q.id); onOpenQuote(); onCloseDrawer(); }}
-                  className={clsx(
-                    'w-full flex justify-between items-center px-3.5 py-3 rounded-xl text-left transition-all border',
-                    q.id === activeQuoteId
-                      ? 'bg-indigo-500/15 border-indigo-500/30 text-indigo-300'
-                      : 'bg-white/5 border-white/5 text-slate-300 hover:bg-white/10',
-                  )}
-                >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <FileText className="w-4 h-4 shrink-0 opacity-60" />
-                    <div className="min-w-0">
-                      <span className="text-[13px] font-semibold block truncate">{q.name}</span>
-                      {q.clientName && <span className="text-[11px] text-indigo-400 block truncate">{q.clientName}</span>}
+              {mobileTab === 'reservas' ? (
+                <>
+                  {reservedProposals.length === 0 && (
+                    <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
+                      <BookMarked className="w-12 h-12 text-slate-600 mb-3 opacity-50" />
+                      <p className="text-slate-400 text-sm font-medium mb-4">Nenhuma reserva ativa no momento.</p>
+                      <button onClick={() => handleTabClick('catalogo')} className="text-indigo-400 bg-indigo-500/10 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider">
+                        Explorar Catálogo
+                      </button>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-1.5 shrink-0 ml-2">
-                    {q.isReserved && <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />}
-                    {q.items.length > 0 && (
-                      <span className="bg-indigo-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
-                        {q.items.length}
-                      </span>
-                    )}
-                  </div>
-                </button>
-              ))}
+                  )}
+                  {reservedProposals.map(({ quote: q, expiresAt, isExpired, isExpiringSoon }) => (
+                    <button
+                      key={q.id}
+                      onClick={() => { onSelectQuote(q.id); onOpenQuote(); onCloseDrawer(); }}
+                      className={clsx(
+                        'w-full px-3.5 py-3 rounded-xl border text-left flex justify-between items-center gap-2 transition-all shadow-sm',
+                        isExpired      ? 'bg-gradient-to-r from-red-950/40 to-red-900/20 border-red-800/50 text-red-300'
+                        : isExpiringSoon ? 'bg-gradient-to-r from-amber-950/40 to-amber-900/20 border-amber-800/50 text-amber-300'
+                        :                  'bg-gradient-to-r from-emerald-950/40 to-emerald-900/20 border-emerald-800/50 text-emerald-300',
+                      )}
+                    >
+                      <div className="min-w-0">
+                        <span className="font-bold truncate block text-[13px]">{q.name}</span>
+                        <span className="text-[11px] opacity-60 block mt-0.5">
+                          {q.clientName || 'Sem cliente'} · {q.items.length} item{q.items.length !== 1 ? 's' : ''}
+                        </span>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        {isExpired ? (
+                          <span className="text-[10px] font-bold animate-pulse">VENCIDO</span>
+                        ) : expiresAt ? (
+                          <span className="font-mono text-[10px]">{format(expiresAt, 'dd/MM HH:mm')}</span>
+                        ) : (
+                          <span className="text-[10px] opacity-40">s/ data</span>
+                        )}
+                      </div>
+                    </button>
+                  ))}
+                </>
+              ) : (
+                <>
+                  {quotes.length === 0 && (
+                    <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
+                      <ShoppingCart className="w-12 h-12 text-slate-600 mb-3 opacity-50" />
+                      <p className="text-slate-400 text-sm font-medium mb-4">Nenhuma proposta ainda.<br/>Selecione itens para iniciar.</p>
+                      <button onClick={() => handleTabClick('catalogo')} className="text-indigo-400 bg-indigo-500/10 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider">
+                        Ver Catálogo
+                      </button>
+                    </div>
+                  )}
+                  {quotes.map(q => (
+                    <button
+                      key={q.id}
+                      onClick={() => { onSelectQuote(q.id); onOpenQuote(); onCloseDrawer(); }}
+                      className={clsx(
+                        'w-full flex justify-between items-center px-3.5 py-3 rounded-xl text-left transition-all border',
+                        q.id === activeQuoteId
+                          ? 'bg-indigo-500/15 border-indigo-500/30 text-indigo-300'
+                          : 'bg-white/5 border-white/5 text-slate-300 hover:bg-white/10',
+                      )}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <FileText className="w-4 h-4 shrink-0 opacity-60" />
+                        <div className="min-w-0">
+                          <span className="text-[13px] font-semibold block truncate">{q.name}</span>
+                          {q.clientName && <span className="text-[11px] text-indigo-400 block truncate mt-0.5">{q.clientName}</span>}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                        {q.isReserved && <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />}
+                        {q.items.length > 0 && (
+                          <span className="bg-indigo-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                            {q.items.length}
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  ))}
+                </>
+              )}
             </div>
 
             <div className="p-3 border-t border-white/5 grid grid-cols-2 gap-2">
@@ -88,7 +158,7 @@ export function MobileNav({
                   onClick={() => { onOpenQuote(); onCloseDrawer(); }}
                   className="flex items-center justify-center gap-2 py-3 bg-white/10 text-slate-200 rounded-xl text-sm font-bold border border-white/10"
                 >
-                  <FileText className="w-4 h-4" /> Ver Proposta
+                  <FileText className="w-4 h-4" /> Ver Selecionada
                 </button>
               )}
             </div>
@@ -97,10 +167,10 @@ export function MobileNav({
       )}
 
       {/* Barra de navegação flutuante (Pill-shape) */}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-[320px] bg-[#0B1120]/80 backdrop-blur-md border border-white/10 rounded-full shadow-2xl px-2">
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-[320px] bg-[#0B1120]/80 backdrop-blur-md border border-white/10 rounded-full shadow-2xl px-2" data-tour="mobile-nav">
         <div className="flex items-center justify-between h-14">
           <button
-            onClick={() => { onTabChange('catalogo'); onCloseDrawer(); onResetCatalog(); }}
+            onClick={() => handleTabClick('catalogo')}
             className={clsx(
               'flex-1 flex flex-col items-center justify-center gap-1 transition-colors rounded-full',
               mobileTab === 'catalogo' ? 'text-indigo-400' : 'text-slate-500 hover:text-slate-300',
@@ -111,7 +181,7 @@ export function MobileNav({
           </button>
 
           <button
-            onClick={() => { onTabChange('propostas'); onToggleDrawer(); }}
+            onClick={() => handleTabClick('propostas')}
             className={clsx(
               'flex-1 flex flex-col items-center justify-center gap-1 transition-colors rounded-full relative',
               mobileTab === 'propostas' ? 'text-indigo-400' : 'text-slate-500 hover:text-slate-300'
@@ -131,7 +201,7 @@ export function MobileNav({
           </button>
 
           <button
-            onClick={() => { onTabChange('reservas'); onCloseDrawer(); }}
+            onClick={() => handleTabClick('reservas')}
             className={clsx(
               'flex-1 flex flex-col items-center justify-center gap-1 transition-colors rounded-full relative',
               mobileTab === 'reservas' ? 'text-emerald-400' : 'text-slate-500 hover:text-slate-300',

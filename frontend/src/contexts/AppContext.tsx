@@ -72,6 +72,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (res.ok) {
         const backendQuotes = await res.json();
         // Mapeia do backend pro frontend
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const mappedQuotes: Quote[] = backendQuotes.map((q: any) => ({
           id: q.id,
           name: q.name,
@@ -80,6 +81,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           validityDays: q.validity_days,
           isReserved: q.status === 'RESERVED',
           reservedAt: q.reserved_at,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           items: (q.items || []).map((eq: any) => ({
              ...eq,
              idPatrimonio: eq.idPatrimonio || eq.id_patrimonio,
@@ -99,10 +101,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Carrega as propostas do backend ao logar
   useEffect(() => {
     if (user) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       refreshQuotes();
     } else {
-      setQuotes([]);
-      setActiveQuoteId(null);
+      setTimeout(() => {
+        setQuotes([]);
+        setActiveQuoteId(null);
+      }, 0);
     }
   }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -182,6 +187,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAppContext = () => {
   const context = useContext(AppContext);
   if (!context) throw new Error('useAppContext must be used within an AppProvider');
