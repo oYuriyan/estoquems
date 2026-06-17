@@ -51,15 +51,18 @@ async def get_equipments_grouped(
             query = query.where(~Equipment.status.ilike("%NOVO%"))
             
     if search:
-        search_term = f"%{search}%"
-        # Busca em modelo, marca, tipo, serie, patrimonio e JSON
-        query = query.where(
-            (Equipment.modelo.ilike(search_term)) |
-            (Equipment.marca.ilike(search_term)) |
-            (Equipment.tipo.ilike(search_term)) |
-            (Equipment.numero_serie.ilike(search_term)) |
-            (Equipment.id_patrimonio.ilike(search_term))
-        )
+        search_terms = search.split()
+        for term in search_terms:
+            t = f"%{term}%"
+            # Busca em modelo, marca, tipo, serie, patrimonio e JSON
+            query = query.where(
+                (Equipment.modelo.ilike(t)) |
+                (Equipment.marca.ilike(t)) |
+                (Equipment.tipo.ilike(t)) |
+                (Equipment.numero_serie.ilike(t)) |
+                (Equipment.id_patrimonio.ilike(t)) |
+                (cast(Equipment.especificacoes, Text).ilike(t))
+            )
 
     # Pegamos a lista bruta e agrupamos no python para montar a paginação correta 
     # Fazer um GROUP BY complexo no postgres retornando array de objetos em SQLAlchemy async pode ser frágil. 
