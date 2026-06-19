@@ -65,11 +65,10 @@ services:
     depends_on:
       init-perms:
         condition: service_completed_successfully
-    # EM PRODUÇÃO: Não usamos `ports: "5678:5678"`. 
-    # Usamos `expose` para manter a porta apenas na rede interna do Docker.
-    # O acesso administrativo será feito via Túnel SSH.
-    expose:
-      - "5678"
+    # EM PRODUÇÃO: Usamos `ports` apontando exclusivamente para 127.0.0.1.
+    # Isso impede acesso externo pela rede, mas permite que o Túnel SSH funcione.
+    ports:
+      - "127.0.0.1:5678:5678"
     environment:
       - N8N_HOST=0.0.0.0
       - N8N_PORT=5678
