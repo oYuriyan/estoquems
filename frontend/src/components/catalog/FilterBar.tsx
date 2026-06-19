@@ -10,7 +10,9 @@ interface FilterBarProps {
 }
 
 export function FilterBar({ brands, activeBrand, statusFilter, onBrandChange, onClearStatusFilter }: FilterBarProps) {
-  if (brands.length === 0 && !statusFilter) return null;
+  if (brands.length === 0 && !statusFilter) {
+    return <div data-tour="filter-bar" className="w-full h-0 pointer-events-none" />;
+  }
 
   return (
     <>

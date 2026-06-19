@@ -85,7 +85,7 @@ function CatalogViewComponent({
       </div>
 
       {groupedEstoque.length === 0 ? (
-        <div className="bg-white dark:bg-[#161b22] rounded-2xl border border-slate-200 dark:border-[#30363d] border-dashed p-16 text-center shadow-sm">
+        <div data-tour="catalog-grid" className="bg-white dark:bg-[#161b22] rounded-2xl border border-slate-200 dark:border-[#30363d] border-dashed p-16 text-center shadow-sm">
           <div className="flex justify-center mb-6 opacity-60">
             <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M60 10L105 35V85L60 110L15 85V35L60 10Z" fill="#F1F5F9" stroke="#CBD5E1" className="dark:fill-slate-800 dark:stroke-slate-700" strokeWidth="2" strokeLinejoin="round"/>
@@ -127,7 +127,7 @@ function CatalogViewComponent({
           })}
         </div>
       ) : (
-        <div className="bg-white dark:bg-[#161b22] rounded-xl border border-slate-200 dark:border-[#30363d] shadow-sm overflow-hidden mb-8">
+        <div data-tour="catalog-grid" className="bg-white dark:bg-[#161b22] rounded-xl border border-slate-200 dark:border-[#30363d] shadow-sm overflow-hidden mb-8">
           <table className="w-full text-left border-collapse">
             <thead className="bg-slate-50 dark:bg-[#0d1117] border-b border-slate-200 dark:border-[#30363d]">
               <tr>
