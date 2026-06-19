@@ -177,7 +177,11 @@ async def sync_from_json(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao buscar catalogo.json: {str(e)}")
         
-    items = data[0]["estoque"] if isinstance(data, list) else data.get("estoque", [])
+    items = []
+    if isinstance(data, list) and len(data) > 0:
+        items = data[0].get("estoque", [])
+    elif isinstance(data, dict):
+        items = data.get("estoque", [])
     
     existing = (await db.execute(select(Equipment))).scalars().all()
     existing_map = {eq.id_patrimonio: eq for eq in existing}
