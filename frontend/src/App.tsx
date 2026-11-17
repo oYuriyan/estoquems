@@ -22,6 +22,7 @@ import { useQuoteActions } from './hooks/useQuoteActions';
 // Types
 import type { GroupedItem } from './types';
 import { isEquipmentAvailable } from './utils/equipment';
+import { getReservationBlockReason } from './utils/inventory';
 
 // Layout
 import { LoginScreen }    from './components/layout/LoginScreen';
@@ -190,6 +191,8 @@ export default function App() {
 
   const handleGroupClick = useCallback((group: GroupedItem) => setActiveGroup(group), [setActiveGroup]);
 
+  const reservationBlockReason = getReservationBlockReason(data?.metadados, now);
+
   const { isSubmitting, handleReserve, handleCancelReserve, handleWhatsApp } = useQuoteActions(
     activeQuoteId,
     activeQuote,
@@ -198,7 +201,8 @@ export default function App() {
     fetchCatalogo,
     refreshQuotes,
     addToast,
-    showConfirm
+    showConfirm,
+    reservationBlockReason,
   );
 
   // ── Early returns ──────────────────────────────────────────────────────────
@@ -218,6 +222,7 @@ export default function App() {
         isRefreshing={isRefreshing}
         ultimaAtualizacao={ultimaAtualizacaoStr}
         ultimaSincronizacaoGLPI={data?.metadados?.ultimaSincronizacaoGLPI}
+        reservationBlockReason={reservationBlockReason}
         onSelectQuote={handleSelectQuote}
         onNewQuote={addNewQuote}
         onDeleteQuote={handleDeleteQuote}
@@ -241,7 +246,19 @@ export default function App() {
         />
 
         <div className="flex-1 overflow-y-auto p-4 md:p-6 pb-32 md:pb-6 bg-[#f1f5f9] dark:bg-[#0d1117]" id="catalog-scroll-area">
+          {reservationBlockReason && (
+            <div role="status" className="mb-4 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
+              <p className="font-semibold">{reservationBlockReason}</p>
+              <p className="mt-1">Você pode consultar os equipamentos e preparar propostas. Novas reservas aguardam inventário validado.</p>
+              {user.role === 'ADMIN' && <button
+                disabled={isRefreshing}
+                onClick={() => syncGLPI(msg => addToast(msg, 'success'), msg => addToast(msg, 'info'))}
+                className="mt-3 rounded-lg border border-amber-400 px-3 py-2 font-semibold disabled:opacity-50"
+              >{isRefreshing ? 'Aguardando atualização...' : 'Atualizar inventário'}</button>}
+            </div>
+          )}
           <StatsBar
+            inventoryBlocked={!!reservationBlockReason}
             totalItems={data?.metadados?.totalAvailable || 0}
             totalReserved={data?.metadados?.totalReserved || 0}
             totalNovos={data?.metadados?.totalNovos || 0}
@@ -296,6 +313,7 @@ export default function App() {
           isSubmitting={isSubmitting}
           isGeneratingPdf={isGeneratingPdf}
           unavailableIds={unavailableIds}
+          reservationBlockReason={reservationBlockReason}
           onClose={() => setIsQuoteModalOpen(false)}
           onStepChange={setQuoteStep}
           onUpdateQuote={patch => updateQuote(activeQuoteId, patch)}

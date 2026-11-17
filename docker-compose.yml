@@ -4,6 +4,8 @@ services:
     ports:
       - "3030:80"
       - "3443:443"
+    expose:
+      - "8080"
     volumes:
       - ./frontend/dist:/usr/share/nginx/html
       - catalog_data:/var/catalog_data
@@ -72,13 +74,13 @@ services:
     # QW-4: using expose instead of ports — n8n admin UI is NOT accessible externally,
     #        only reachable internally via nginx proxy at /webhook/
     ports:
-      - "5678:5678"
+      - "127.0.0.1:5678:5678"
     environment:
       - N8N_HOST=0.0.0.0
       - N8N_PORT=5678
       - N8N_PROTOCOL=http
       - NODE_ENV=production
-      - WEBHOOK_URL=http://nginx/
+      - WEBHOOK_URL=http://localhost:5678/
       - GENERIC_TIMEZONE=America/Sao_Paulo
       - N8N_USER_FOLDER=/home/node/
       - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=false

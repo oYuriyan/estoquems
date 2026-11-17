@@ -70,3 +70,7 @@ Para acessar o manual completo de implantação em Máquinas Virtuais (VMs) inte
 
 Antes de atualizar um ambiente com dados, leia
 [Atualizacao com preservacao dos dados](docs/ATUALIZACAO-SEGURA.md).
+
+Para o primeiro piloto na empresa, use a
+[requisicao da VM Linux](docs/REQUISICAO-VM-PILOTO.md) e o
+[roteiro de aceite e feedback](docs/PILOTO-COMERCIAL.md).

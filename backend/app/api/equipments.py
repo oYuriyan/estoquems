@@ -5,6 +5,7 @@ from sqlalchemy.future import select
 from sqlalchemy import cast, Text
 from typing import List, Optional
 import math
+import httpx
 
 from app.db.session import get_db
 from app.db.models import User, Equipment
@@ -12,6 +13,7 @@ from app.schemas.all import EquipmentResponse, EquipmentCreate
 from app.api.deps import get_current_user, get_current_active_superuser
 from app.inventory import is_available, is_reserved, is_new, is_stock_status
 from app.catalog_sync import catalog_synchronizer
+from app.catalog_status import get_catalog_status
 
 router = APIRouter()
 
@@ -172,6 +174,7 @@ async def get_equipments_grouped(
     available = [eq for eq in equipments if is_available(eq)]
     total_novos = sum(1 for eq in available if is_new(eq))
     total_usados = len(available) - total_novos
+    inventory = await get_catalog_status(db)
 
     return {
         "groups": serialized_groups,
@@ -184,11 +187,45 @@ async def get_equipments_grouped(
         "total_available": len(available),
         "total_reserved": sum(1 for eq in equipments if is_reserved(eq)),
         "retrieved_at": datetime.now(timezone.utc).isoformat(),
-        "source_updated_at": catalog_synchronizer.source_updated_at,
-        "synced_at": catalog_synchronizer.synced_at,
+        **inventory,
         "total_novos": total_novos,
         "total_usados": total_usados
     }
+
+@router.get("/source-status")
+async def get_inventory_source_status(
+    current_user: User = Depends(get_current_active_superuser)
+):
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.get('http://nginx:8080/catalogo.json')
+            if response.status_code == 404:
+                return {'source_updated_at': None}
+            response.raise_for_status()
+            payload = response.json()
+        if isinstance(payload, list) and len(payload) == 1:
+            payload = payload[0]
+        if not isinstance(payload, dict) or not isinstance(payload.get('estoque'), list):
+            raise ValueError('invalid source')
+        metadata = payload.get('metadados')
+        stamp = metadata.get('ultimaAtualizacao') if isinstance(metadata, dict) else None
+        return {'source_updated_at': stamp if isinstance(stamp, str) else None}
+    except Exception:
+        raise HTTPException(status_code=502, detail='Não foi possível consultar a exportação do inventário. O catálogo foi preservado.')
+
+
+@router.post("/refresh-source", status_code=202)
+async def request_inventory_refresh(
+    current_user: User = Depends(get_current_active_superuser)
+):
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.get('http://n8n:5678/webhook/atualizar_estoque')
+            response.raise_for_status()
+    except Exception:
+        raise HTTPException(status_code=502, detail='Não foi possível solicitar a atualização do inventário. Nenhuma importação foi confirmada.')
+    return {'message': 'Atualização solicitada. Aguarde a exportação antes de confirmar a importação.'}
+
 
 @router.post("/sync")
 async def sync_from_json(

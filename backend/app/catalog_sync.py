@@ -44,7 +44,7 @@ class CatalogSynchronizer:
     async def sync(self, db, force=False):
         async with self.lock:
             async with httpx.AsyncClient(timeout=10.0) as client:
-                response = await client.get('http://nginx/catalogo.json')
+                response = await client.get('http://nginx:8080/catalogo.json')
                 response.raise_for_status()
                 payload = response.json()
             if isinstance(payload, list) and len(payload) == 1:

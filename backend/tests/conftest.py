@@ -6,13 +6,14 @@ Para concorrência, TEST_DATABASE_URL aponta para PostgreSQL de testes isolado.
 O teste legado contra o ambiente operacional foi substituído.
 """
 import os
+from datetime import datetime, timezone
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 
 from app.main import app
-from app.db.models import Base, User, UserRole
+from app.db.models import Base, User, UserRole, CatalogSyncState
 from app.db.session import get_db
 from app.core.security import create_access_token, get_password_hash
 
@@ -45,6 +46,15 @@ async def db_session():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
     await engine.dispose()
+
+
+@pytest_asyncio.fixture(scope="function")
+async def fresh_catalog(db_session):
+    stamp = datetime.now(timezone.utc)
+    state = CatalogSyncState(id=1, source_updated_at=stamp, synced_at=stamp, fingerprint='isolated-test-snapshot')
+    db_session.add(state)
+    await db_session.commit()
+    return state
 
 
 @pytest_asyncio.fixture(scope="function")

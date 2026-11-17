@@ -11,6 +11,7 @@ from app.db.models import User, Quote, QuoteItem, Equipment, QuoteStatus
 from app.schemas.all import QuoteResponse, QuoteCreate, QuoteUpdate
 from app.api.deps import get_current_user
 from app.inventory import is_available
+from app.catalog_status import require_fresh_inventory
 
 router = APIRouter()
 
@@ -152,6 +153,8 @@ async def reserve_quote(
     
     if not equipments:
         raise HTTPException(status_code=400, detail="A proposta não possui equipamentos.")
+
+    await require_fresh_inventory(db)
 
     # 1. Verifica e dá lock pessimista nos equipamentos (SELECT FOR UPDATE)
     query = select(Equipment).where(Equipment.id.in_([eq.id for eq in equipments])).order_by(Equipment.id).with_for_update().execution_options(populate_existing=True)

@@ -9,6 +9,7 @@ interface QuoteDrawerProps {
   isSubmitting: boolean;
   isGeneratingPdf: boolean;
   unavailableIds: Set<string>;
+  reservationBlockReason: string | null;
   onClose: () => void;
   onStepChange: (step: 1 | 2 | 3) => void;
   onUpdateQuote: (patch: Partial<Quote>) => void;
@@ -21,7 +22,7 @@ interface QuoteDrawerProps {
 }
 
 export function QuoteDrawer({
-  quote, cart, quoteStep, isSubmitting, isGeneratingPdf, unavailableIds,
+  quote, cart, quoteStep, isSubmitting, isGeneratingPdf, unavailableIds, reservationBlockReason,
   onClose, onStepChange, onUpdateQuote, onRemoveItem, onDelete,
   onReserve, onCancelReserve, onPrint, onWhatsApp,
 }: QuoteDrawerProps) {
@@ -222,6 +223,11 @@ export function QuoteDrawer({
 
         {/* Footer */}
         <div className="px-4 py-4 border-t border-slate-200/50 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/50 shrink-0 space-y-3">
+          {editable && reservationBlockReason && (
+            <p role="status" className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
+              {reservationBlockReason} Você pode continuar preparando a proposta.
+            </p>
+          )}
           {quote.isReserved ? (
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-center gap-2 text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 px-4 py-3 rounded-lg border border-emerald-200 dark:border-emerald-800/50 font-bold text-sm">
@@ -268,7 +274,7 @@ export function QuoteDrawer({
                   </div>
                   <button
                     onClick={onReserve}
-                    disabled={isSubmitting || cart.length === 0 || cart.some(item => unavailableIds.has(item.idPatrimonio))}
+                    disabled={isSubmitting || !!reservationBlockReason || cart.length === 0 || cart.some(item => unavailableIds.has(item.idPatrimonio))}
                     className={clsx('w-full flex items-center justify-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold text-sm transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed', isSubmitting && 'opacity-70 cursor-wait')}
                   >
                     {isSubmitting

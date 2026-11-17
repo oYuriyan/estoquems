@@ -10,12 +10,14 @@ export function useQuoteActions(
   fetchCatalogo: (silent?: boolean, resetPage?: boolean) => Promise<boolean>,
   refreshQuotes: () => Promise<void>,
   addToast: (msg: string, type: 'success' | 'error' | 'info') => void,
-  showConfirm: (title: string, msg: string, onConfirm: () => void) => void
+  showConfirm: (title: string, msg: string, onConfirm: () => void) => void,
+  reservationBlockReason: string | null,
 ) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleReserve = async () => {
     if (cart.length === 0 || !activeQuoteId || !activeQuote) return;
+    if (reservationBlockReason) { addToast(reservationBlockReason, 'error'); return; }
     if (!navigator.onLine) { addToast('Você está offline.', 'error'); return; }
     setIsSubmitting(true);
     try {
@@ -33,7 +35,8 @@ export function useQuoteActions(
       });
       if (!res.ok) {
         const error = await res.json().catch(() => ({}));
-        throw new Error(typeof error.detail === 'string' ? error.detail : 'Não foi possível confirmar a reserva.');
+        const message = typeof error.detail === 'string' ? error.detail : error.detail?.message;
+        throw new Error(typeof message === 'string' ? message : 'Não foi possível confirmar a reserva.');
       }
       
       await refreshQuotes();

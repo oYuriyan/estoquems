@@ -8,6 +8,8 @@ from app.main import app
 from app.db.session import get_db
 from test_equipments_quotes import create_equipment, create_draft_quote
 
+pytestmark = pytest.mark.usefixtures('fresh_catalog')
+
 
 @pytest.mark.asyncio
 async def test_only_one_concurrent_quote_can_reserve_equipment(client, db_session, sales_user):

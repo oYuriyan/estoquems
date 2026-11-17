@@ -5,6 +5,8 @@ import pytest
 from app.db.models import QuoteStatus
 from test_equipments_quotes import create_equipment, create_draft_quote
 
+pytestmark = pytest.mark.usefixtures('fresh_catalog')
+
 
 def webhook_client(fails=False):
     response = Mock()

@@ -1,14 +1,18 @@
 # Lummium — acompanhamento da evolução
 
-Atualizado em 03/11/2026. Este arquivo é a referência atual; PLANO-LOCACAO.md permanece como registro histórico.
+Atualizado em 17/11/2026. Este arquivo é a referência atual; PLANO-LOCACAO.md permanece como registro histórico.
 Escopo: notebooks para locação, catálogo, propostas e reservas. Sem preços, margens ou cálculo financeiro.
 
 ## Estado publicado
 
+- Base estavel: v1.1.0, commit 65be438, publicada e validada em 17/11. Migracao d1103_inventory_watermark ensaiada com restauracao PostgreSQL, aplicada com registros existentes preservados; CI aprovado.
+- Proximo destino: VM Linux ainda a ser preparada pela TI. Piloto com aproximadamente cinco pessoas, incluindo Yuri.
+- Preparacao do proximo ciclo em homologacao: bloqueio de reservas por inventario vencido/nao validado, metadados persistentes e controle de acesso as integracoes. Nao confundir esse codigo candidato com a base estavel em uso.
+
 - Aplicação: https://172.16.20.92:3443/ (rede interna; certificado local ainda sem confiança validada nos dispositivos).
 - Recuperação por Gmail, token de uso único de 15 minutos, revogação de sessões e normalização do e-mail publicados.
 - Usuário confirmou recuperação e login funcionando em 30/10/2026.
-- Últimas evidências: 43 testes de API e 5 de frontend na entrega de recuperação; 16 testes de autenticação/recuperação na correção de login. Não somar estas execuções como testes distintos.
+- Evidencias da v1.1.0: 90 testes backend e 22 frontend aprovados; um teste legado ignorado, substituido por concorrencia PostgreSQL isolada. Evidencias do ciclo candidato estao em [VALIDACAO-PILOTO-2026-11-17.md](VALIDACAO-PILOTO-2026-11-17.md). Nao somar execucoes repetidas como testes distintos.
 - Inventário observado na última inspeção: 62 registros, data 17/06/2026. Revalidar antes de atribuir atualidade ao estoque.
 - Reservas reais GLPI, falhas parciais e acesso móvel ainda não homologados ponta a ponta.
 
@@ -42,33 +46,40 @@ Os códigos RF-01 a RF-10 são uma síntese de rastreabilidade desta revisão, b
 
 **Após o mínimo funcional:** LUM-09 (prazo/extensão, dependente de definição comercial), LUM-11 (polimento adicional de acesso), interface completa do histórico e melhorias visuais que não impeçam a operação. A definição comercial de LUM-09 pode ser levantada desde já, sem implementar liberação automática. Caso o comercial exija vencimento no piloto, redefinir o escopo e seus critérios antes de iniciá-lo.
 
-### Fundamentação da revisão
+### Fundamentação da revisão de 03/11 (historico anterior a v1.1.0)
 
 - `backend/app/inventory.py`: a disponibilidade usa uma lista de estados bloqueados; estados desconhecidos não são rejeitados explicitamente. Sustenta a prioridade de LUM-02.
 - `backend/app/catalog_sync.py`: status ausente assume `USADO`; a data da origem é lida sem rejeição explícita de snapshot antigo. A proteção de status depende de `is_reserved`, sem precedência documentada após cancelamento. Sustenta LUM-02 e LUM-03.
 - `backend/app/api/quotes.py`: há bloqueio de equipamentos no banco e validação da resposta global do webhook, mas o fluxo lido não persiste identificação de operação, resultado individual ou reconciliação. Rollback local não comprova reversão remota. Sustenta LUM-04 e o histórico mínimo de LUM-08.
 - O registro existente confirma recuperação/login em 30/10/2026, mas deixa a integração real e o acesso móvel sem homologação. Por isso, polimento de acesso vem depois da consistência operacional.
 
-Esta revisão é documental e baseada na leitura do código local; não revalidou produção, executou testes ou homologou integrações. Os estados das entregas permanecem pendentes até evidência de execução.
+O texto acima registra a fundamentacao historica de 03/11. O quadro abaixo e o registro de execucao incorporam as evidencias posteriores; testes simulados continuam sem comprovar homologacao GLPI.
 
 ## Ordem de execução e critérios de aceite
 
 | ID | Prioridade | Entrega | Dependência | Critério de aceite | Estado |
 |---|---|---|---|---|---|
-| LUM-01 | P0 | Diagnosticar atualização GLPI → n8n → JSON → API | Nenhuma | Identificar última execução, erro e caminho efetivamente servido; obter exportação atual válida e comparar quantidade, IDs e estados com a origem | Bloqueado: conexão ao servidor recusada; diagnóstico local registrado |
-| LUM-02 | P0 | Disponibilidade explícita e integridade de importação | LUM-01: mapa dos estados | Somente estados GLPI reconhecidos como disponíveis permitem reserva; ausente/desconhecido não vira USADO disponível; arquivo vazio, duplicado, antigo ou inválido preserva estado seguro; testes documentados | Em execução: escopo e rejeição temporal validados localmente; bloqueio de reserva por idade e conferência remota pendentes |
-| LUM-03 | P0 | Sincronização não reverte reserva/cancelamento confirmado | LUM-02 | Reproduzir cancelamento seguido de snapshot antigo; equipamento não reaparece reservado indevidamente nem livre sem confirmação; política de precedência documentada e testada | Em execução: marcador persistente e precedência temporal testados; contrato da origem e PostgreSQL pendentes |
+| LUM-01 | P0 | Diagnosticar atualização GLPI → n8n → JSON → API | Nenhuma | Identificar última execução, erro e caminho efetivamente servido; obter exportação atual válida e comparar quantidade, IDs e estados com a origem | Em execucao: origem TCP alcancavel, exportacao continua em 17/06; historico disponivel nao explica a falha. Endpoint HTTPS e exportacao real atual pendentes |
+| LUM-02 | P0 | Disponibilidade explícita e integridade de importação | LUM-01: mapa dos estados | Somente estados GLPI reconhecidos como disponíveis permitem reserva; ausente/desconhecido não vira USADO disponível; arquivo vazio, duplicado, antigo ou inválido preserva estado seguro; testes documentados | Em validacao: bloqueio de nova reserva por idade/ausencia/data futura implementado e testado; metadados lidos do banco apos reinicio. Aceite com origem real pendente |
+| LUM-03 | P0 | Sincronização não reverte reserva/cancelamento confirmado | LUM-02 | Reproduzir cancelamento seguido de snapshot antigo; equipamento não reaparece reservado indevidamente nem livre sem confirmação; política de precedência documentada e testada | Publicado na v1.1.0 e ensaiado em PostgreSQL; contrato e homologacao GLPI permanecem pendentes |
 | LUM-04 | P0 | Resultado de integração por patrimônio e reconciliação | LUM-02, LUM-03 | Corrigir ramo de conflito n8n; identificar operação; repetição não duplica efeito; timeout e falha no segundo item deixam resultado pendente explícito; reconciliação consulta GLPI e resolve divergência | A fazer |
 | LUM-08 | P0 mínimo / P2 interface completa | Histórico operacional consultável | LUM-04 | Antes de LUM-05, persistir autor, data, proposta, patrimônios, ação, resultado e ID de operação, com consulta técnica autorizada para investigar divergências; sem senhas/tokens. Interface completa por perfil fica para evolução posterior | A fazer |
 | LUM-05 | P0 | Homologar reserva/cancelamento real | LUM-04, LUM-08 mínimo; patrimônio de teste indicado por Yuri | Dois vendedores disputam a mesma unidade: uma reserva; cancelamento confirmado libera corretamente; múltiplos itens e falha parcial conferidos no GLPI e no catálogo; evitar disparos reais do Telegram no ensaio | A fazer |
-| LUM-06 | P1 | Clareza e usabilidade do catálogo | LUM-02 | Busca por patrimônio/modelo/série; filtros e limpar filtros previsíveis; quantidades coerentes; estados vazio, carregando, erro e inventário antigo claros; especificações legíveis no desktop e celular | A fazer |
+| LUM-06 | P1 | Clareza e usabilidade do catálogo | LUM-02 | Busca por patrimônio/modelo/série; filtros e limpar filtros previsíveis; quantidades coerentes; estados vazio, carregando, erro e inventário antigo claros; especificações legíveis no desktop e celular | Em validacao parcial: aviso, saldo de referencia e bloqueio de reserva conferidos em desktop e largura de celular com dados ficticios; aceite operacional pendente |
 | LUM-07 | P1 | Polir propostas sem conteúdo financeiro | LUM-06 | Revisar campo legado margin/Condição e retirar conteúdo financeiro da interface e exportação sem apagar histórico; impedir envio duplicado; mensagens corretas para rascunho, reserva, cancelamento e erro; seleção e salvamento persistem após recarregar | A fazer |
-| LUM-10 | P1 | Acesso móvel e atualização da aplicação | LUM-06, LUM-07 | Homologar Android/iOS disponível e desktop; modais/botões sem cortes; testar reconexão e cache PWA após deploy; planejar IP reservado, DNS e certificado confiável com TI; recuperar senha e entrar pelo celular | A fazer |
-| LUM-12 | P1 | Piloto com comercial e evidências | P0 concluídos; LUM-06, LUM-07 e fluxo móvel de LUM-10 homologados | Executar roteiro de consulta → proposta → reserva → cancelamento; registrar tempo de consulta, divergências, problemas de uso e feedback; priorizar próxima rodada com dados reais | A fazer |
+| LUM-10 | P1 | Acesso móvel e atualização da aplicação | LUM-06, LUM-07 | Homologar Android/iOS disponível e desktop; modais/botões sem cortes; testar reconexão e cache PWA após deploy; planejar IP reservado, DNS e certificado confiável com TI; recuperar senha e entrar pelo celular | Previa responsiva conferida; dispositivos reais, confianca TLS e atualizacao PWA ainda pendentes. A previa exigiu novo reload apos ativacao do service worker |
+| LUM-12 | P1 | Piloto com comercial e evidências | P0 concluídos; LUM-06, LUM-07 e fluxo móvel de LUM-10 homologados | Executar roteiro de consulta → proposta → reserva → cancelamento; registrar tempo de consulta, divergências, problemas de uso e feedback; priorizar próxima rodada com dados reais | Aguardando VM da TI e conclusao dos P0. Grupo de cinco pessoas, incluindo Yuri; roteiro e registro de feedback preparados |
+| LUM-13 | P0 transversal | Restricao das rotas de integracao | LUM-02; revisao do proxy | Operacoes n8n somente pela API autorizada, arquivo bruto restrito a rede Docker, administracao n8n em loopback; testes de bloqueio e compatibilidade | Em validacao no candidato: controles de perfil na API, webhooks/JSON externos bloqueados e testes HTTP/HTTPS aprovados; nao aplicado ao ambiente estavel |
 | LUM-09 | P2 condicionado à regra comercial | Prazo e extensão de reserva | Regra comercial de Yuri; LUM-04, LUM-08 | Definir prazo, responsável e extensão; distinguir aviso de vencimento de liberação real; não liberar equipamento automaticamente sem regra aprovada e confirmação GLPI; testar limite temporal e nova tentativa | Aguardando definição comercial |
 | LUM-11 | P2; falhas impeditivas antecipadas | Polimento final de acesso e recuperação | Base publicada | Mostrar/ocultar senha com acessibilidade; autocomplete correto; erros distintos para limite de tentativas, indisponibilidade e credenciais inválidas; validar link expirado/reutilizado e falha SMTP; mensagens não revelam contas existentes | A fazer |
 
 ## Primeiro ciclo autorizado para planejamento
+
+Em 17/11 o trabalho foi retomado com foco no piloto Linux. A requisicao para a
+TI esta em [REQUISICAO-VM-PILOTO.md](REQUISICAO-VM-PILOTO.md), e o roteiro de
+aceite e feedback em [PILOTO-COMERCIAL.md](PILOTO-COMERCIAL.md). LUM-13 passa a
+integrar os bloqueadores transversais antes de LUM-05 e LUM-12. Nenhum fluxo
+real ou notificacao externa foi executado na preparacao.
 
 1. Iniciar LUM-01 com leitura de execuções/configuração n8n e comparação do catálogo servido.
 2. Documentar estados GLPI encontrados e concluir regra de disponibilidade em LUM-02.
@@ -92,6 +103,9 @@ O restante está planejado; regras comerciais de vencimento, extensão, convers�
 
 | Data | Item | Evidência/resultado | Próxima ação |
 |---|---|---|---|
+| 17/11/2026 | Base estavel v1.1.0 | Backups conferidos, migracao ensaiada/aplicada em PostgreSQL, registros existentes preservados, main local/GitHub e tag iguais, CI aprovado | Manter referencia estavel enquanto o candidato e homologado |
+| 17/11/2026 | Preparacao do piloto Linux | Yuri confirmou cinco participantes e VM ainda a ser preparada pela TI; requisitos e roteiro de feedback registrados | TI fornecer VM, DNS, TLS, acesso SSH e destino de backups |
+| 17/11/2026 | LUM-02 / LUM-06 / LUM-13 | 113 testes backend, 35 frontend, 10 de preflight e 12 verificacoes do proxy aprovados; um teste legado ignorado. Bloqueio por atualidade, metadados persistentes e rotas protegidas preparados em candidato, sem nova migracao | Fechar exportacao GLPI atual, LUM-04 e historico LUM-08; homologar com patrimonio definido |
 | 30/10/2026 | Base de acesso | Yuri confirmou novo login após recuperação; normalização publicada | Iniciar LUM-01 |
 | 30/10/2026 | Planejamento | Track criado com 12 itens, dependências e critérios de aceite | Revisar estado do inventário e execução n8n |
 | 03/11/2026 | Revisão de prioridades | Requisitos funcionais relacionados às entregas; histórico mínimo antecipado para P0 e piloto para P1; prazo/extensão e polimento adicional classificados como P2. Leitura documental e de código, sem nova validação operacional | Iniciar LUM-01 e confirmar mapa de estados para LUM-02 |
