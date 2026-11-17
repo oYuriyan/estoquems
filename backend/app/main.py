@@ -8,12 +8,14 @@ Integrações ativas:
 - Health check enriquecido: verifica banco de dados e retorna metadados da app
 """
 import logging
+import asyncio
 import time
 from contextlib import asynccontextmanager
 from typing import List
 
 import sentry_sdk
-from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, Request, Depends, WebSocket, WebSocketDisconnect
+from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -21,9 +23,10 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 from sqlalchemy import text
 
-from app.api import auth, equipments, quotes, users
+from app.api import auth, equipments, quotes, users, recovery
 from app.core.config import get_settings
-from app.db.session import get_db
+from app.db.session import get_db, AsyncSessionLocal
+from app.catalog_sync import catalog_synchronizer
 from app.middleware.logging import RequestLoggingMiddleware
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -65,7 +68,25 @@ limiter = Limiter(key_func=get_remote_address, default_limits=[f"{settings.RATE_
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("🚀 %s v%s iniciando... (env=%s)", settings.APP_NAME, settings.APP_VERSION, settings.APP_ENV)
-    yield
+    async def refresh_catalog():
+        while True:
+            try:
+                async with AsyncSessionLocal() as db:
+                    if await catalog_synchronizer.sync(db):
+                        await app.state.ws_manager.broadcast('CATALOG_UPDATED')
+            except Exception as error:
+                logger.warning('Inventário não sincronizado; catálogo anterior preservado: %s', error)
+            await asyncio.sleep(60)
+    task = asyncio.create_task(refresh_catalog()) if settings.APP_ENV != 'test' else None
+    try:
+        yield
+    finally:
+        if task:
+            task.cancel()
+            try:
+                await task
+            except asyncio.CancelledError:
+                pass
     logger.info("🛑 %s finalizando.", settings.APP_NAME)
 
 
@@ -145,6 +166,14 @@ async def websocket_endpoint(websocket: WebSocket, token: str = None):
         await websocket.close(code=1008)
         return
 
+    from app.api.deps import get_current_user
+    from app.db.session import AsyncSessionLocal
+    try:
+        async with AsyncSessionLocal() as db:
+            await get_current_user(token=token, db=db)
+    except Exception:
+        await websocket.close(code=1008)
+        return
     await manager.connect(websocket)
     try:
         while True:
@@ -156,6 +185,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str = None):
 # ─────────────────────────────────────────────────────────────────────────────
 # Rotas
 # ─────────────────────────────────────────────────────────────────────────────
+app.include_router(recovery.router, prefix="/api/auth", tags=["auth"])
 app.include_router(auth.router,       prefix="/api/auth",       tags=["Auth"])
 app.include_router(equipments.router, prefix="/api/equipments", tags=["Equipments"])
 app.include_router(quotes.router,     prefix="/api/quotes",     tags=["Quotes"])
@@ -166,7 +196,7 @@ app.include_router(users.router,      prefix="/api/users",      tags=["Users"])
 # Health Check enriquecido
 # ─────────────────────────────────────────────────────────────────────────────
 @app.get("/api/health", tags=["Meta"])
-async def health_check(request: Request):
+async def health_check(request: Request, db: AsyncSession = Depends(get_db)):
     """
     Verifica saúde da aplicação.
     Inclui: status do banco de dados, versão da app, ambiente e latência do DB.
@@ -176,12 +206,9 @@ async def health_check(request: Request):
     db_latency_ms = None
 
     try:
-        # Pega a session do DB diretamente para o health check
-        async for db in get_db():
-            t0 = time.perf_counter()
-            await db.execute(text("SELECT 1"))
-            db_latency_ms = round((time.perf_counter() - t0) * 1000, 2)
-            break
+        t0 = time.perf_counter()
+        await db.execute(text("SELECT 1"))
+        db_latency_ms = round((time.perf_counter() - t0) * 1000, 2)
     except Exception as exc:
         db_status = f"error: {str(exc)}"
         logger.error("Health check: DB indisponível — %s", exc)

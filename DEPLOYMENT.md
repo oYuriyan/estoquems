@@ -64,6 +64,29 @@ nano .env
 
 ## Passo 4: Subir o Sistema
 
+Para uma instalacao nova, gere o par TLS local (a chave privada nao e
+versionada). Nao sobrescreva certificados ou chaves de um ambiente existente:
+
+```bash
+mkdir -p nginx/ssl
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+  -keyout nginx/ssl/selfsigned.key -out nginx/ssl/selfsigned.crt \
+  -subj "/CN=localhost"
+```
+
+Compile tambem o frontend antes de iniciar o Nginx:
+
+```bash
+cd frontend
+npm ci --legacy-peer-deps
+npm run build
+cd ..
+```
+
+Para atualizar uma instalacao existente, siga primeiro
+[ATUALIZACAO-SEGURA.md](docs/ATUALIZACAO-SEGURA.md). O inicio da API aplica
+migracoes ao banco configurado.
+
 Com tudo configurado, inicie os containeres utilizando a configuração de Produção:
 
 ```bash
@@ -71,7 +94,9 @@ docker compose -f docker-compose.prod.yml up -d --build
 ```
 Isso vai compilar o Backend e subir o Nginx, PostgreSQL e o n8n. Após alguns minutos, você poderá acessar o sistema no navegador de qualquer computador na rede digitando apenas o IP da máquina (ex: `https://<IP_DA_VM>`).
 
-> **Nota sobre o Certificado de Segurança:** Como não estamos usando um domínio público (`.com.br`), o Nginx utilizará o Certificado Autoassinado que já está na pasta do projeto. O navegador ainda dará o aviso de "Conexão Não Segura", mas você pode clicar em *Avançado > Ir para o site*. Os dados trafegados **estarão criptografados** com segurança!
+> **Certificado:** o Nginx utiliza o certificado e a chave presentes no ambiente.
+> Em instalacoes com certificado autoassinado, configure a confianca no cliente
+> ou utilize um certificado emitido pela autoridade da sua organizacao.
 
 ---
 

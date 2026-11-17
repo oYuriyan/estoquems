@@ -3,6 +3,7 @@ import { X, LayoutGrid, List, Cpu, MemoryStick, HardDrive, Monitor } from 'lucid
 import clsx from 'clsx';
 import { ItemCard } from './ItemCard';
 import type { GroupedItem, Equipamento } from '../../types';
+import { availableCount, reservedCount } from '../../utils/equipment';
 
 interface CatalogViewProps {
   groupedEstoque: GroupedItem[];
@@ -64,7 +65,7 @@ function CatalogViewComponent({
     <>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">
-          {totalGroups} agrupamento{totalGroups !== 1 ? 's' : ''}
+          {totalGroups} configuraç{totalGroups !== 1 ? 'ões' : 'ão'} para locação
         </h2>
         <div className="flex items-center gap-1 bg-slate-100 dark:bg-[#161b22] rounded-lg p-1 border border-slate-200 dark:border-[#30363d]">
           <button
@@ -137,7 +138,7 @@ function CatalogViewComponent({
                 <SortHeader label="RAM"                 sortKey="ram"             sortConfig={sortConfig} onSort={onSort} className="hidden md:table-cell" />
                 <SortHeader label="Armaz."              sortKey="armazenamento"   sortConfig={sortConfig} onSort={onSort} className="hidden lg:table-cell" />
                 <SortHeader label="S.O."                sortKey="so"              sortConfig={sortConfig} onSort={onSort} className="hidden lg:table-cell" />
-                <SortHeader label="Quantidade"          sortKey="qtd"             sortConfig={sortConfig} onSort={onSort} />
+                <SortHeader label="Disponíveis"         sortKey="qtd"             sortConfig={sortConfig} onSort={onSort} />
                 <SortHeader label="Cotados"             sortKey="cotados"         sortConfig={sortConfig} onSort={onSort} />
               </tr>
             </thead>
@@ -211,7 +212,8 @@ function CatalogViewComponent({
                       </div>
                     </td>
                     <td className="py-3.5 px-3 md:px-5 text-center">
-                      <span className="inline-flex items-center justify-center bg-indigo-50 text-indigo-700 font-black px-2.5 py-1 rounded-lg text-sm border border-indigo-200">{group.items.length}</span>
+                      <span className="inline-flex items-center justify-center bg-indigo-50 text-indigo-700 font-black px-2.5 py-1 rounded-lg text-sm border border-indigo-200">{availableCount(group)}</span>
+                      {reservedCount(group) > 0 && <div className="text-[10px] text-amber-600 mt-1">{reservedCount(group)} reservados</div>}
                     </td>
                     <td className="py-3.5 px-5 text-center">
                       {cartCount > 0

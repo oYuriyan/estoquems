@@ -34,7 +34,7 @@ async def get_current_user(
     result = await db.execute(select(User).where(User.email == token_data.email))
     user = result.scalar_one_or_none()
     
-    if user is None:
+    if user is None or payload.get("ver", 0) != user.token_version:
         raise credentials_exception
     if not user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")

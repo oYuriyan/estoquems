@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, DateTime, Integer, Boolean, ForeignKey, Enum as SQLEnum, Text, JSON
+from sqlalchemy import Column, String, DateTime, Integer, Boolean, ForeignKey, Enum as SQLEnum, JSON
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.db.session import Base
@@ -23,6 +23,11 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
+    token_version = Column(Integer, default=0, server_default='0', nullable=False)
+    reset_token_hash = Column(String(64), unique=True, nullable=True)
+    reset_expires_at = Column(DateTime(timezone=True), nullable=True)
+    reset_requested_at = Column(DateTime(timezone=True), nullable=True)
+
     # Relação com propostas que o usuário criou
     quotes = relationship("Quote", back_populates="salesperson")
 
@@ -45,11 +50,21 @@ class Equipment(Base):
     status = Column(String, default="USADO", nullable=False)
     is_reserved = Column(Boolean, default=False, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
+    inventory_confirmed_at = Column(DateTime(timezone=True), nullable=True)
     fornecedor = Column(String)
     especificacoes = Column(JSON) # JSON com processador, ram, armazenamento, etc.
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+class CatalogSyncState(Base):
+    __tablename__ = "catalog_sync_state"
+
+    id = Column(Integer, primary_key=True)
+    source_updated_at = Column(DateTime(timezone=True), nullable=False)
+    fingerprint = Column(String(64), nullable=False)
+    synced_at = Column(DateTime(timezone=True), nullable=False)
+
 
 class QuoteStatus(str, enum.Enum):
     DRAFT = "DRAFT"

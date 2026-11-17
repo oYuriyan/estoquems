@@ -9,7 +9,25 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 
 ## [Unreleased]
 
+## [1.1.0] — 2026-11-17
+
 ### Added
+- Recuperacao de senha por e-mail, tokens de uso unico e revogacao de sessoes.
+- Controle persistente da data de inventario e das operacoes confirmadas.
+- Testes de reservas concorrentes, sincronizacao temporal e recuperacao de senha.
+- Orientacoes de backup, migracao validada e preservacao de dados em atualizacoes.
+
+### Fixed
+- Disponibilidade comercial, contadores, filtros e atualizacoes de propostas.
+- Preservacao de reservas diante de inventarios antigos e falhas da integracao.
+- Teste de concorrencia isolado, sem acesso ao ambiente operacional.
+
+### Security
+- Arquivos de ambiente e chave TLS retirados do rastreamento, preservados no disco.
+- Segredos excluidos do contexto Docker e modelos de configuracao sem valores reais.
+- O historico anterior nao foi reescrito; rotacao de credenciais exige tratamento separado.
+
+### Observabilidade existente
 - Logging estruturado com `X-Request-ID` em todas as requisições HTTP
 - Integração com **Sentry** (backend + frontend) para error tracking e performance
 - **Error Boundary** React com UI de fallback premium e reporte automático ao Sentry
@@ -44,5 +62,6 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 - Migrações de banco de dados com **Alembic**
 - Teste de **race condition** para validar lock pessimista
 
-[Unreleased]: https://github.com/oYuriyan/estoquems/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/oYuriyan/estoquems/commits/main
+[1.1.0]: https://github.com/oYuriyan/estoquems/tree/v1.1.0
 [1.0.0]: https://github.com/oYuriyan/estoquems/releases/tag/v1.0.0

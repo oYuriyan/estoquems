@@ -5,14 +5,15 @@ interface StatsBarProps {
   totalItems: number;
   totalNovos: number;
   totalUsados: number;
+  totalReserved: number;
   statusFilter: string | null;
   onFilterChange: (filter: string | null) => void;
 }
 
-export function StatsBar({ totalItems, totalNovos, totalUsados, statusFilter, onFilterChange }: StatsBarProps) {
+export function StatsBar({ totalItems, totalNovos, totalUsados, totalReserved, statusFilter, onFilterChange }: StatsBarProps) {
 
   return (
-    <div className="grid grid-cols-3 gap-2 md:gap-3 mb-4" data-tour="stats-bar">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3 mb-4" data-tour="stats-bar">
       <button
         onClick={() => onFilterChange(null)}
         className={clsx(
@@ -23,11 +24,11 @@ export function StatsBar({ totalItems, totalNovos, totalUsados, statusFilter, on
         )}
       >
         <div className="flex justify-between items-start mb-1 md:mb-2">
-          <span className="text-[9px] md:text-[10px] font-bold text-slate-500 dark:text-slate-400 tracking-wider uppercase">Todos</span>
+          <span className="text-[9px] md:text-[10px] font-bold text-slate-500 dark:text-slate-400 tracking-wider uppercase">Disponíveis</span>
           <Server className="w-3.5 h-3.5 md:w-4 md:h-4 text-indigo-400" />
         </div>
         <div className="text-xl md:text-2xl font-black text-slate-800 dark:text-slate-100">{totalItems}</div>
-        <div className="text-[9px] md:text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 md:mt-1 truncate">total</div>
+        <div className="text-[9px] md:text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 md:mt-1 truncate">livres para reservar</div>
       </button>
 
       <button
@@ -44,7 +45,7 @@ export function StatsBar({ totalItems, totalNovos, totalUsados, statusFilter, on
           <Package className="w-3.5 h-3.5 md:w-4 md:h-4 text-blue-400" />
         </div>
         <div className="text-xl md:text-2xl font-black text-blue-600 dark:text-blue-400">{totalNovos}</div>
-        <div className="text-[9px] md:text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 md:mt-1 truncate">filtrar</div>
+        <div className="text-[9px] md:text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 md:mt-1 truncate">disponíveis · filtrar</div>
       </button>
 
       <button
@@ -61,8 +62,13 @@ export function StatsBar({ totalItems, totalNovos, totalUsados, statusFilter, on
           <HardDrive className="w-3.5 h-3.5 md:w-4 md:h-4 text-amber-400" />
         </div>
         <div className="text-xl md:text-2xl font-black text-amber-600 dark:text-amber-400">{totalUsados}</div>
-        <div className="text-[9px] md:text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 md:mt-1 truncate">filtrar</div>
+        <div className="text-[9px] md:text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 md:mt-1 truncate">disponíveis · filtrar</div>
       </button>
+      <div className="bg-white dark:bg-[#161b22] rounded-xl p-4 shadow-sm border border-amber-200 dark:border-amber-800/40">
+        <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Reservados</div>
+        <div className="text-xl md:text-2xl font-black text-amber-600 dark:text-amber-400">{totalReserved}</div>
+        <div className="text-[11px] text-slate-400 mt-1">fora do saldo disponível</div>
+      </div>
     </div>
   );
 }

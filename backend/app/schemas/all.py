@@ -43,7 +43,7 @@ class EquipmentBase(BaseModel):
     especificacoes: Dict[str, Any]
 
 class EquipmentCreate(EquipmentBase):
-    status: str = "USADO"
+    status: str
 
 class EquipmentResponse(EquipmentBase):
     id: str

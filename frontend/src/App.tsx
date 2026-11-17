@@ -21,6 +21,7 @@ import { useQuoteActions } from './hooks/useQuoteActions';
 
 // Types
 import type { GroupedItem } from './types';
+import { isEquipmentAvailable } from './utils/equipment';
 
 // Layout
 import { LoginScreen }    from './components/layout/LoginScreen';
@@ -49,9 +50,14 @@ import { OnboardingTour }   from './components/common/OnboardingTour';
 import { useTour } from './hooks/useTour';
 
 export default function App() {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 60_000);
+    return () => clearInterval(timer);
+  }, []);
   // ── Domínio (AppContext) ───────────────────────────────────────────────────
   const {
-    quotes, activeQuoteId, user, setUser, isDarkMode, setIsDarkMode, wsMessage
+    quotes, activeQuoteId, user, setUser, isDarkMode, setIsDarkMode, wsMessage, refreshQuotes
   } = useAppContext();
 
   // ── UI (UIContext) ─────────────────────────────────────────────────────────
@@ -78,7 +84,7 @@ export default function App() {
 
   const {
     data, loading, isRefreshing, hasMore, loadMore,
-    filters, setFilters, availableBrands,
+    filters, setFilters, availableBrands, availableTypes,
     fetchCatalogo, syncGLPI
   } = useCatalog({
     pausePolling: anyModalOpen || !!confirmDialog,
@@ -88,8 +94,8 @@ export default function App() {
 
   const {
     activeQuote, setActiveQuoteId, cart,
-    updateQuote, addNewQuote, removeQuote, toggleCartItem,
-  } = useQuotes();
+    updateQuote, addNewQuote, removeQuote, toggleCartItem, updateCartItems,
+  } = useQuotes(msg => addToast(msg, 'error'));
 
   const debouncedSearch = useDebounce(searchTerm, 300);
 
@@ -118,7 +124,7 @@ export default function App() {
 
   // Escuta eventos WebSocket para recarregar silenciosamente o catálogo
   useEffect(() => {
-    if (wsMessage === 'RESERVED' || wsMessage === 'CANCELED') {
+    if (wsMessage === 'RESERVED' || wsMessage === 'CANCELED' || wsMessage === 'RECONNECTED' || wsMessage === 'CATALOG_UPDATED') {
       fetchCatalogo(true, true);
     }
   }, [wsMessage, fetchCatalogo]);
@@ -135,9 +141,14 @@ export default function App() {
   // ── Memos ─────────────────────────────────────────────────────────────────
   const unavailableIds = useMemo(() => {
     if (!data?.groups) return new Set<string>();
-    const estoqueIds = new Set(data.groups.flatMap(g => g.items).map(e => e.idPatrimonio));
+    // Ausência na página filtrada não prova indisponibilidade. O servidor
+    // valida todos os itens novamente ao confirmar a reserva.
+    const knownItems = new Map(data.groups.flatMap(g => g.items).map(e => [e.idPatrimonio, e]));
     const ids = new Set<string>();
-    quotes.forEach(q => q.items.forEach(item => { if (!estoqueIds.has(item.idPatrimonio)) ids.add(item.idPatrimonio); }));
+    quotes.filter(q => !q.isReserved).forEach(q => q.items.forEach(item => {
+      const known = knownItems.get(item.idPatrimonio);
+      if (known && !isEquipmentAvailable(known)) ids.add(item.idPatrimonio);
+    }));
     return ids;
   }, [data, quotes]);
 
@@ -146,18 +157,17 @@ export default function App() {
     .map(q => {
       const days = q.validityDays ?? 2;
       const expiresAt = q.reservedAt ? new Date(new Date(q.reservedAt).getTime() + days * 86400000) : null;
-      const now = new Date();
-      const isExpired = expiresAt ? expiresAt < now : false;
+      const isExpired = expiresAt ? expiresAt.getTime() < now : false;
       const hoursLeft = expiresAt ? differenceInHours(expiresAt, now) : null;
       const isExpiringSoon = hoursLeft !== null && hoursLeft <= 12 && !isExpired;
       return { quote: q, expiresAt, isExpired, isExpiringSoon };
-    }), [quotes]);
+    }), [quotes, now]);
 
   const sortedGroupedEstoque = data?.groups || [];
 
   // ── Handlers (estáveis com useCallback) ───────────────────────────────────
   const resetCatalog = useCallback(() => {
-    setFilters({ search: '', brand: null, statusFilter: null, sortKey: null, sortDir: 'desc' });
+    setFilters({ search: '', brand: null, statusFilter: null, typeFilter: 'NOTEBOOK', sortKey: null, sortDir: 'desc' });
     setViewMode('cards');
   }, [setFilters, setViewMode]);
 
@@ -186,15 +196,16 @@ export default function App() {
     cart,
     updateQuote,
     fetchCatalogo,
+    refreshQuotes,
     addToast,
     showConfirm
   );
 
   // ── Early returns ──────────────────────────────────────────────────────────
-  if (!user) return <LoginScreen onLogin={setUser} />;
+  if (!user || window.location.hash.startsWith('#reset=')) return <LoginScreen onLogin={setUser} />;
   if (loading && !data) return <SkeletonLoader />;
 
-  const ultimaAtualizacaoStr = data?.metadados?.ultimaAtualizacao || new Date().toISOString();
+  const ultimaAtualizacaoStr = data?.metadados?.ultimaAtualizacao || '';
 
   return (
     <div className={clsx('h-screen w-full flex bg-slate-50 dark:bg-[#0f172a] overflow-hidden font-sans print:h-auto print:overflow-visible print:block')}>
@@ -206,6 +217,7 @@ export default function App() {
         reservedProposals={reservedProposals}
         isRefreshing={isRefreshing}
         ultimaAtualizacao={ultimaAtualizacaoStr}
+        ultimaSincronizacaoGLPI={data?.metadados?.ultimaSincronizacaoGLPI}
         onSelectQuote={handleSelectQuote}
         onNewQuote={addNewQuote}
         onDeleteQuote={handleDeleteQuote}
@@ -230,7 +242,8 @@ export default function App() {
 
         <div className="flex-1 overflow-y-auto p-4 md:p-6 pb-32 md:pb-6 bg-[#f1f5f9] dark:bg-[#0d1117]" id="catalog-scroll-area">
           <StatsBar
-            totalItems={data?.metadados?.totalEquipments || 0}
+            totalItems={data?.metadados?.totalAvailable || 0}
+            totalReserved={data?.metadados?.totalReserved || 0}
             totalNovos={data?.metadados?.totalNovos || 0}
             totalUsados={data?.metadados?.totalUsados || 0}
             statusFilter={filters.statusFilter}
@@ -238,6 +251,9 @@ export default function App() {
           />
           <FilterBar
             brands={availableBrands}
+            types={availableTypes}
+            activeType={filters.typeFilter}
+            onTypeChange={type => setFilters(previous => ({ ...previous, typeFilter: type, brand: null }))}
             activeBrand={filters.brand}
             statusFilter={filters.statusFilter}
             onBrandChange={(v) => setFilters(p => ({ ...p, brand: v }))}
@@ -264,11 +280,11 @@ export default function App() {
       {/* Modais */}
       {activeGroup && (
         <ItemDetailModal
-          group={activeGroup}
+          group={data?.groups.find(group => group.key === activeGroup.key) || activeGroup}
           cart={cart}
           onClose={() => setActiveGroup(null)}
           onToggleItem={toggleCartItem}
-          onUpdateItems={items => updateQuote(activeQuoteId, { items })}
+          onUpdateItems={updateCartItems}
         />
       )}
 
@@ -284,7 +300,7 @@ export default function App() {
           onStepChange={setQuoteStep}
           onUpdateQuote={patch => updateQuote(activeQuoteId, patch)}
           onRemoveItem={toggleCartItem}
-          onDelete={() => showConfirm('Excluir Proposta', 'Esta ação não pode ser desfeita.', () => { removeQuote(activeQuoteId!); setIsQuoteModalOpen(false); })}
+          onDelete={() => showConfirm('Excluir Proposta', 'Esta ação não pode ser desfeita.', async () => { if (await removeQuote(activeQuoteId!)) setIsQuoteModalOpen(false); })}
           onReserve={handleReserve}
           onCancelReserve={handleCancelReserve}
           onPrint={() => generatePdf(activeQuote, cart, logoOficial, watermarkOficial)}

@@ -20,9 +20,18 @@ jobs:
     runs-on: ubuntu-latest
 
     services:
-      # Não usamos Postgres aqui — os testes usam SQLite in-memory
-      # Para testes de integração com Postgres real, usar o job de integration-test
-      pass: {}
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_PASSWORD: isolated-ci-password
+          POSTGRES_DB: lummium_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
 
     steps:
       - name: Checkout
@@ -55,13 +64,14 @@ jobs:
       - name: Rodar testes unitários
         working-directory: backend
         env:
-          DATABASE_URL: "sqlite+aiosqlite:///:memory:"
+          DATABASE_URL: "postgresql+asyncpg://postgres:isolated-ci-password@localhost:5432/lummium_test"
+          TEST_DATABASE_URL: "postgresql+asyncpg://postgres:isolated-ci-password@localhost:5432/lummium_test"
           JWT_SECRET_KEY: "chave-secreta-de-teste-ci-nao-usar-em-producao"
           FRONTEND_ORIGIN: "http://localhost:3030"
           APP_ENV: "test"
           SENTRY_DSN: ""   # Desativado no CI
         run: |
-          python -m pytest tests/test_auth.py tests/test_equipments_quotes.py -v --tb=short
+          python -m pytest tests -v --tb=short
 
   # ─────────────────────────────────────────────────────────────────────────────
   # Job 2: Frontend — lint + build
@@ -88,6 +98,10 @@ jobs:
       - name: Lint (ESLint)
         working-directory: frontend
         run: npm run lint
+
+      - name: Testes de disponibilidade e propostas
+        working-directory: frontend
+        run: npm test
 
       - name: Build de produção
         working-directory: frontend

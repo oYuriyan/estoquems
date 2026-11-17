@@ -41,6 +41,11 @@ services:
       - DATABASE_URL=${DATABASE_URL}
       - JWT_SECRET_KEY=${JWT_SECRET_KEY}
       - FRONTEND_ORIGIN=${FRONTEND_ORIGIN}
+      - CATALOG_MAX_AGE_HOURS=${CATALOG_MAX_AGE_HOURS:-48}
+      - SMTP_USERNAME=${SMTP_USERNAME:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - SMTP_FROM=${SMTP_FROM:-}
+      - PASSWORD_RESET_URL=${PASSWORD_RESET_URL:-https://localhost:3443/}
     depends_on:
       db:
         condition: service_healthy

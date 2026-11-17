@@ -1,5 +1,9 @@
 FROM python:3.12-slim
 
+ARG VCS_REF=unknown
+LABEL org.opencontainers.image.source="https://github.com/oYuriyan/estoquems" \
+      org.opencontainers.image.revision=$VCS_REF
+
 # Variáveis de ambiente do Python — evita .pyc e buffer de stdout
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1

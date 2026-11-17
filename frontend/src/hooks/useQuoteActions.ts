@@ -6,8 +6,9 @@ export function useQuoteActions(
   activeQuoteId: string | null,
   activeQuote: Quote | null,
   cart: Equipamento[],
-  updateQuote: (id: string, patch: Partial<Quote>) => void,
-  fetchCatalogo: (force?: boolean) => void,
+  updateQuote: (id: string, patch: Partial<Quote>) => Promise<boolean>,
+  fetchCatalogo: (silent?: boolean, resetPage?: boolean) => Promise<boolean>,
+  refreshQuotes: () => Promise<void>,
   addToast: (msg: string, type: 'success' | 'error' | 'info') => void,
   showConfirm: (title: string, msg: string, onConfirm: () => void) => void
 ) {
@@ -18,41 +19,48 @@ export function useQuoteActions(
     if (!navigator.onLine) { addToast('Você está offline.', 'error'); return; }
     setIsSubmitting(true);
     try {
-      await updateQuote(activeQuoteId, {
+      const saved = await updateQuote(activeQuoteId, {
         name: activeQuote.name,
         clientName: activeQuote.clientName || 'Não informado',
         validityDays: activeQuote.validityDays || 2,
         margin: activeQuote.margin || '',
+        items: cart,
       });
+      if (!saved) throw new Error('A proposta não foi salva. Confira os dados antes de reservar.');
 
       const res = await apiFetch(`/api/quotes/${activeQuoteId}/reserve`, {
         method: 'POST'
       });
-      if (!res.ok) throw new Error(res.status === 409 ? 'Alguns itens não estão mais disponíveis.' : 'Erro ao comunicar com o sistema.');
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({}));
+        throw new Error(typeof error.detail === 'string' ? error.detail : 'Não foi possível confirmar a reserva.');
+      }
       
-      const reservedQuote = await res.json();
-      
-      updateQuote(activeQuoteId, { isReserved: true, reservedAt: new Date().toISOString(), backendId: reservedQuote.id });
+      await refreshQuotes();
+      await fetchCatalogo(true, true);
       addToast('Reserva realizada com sucesso!', 'success');
-      setTimeout(() => fetchCatalogo(true), 1500);
     } catch (err: unknown) {
+      await fetchCatalogo(true, true);
       addToast(err instanceof Error ? err.message : 'Erro desconhecido ao reservar.', 'error');
     } finally { setIsSubmitting(false); }
   };
 
   const handleCancelReserve = () => {
     if (!activeQuoteId || !activeQuote) return;
-    showConfirm('Cancelar Reserva', 'Os itens voltarão para o estoque e o GLPI será atualizado.', async () => {
+    showConfirm('Cancelar Reserva', 'Após a confirmação no GLPI, os equipamentos serão liberados e esta proposta ficará cancelada.', async () => {
       setIsSubmitting(true);
       try {
         const backendId = (activeQuote as unknown as Record<string, unknown>).backendId || activeQuoteId;
         const res = await apiFetch(`/api/quotes/${backendId}/cancel`, {
           method: 'POST'
         });
-        if (!res.ok) throw new Error('Erro ao cancelar reserva.');
-        updateQuote(activeQuoteId, { isReserved: false, backendId: undefined });
+        if (!res.ok) {
+          const error = await res.json().catch(() => ({}));
+          throw new Error(typeof error.detail === 'string' ? error.detail : 'Não foi possível cancelar a reserva.');
+        }
+        await refreshQuotes();
+        await fetchCatalogo(true, true);
         addToast('Reserva cancelada com sucesso.', 'success');
-        setTimeout(() => fetchCatalogo(true), 1500);
       } catch (err: unknown) {
         addToast(err instanceof Error ? err.message : 'Erro desconhecido ao cancelar.', 'error');
       } finally { setIsSubmitting(false); }

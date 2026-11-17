@@ -12,6 +12,10 @@ export interface Especificacoes {
 }
 
 export interface Equipamento {
+  id?: string;
+  is_reserved?: boolean;
+  is_available?: boolean;
+  is_active?: boolean;
   idPatrimonio: string;
   idGlpi: string;
   numeroSerie: string;
@@ -45,12 +49,16 @@ export interface GroupedItem {
   ram: string;
   armazenamento: string;
   so: string;
+  tela?: string;
+  available_count?: number;
+  reserved_count?: number;
   novos: number;
   usados: number;
   items: Equipamento[];
 }
 
 export interface Quote {
+  status?: 'DRAFT' | 'RESERVED' | 'CANCELED' | 'EXPIRED' | 'WON';
   id: string; // ID local (UUID)
   backendId?: string; // ID do banco de dados (FastAPI)
   name: string;

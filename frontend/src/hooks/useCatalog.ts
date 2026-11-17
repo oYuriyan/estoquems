@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { GroupedItem } from '../types';
 import { apiFetch } from '../utils/api';
+import { mapEquipment } from '../utils/equipment';
 
 interface UseCatalogOptions {
   pausePolling?: boolean;
@@ -13,33 +14,44 @@ export function useCatalog({ pausePolling = false, isAuthenticated = false, onEr
     groups: GroupedItem[], 
     metadados: {
       ultimaAtualizacao?: string;
+      ultimaSincronizacaoGLPI?: string;
       totalEquipments?: number;
       totalNovos?: number;
       totalUsados?: number;
       totalGroups?: number;
+      totalAvailable?: number;
+      totalReserved?: number;
     }
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   
   // States para server-side fetching
-  const [page, setPage] = useState(1);
+  const page = useRef(1);
+  const request = useRef<AbortController | null>(null);
+  const errorHandler = useRef(onError);
+  useEffect(() => { errorHandler.current = onError; }, [onError]);
   const [hasMore, setHasMore] = useState(true);
   const [filters, setFilters] = useState({
     search: '',
     brand: null as string | null,
     statusFilter: null as string | null,
+    typeFilter: 'NOTEBOOK' as string | null,
     sortKey: null as string | null,
     sortDir: 'desc'
   });
   
   const [availableBrands, setAvailableBrands] = useState<string[]>([]);
+  const [availableTypes, setAvailableTypes] = useState<string[]>([]);
 
   // Carrega ou anexa os dados
   const fetchCatalogo = useCallback(async (silent = true, resetPage = false) => {
-    if (!silent) setIsRefreshing(true);
-    
-    const currentPage = resetPage ? 1 : page;
+    if (!resetPage && request.current) return false;
+    request.current?.abort();
+    const controller = new AbortController();
+    request.current = controller;
+    if (!silent || !resetPage) setIsRefreshing(true);
+    const currentPage = resetPage ? 1 : page.current;
     
     try {
       const params = new URLSearchParams();
@@ -48,27 +60,23 @@ export function useCatalog({ pausePolling = false, isAuthenticated = false, onEr
       if (filters.search) params.append('search', filters.search);
       if (filters.brand) params.append('brand', filters.brand);
       if (filters.statusFilter) params.append('status_filter', filters.statusFilter);
+      if (filters.typeFilter) params.append('type_filter', filters.typeFilter);
       if (filters.sortKey) {
         params.append('sort_key', filters.sortKey);
         params.append('sort_dir', filters.sortDir);
       }
 
-      const response = await apiFetch(`/api/equipments/grouped?${params.toString()}`);
+      const response = await apiFetch(`/api/equipments/grouped?${params.toString()}`, { signal: controller.signal });
       if (!response.ok) throw new Error('Falha ao carregar o catálogo.');
       
       const payload = await response.json();
+      if (controller.signal.aborted) return false;
       
       // Converte snake_case para camelCase nos items
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const mappedGroups = payload.groups.map((g: any) => ({
         ...g,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        items: g.items.map((eq: any) => ({
-          ...eq,
-          idPatrimonio: eq.idPatrimonio || eq.id_patrimonio,
-          numeroSerie: eq.numeroSerie || eq.numero_serie,
-          idGlpi: eq.idGlpi || eq.id_glpi
-        }))
+        items: g.items.map(mapEquipment)
       }));
 
       setData(prev => {
@@ -79,29 +87,38 @@ export function useCatalog({ pausePolling = false, isAuthenticated = false, onEr
               totalEquipments: payload.total_equipments, 
               totalGroups: payload.total_groups,
               totalNovos: payload.total_novos,
-              totalUsados: payload.total_usados
+              totalUsados: payload.total_usados,
+              totalAvailable: payload.total_available,
+              totalReserved: payload.total_reserved,
+              ultimaAtualizacao: payload.retrieved_at || new Date().toISOString(),
+              ultimaSincronizacaoGLPI: payload.source_updated_at || undefined,
             }
           };
         }
         return {
           ...prev,
-          groups: [...prev.groups, ...mappedGroups]
+          groups: [...prev.groups, ...mappedGroups.filter((group: GroupedItem) => !prev.groups.some(previous => previous.key === group.key))]
         };
       });
       
       setAvailableBrands(payload.available_brands || []);
+      setAvailableTypes(payload.available_types || []);
       setHasMore(payload.current_page < payload.total_pages);
-      if (resetPage) setPage(2);
-      else setPage(prev => prev + 1);
+      page.current = currentPage + 1;
+      return true;
 
     } catch (err: unknown) {
       console.error(err instanceof Error ? err.message : 'Erro desconhecido ao carregar dados.');
-      if (!silent) onError?.('Erro ao atualizar o catálogo.');
+      if (!controller.signal.aborted && !silent) errorHandler.current?.('Erro ao atualizar o catálogo.');
+      return false;
     } finally {
-      if (resetPage) setLoading(false);
-      setIsRefreshing(false);
+      if (request.current === controller) {
+        request.current = null;
+        if (resetPage) setLoading(false);
+        setIsRefreshing(false);
+      }
     }
-  }, [filters, page, onError]);
+  }, [filters]);
 
   // Se os filtros ou a autenticação mudarem, reseta a página (somente se autenticado)
   useEffect(() => {
@@ -109,6 +126,7 @@ export function useCatalog({ pausePolling = false, isAuthenticated = false, onEr
     if (!data) setTimeout(() => setLoading(true), 0);
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchCatalogo(false, true);
+    return () => { request.current?.abort(); };
   }, [filters, isAuthenticated]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /** Aciona sync GLPI via n8n e faz polling até o catálogo ser atualizado (máx 30s) */
@@ -127,8 +145,13 @@ export function useCatalog({ pausePolling = false, isAuthenticated = false, onEr
     } catch { /* ignore */ }
 
     try {
-      await fetch('/webhook/atualizar_estoque', { method: 'GET', mode: 'no-cors' });
-    } catch { /* no-cors não lança erro */ }
+      const response = await fetch('/webhook/atualizar_estoque', { method: 'GET', cache: 'no-store' });
+      if (!response.ok) throw new Error('Falha ao acionar a sincronização.');
+    } catch {
+      setIsRefreshing(false);
+      onInfo?.('Não foi possível acionar a sincronização do GLPI.');
+      return;
+    }
 
     let attempts = 0;
 
@@ -138,13 +161,14 @@ export function useCatalog({ pausePolling = false, isAuthenticated = false, onEr
         const res = await fetch(`/catalogo.json?t=${Date.now()}`, { cache: 'no-store' });
         const json = await res.json();
         const parsed = Array.isArray(json) ? json[0] : json;
-        if (parsed?.metadados?.ultimaAtualizacao !== snapshotTimestamp) {
+        if (parsed?.metadados?.ultimaAtualizacao && parsed.metadados.ultimaAtualizacao !== snapshotTimestamp) {
           clearInterval(poll);
           try {
             // Avisa o backend para ler o novo catalogo.json e salvar no Postgres
-            await apiFetch('/api/equipments/sync', { method: 'POST' });
+            const response = await apiFetch('/api/equipments/sync', { method: 'POST' });
+            if (!response.ok) throw new Error('Falha ao gravar o catálogo no banco.');
             // Recarrega do Postgres (resetando a página para atualizar contagens e limpar duplicatas)
-            await fetchCatalogo(false, true);
+            if (!await fetchCatalogo(false, true)) throw new Error('Falha ao consultar o catálogo atualizado.');
             onSuccess?.('Catálogo atualizado e sincronizado com sucesso!');
           } catch (err) {
             console.error('Erro ao sincronizar com o banco de dados:', err);
@@ -179,6 +203,7 @@ export function useCatalog({ pausePolling = false, isAuthenticated = false, onEr
     filters,
     setFilters,
     availableBrands,
+    availableTypes,
     fetchCatalogo, 
     loadMore: () => { if(hasMore) fetchCatalogo(true, false); },
     syncGLPI 

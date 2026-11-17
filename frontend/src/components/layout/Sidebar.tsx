@@ -1,4 +1,4 @@
-import { format } from 'date-fns';
+import { format, isValid } from 'date-fns';
 import { parseISO, differenceInHours } from 'date-fns';
 import { CheckCircle, AlertTriangle, FileText, Plus, X, LogOut } from 'lucide-react';
 import clsx from 'clsx';
@@ -19,6 +19,7 @@ interface SidebarProps {
   reservedProposals: ReservedProposal[];
   isRefreshing: boolean;
   ultimaAtualizacao: string;
+  ultimaSincronizacaoGLPI?: string;
   onSelectQuote: (id: string) => void;
   onNewQuote: () => void;
   onDeleteQuote: (id: string) => void;
@@ -30,12 +31,15 @@ interface SidebarProps {
 
 export function Sidebar({
   user, quotes, activeQuoteId, reservedProposals,
-  isRefreshing, ultimaAtualizacao,
+  isRefreshing, ultimaAtualizacao, ultimaSincronizacaoGLPI,
   onSelectQuote, onNewQuote, onDeleteQuote, onResetCatalog, onSyncGlpi, onLogout, onRestartTour,
   onOpenAdminPanel,
 }: SidebarProps & { onOpenAdminPanel: () => void }) {
   const parsedDate = parseISO(ultimaAtualizacao);
-  const statusCritico = differenceInHours(new Date(), parsedDate) > 24;
+  const hasDate = isValid(parsedDate);
+  const sourceDate = parseISO(ultimaSincronizacaoGLPI || '');
+  const sourceIsStale = !isValid(sourceDate) || differenceInHours(new Date(), sourceDate) > 24;
+  const statusCritico = !hasDate || differenceInHours(new Date(), parsedDate) > 24;
 
   return (
     <aside className="w-64 bg-[#0B1120] dark:bg-[#0B1120]/80 backdrop-blur-xl border-r border-white/5 text-slate-300 flex-shrink-0 flex-col hidden md:flex print:hidden relative overflow-hidden shadow-[4px_0_24px_rgba(0,0,0,0.2)]">
@@ -78,7 +82,7 @@ export function Sidebar({
         </button>
 
         <div className="px-1 mt-6 mb-1 flex justify-between items-center" data-tour="sidebar-quotes">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Propostas Ativas</span>
+          <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Minhas Propostas</span>
           <button
             onClick={onNewQuote}
             className="text-slate-500 hover:text-indigo-400 transition-colors p-1 rounded-md hover:bg-indigo-500/10"
@@ -113,6 +117,7 @@ export function Sidebar({
                 <div className="min-w-0">
                   <span className="truncate text-[13px] font-semibold block">{q.name}</span>
                   {q.clientName && <span className="truncate text-[10px] font-bold text-indigo-400 block mt-0.5">{q.clientName}</span>}
+                  {q.status === 'CANCELED' && <span className="text-[10px] text-slate-500">Cancelada</span>}
                 </div>
               </div>
               <div className="flex items-center gap-1 shrink-0 ml-1">
@@ -175,10 +180,10 @@ export function Sidebar({
         </div>
 
         <div>
-          <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2 block">Status do Estoque</span>
+          <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2 block">Última consulta ao catálogo</span>
           <div
             onDoubleClick={user.role === 'ADMIN' ? onSyncGlpi : undefined}
-            title={user.role === 'ADMIN' ? "Clique duplo para forçar sincronização com GLPI." : "Última sincronização do estoque."}
+            title={user.role === 'ADMIN' ? "Clique duplo para sincronizar com o GLPI." : "Horário da última consulta bem-sucedida ao catálogo."}
             className={clsx(
               'px-3 py-2 rounded-lg flex items-center justify-center gap-2 text-xs font-bold border mb-2 select-none transition-colors',
               user.role === 'ADMIN' ? 'cursor-pointer' : 'cursor-default opacity-80',
@@ -189,8 +194,9 @@ export function Sidebar({
             )}
           >
             {statusCritico ? <AlertTriangle className="w-3 h-3" /> : <CheckCircle className="w-3 h-3" />}
-            <span>{format(parsedDate, 'dd/MM HH:mm')}</span>
+            <span>{hasDate ? format(parsedDate, 'dd/MM HH:mm') : 'Consulta pendente'}</span>
           </div>
+          <p className={clsx('text-[10px] text-center', sourceIsStale ? 'text-amber-400' : 'text-slate-400')}>Inventário GLPI: {isValid(sourceDate) ? format(sourceDate, 'dd/MM HH:mm') : 'aguardando sincronização'}{sourceIsStale && <span className="block mt-1">Confirme a atualização do inventário.</span>}</p>
         </div>
 
         {user.role === 'ADMIN' && (

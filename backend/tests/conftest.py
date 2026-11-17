@@ -2,9 +2,10 @@
 conftest.py — Fixtures compartilhadas para todos os testes.
 
 Usa SQLite em memória para testes unitários rápidos (sem Docker).
-Para testes de integração real (race condition), o test_race_condition.py
-usa o banco de produção via HTTP — mantemos essa separação.
+Para concorrência, TEST_DATABASE_URL aponta para PostgreSQL de testes isolado.
+O teste legado contra o ambiente operacional foi substituído.
 """
+import os
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
@@ -18,7 +19,7 @@ from app.core.security import create_access_token, get_password_hash
 # ─────────────────────────────────────────────────────────────────────────────
 # Banco em memória (SQLite async)
 # ─────────────────────────────────────────────────────────────────────────────
-TEST_DB_URL = "sqlite+aiosqlite:///:memory:"
+TEST_DB_URL = os.environ.get("TEST_DATABASE_URL", "sqlite+aiosqlite:///:memory:")
 
 
 @pytest.fixture(scope="session")

@@ -6,6 +6,7 @@ from app.db.session import AsyncSessionLocal
 from app.db.models import Equipment, User, Quote, QuoteStatus
 from app.core.security import create_access_token
 import uuid
+pytestmark = pytest.mark.skip(reason='Teste legado contra o ambiente operacional. Use test_reservation_concurrency.py com PostgreSQL isolado.')
 
 # URL base da API quando rodando de fora do Docker ou usando httpx direto contra a API no docker
 BASE_URL = "http://localhost:8000"
@@ -34,7 +35,7 @@ async def setup_test_data():
             marca="DELL",
             modelo="Optiplex Test",
             tipo="DESKTOP",
-            status="DISPONIVEL",
+            status="DISPONIVEL NOVO",
             is_reserved=False,
             especificacoes={}
         )

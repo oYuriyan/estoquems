@@ -1,5 +1,11 @@
 # Guia de Deploy — Estoque MS
 
+> Para o Compose atual, configure `.env` na raiz a partir de `.env.example`.
+> `backend/.env` serve para execucao direta do backend, nao para interpolacao
+> do Compose. Consulte [DEPLOYMENT.md](../DEPLOYMENT.md) e
+> [ATUALIZACAO-SEGURA.md](ATUALIZACAO-SEGURA.md) antes de modificar ambientes
+> existentes. Credenciais e chaves TLS reais nao acompanham novos clones.
+
 ## Requisitos
 
 | Dependência | Versão mínima |
@@ -71,7 +77,7 @@ cd frontend
 
 # Crie o arquivo de variáveis do Vite
 cat > .env.production << 'EOF'
-VITE_SENTRY_DSN=   # preencher após configurar Sentry
+VITE_SENTRY_DSN=
 VITE_APP_VERSION=1.0.0
 EOF
 
@@ -176,7 +182,7 @@ curl http://localhost:3030/api/health
 ### Backend (`backend/.env`)
 Adicione a linha abaixo ao `.env` real do servidor:
 ```env
-SENTRY_DSN=https://2da99fbc84f88d615ed55077c06d1513@o4511552440107008.ingest.us.sentry.io/4511552579239936
+SENTRY_DSN=
 ```
 
 Após adicionar, reiniciar o container da API:
@@ -193,7 +199,7 @@ curl http://localhost:3030/api/health | grep sentry
 ### Frontend (`frontend/.env.production`) ✅
 Já configurado com o DSN. O arquivo `frontend/.env.production` contém:
 ```env
-VITE_SENTRY_DSN=https://2da99fbc84f88d615ed55077c06d1513@o4511552440107008.ingest.us.sentry.io/4511552579239936
+VITE_SENTRY_DSN=
 ```
 
 ### Source Maps (opcional — melhora os stack traces no Sentry)

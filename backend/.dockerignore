@@ -1,0 +1,10 @@
+# Segredos e configurações locais são injetados pelo ambiente do container.
+.env
+.env.*
+!.env.example
+
+# Artefatos locais que não fazem parte da imagem de execução.
+venv/
+__pycache__/
+.pytest_cache/
+*.py[cod]

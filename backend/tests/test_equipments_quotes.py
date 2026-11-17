@@ -25,7 +25,7 @@ async def create_equipment(db: AsyncSession, **kwargs) -> Equipment:
         tipo="NOTEBOOK",
         marca="DELL",
         modelo="Latitude 5420",
-        status="DISPONIVEL",
+        status="DISPONIVEL NOVO",
         is_reserved=False,
         is_active=True,
         especificacoes={"processador": "i5", "ram": "16GB", "armazenamento": "512GB", "so": "Windows 11"},

@@ -1,10 +1,11 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import Field
 from functools import lru_cache
 
 class Settings(BaseSettings):
     # App Settings
     APP_NAME: str = "Lummium API"
-    APP_VERSION: str = "1.0.0"
+    APP_VERSION: str = "1.1.0"
     APP_ENV: str = "production"
 
     # DB
@@ -15,12 +16,21 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 480
 
+    SMTP_HOST: str = 'smtp.gmail.com'
+    SMTP_PORT: int = 587
+    SMTP_USERNAME: str = ''
+    SMTP_PASSWORD: str = ''
+    SMTP_FROM: str = ''
+    PASSWORD_RESET_URL: str = 'https://localhost:3443/'
+
     # CORS
     FRONTEND_ORIGIN: str = "http://localhost:3030"
 
     # Observabilidade
     SENTRY_DSN: str = ""          # Preencher junto com o Sentry dashboard
     LOG_LEVEL: str = "INFO"
+    # Margem técnica para a exportação diária; confirmar cadência na homologação.
+    CATALOG_MAX_AGE_HOURS: int = Field(default=48, gt=0)
 
     # Rate Limiting (requisições por minuto por IP)
     RATE_LIMIT_PER_MINUTE: int = 120

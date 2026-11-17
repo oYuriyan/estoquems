@@ -1,16 +1,17 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from datetime import datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy import func, String, cast, Text
-from sqlalchemy.orm import selectinload
+from sqlalchemy import cast, Text
 from typing import List, Optional
 import math
-import httpx
 
 from app.db.session import get_db
 from app.db.models import User, Equipment
 from app.schemas.all import EquipmentResponse, EquipmentCreate
 from app.api.deps import get_current_user, get_current_active_superuser
+from app.inventory import is_available, is_reserved, is_new, is_stock_status
+from app.catalog_sync import catalog_synchronizer
 
 router = APIRouter()
 
@@ -27,11 +28,12 @@ async def get_equipments(
 
 @router.get("/grouped")
 async def get_equipments_grouped(
-    page: int = 1,
-    limit: int = 24,
+    page: int = Query(default=1, ge=1),
+    limit: int = Query(default=24, ge=1, le=100),
     search: Optional[str] = None,
     brand: Optional[str] = None,
     status_filter: Optional[str] = None,
+    type_filter: Optional[str] = None,
     sort_key: Optional[str] = None,
     sort_dir: Optional[str] = "desc",
     db: AsyncSession = Depends(get_db),
@@ -39,6 +41,16 @@ async def get_equipments_grouped(
 ):
     # 1. Base Query apenas com itens ativos
     query = select(Equipment).where(Equipment.is_active)
+    if type_filter:
+        query = query.where(Equipment.tipo == type_filter)
+
+    # A lista de marcas não desaparece quando uma marca é selecionada.
+    brand_query = select(Equipment.marca).where(Equipment.is_active)
+    if type_filter:
+        brand_query = brand_query.where(Equipment.tipo == type_filter)
+    brand_result = await db.execute(brand_query.distinct())
+    available_brands = sorted(brand_result.scalars().all())
+    available_types = sorted((await db.execute(select(Equipment.tipo).where(Equipment.is_active).distinct())).scalars().all())
 
     # 2. Filtros
     if brand:
@@ -46,9 +58,9 @@ async def get_equipments_grouped(
     
     if status_filter:
         if status_filter == "NOVO":
-            query = query.where(Equipment.status.ilike("%NOVO%"))
+            query = query.where(Equipment.status.ilike("%NOVO%"), ~Equipment.status.ilike("%SEMINOVO%"))
         else:
-            query = query.where(~Equipment.status.ilike("%NOVO%"))
+            query = query.where((~Equipment.status.ilike("%NOVO%")) | Equipment.status.ilike("%SEMINOVO%"))
             
     if search:
         search_terms = search.split()
@@ -79,7 +91,8 @@ async def get_equipments_grouped(
         so = eq.especificacoes.get("so", "N/A") if eq.especificacoes else "N/A"
         
         # Chave de Agrupamento Exata
-        key = f"{eq.modelo}|{proc}|{ram}|{arm}|{so}"
+        screen = eq.especificacoes.get("tela", "N/A") if eq.especificacoes else "N/A"
+        key = "|".join(str(value) for value in (eq.tipo, eq.marca, eq.modelo, proc, ram, arm, so, screen))
         
         if key not in groups_dict:
             groups_dict[key] = {
@@ -91,16 +104,23 @@ async def get_equipments_grouped(
                 "ram": ram,
                 "armazenamento": arm,
                 "so": so,
+                "tela": screen,
+                "available_count": 0,
+                "reserved_count": 0,
+                "unavailable_count": 0,
                 "novos": 0,
                 "usados": 0,
                 "items": []
             }
             
         groups_dict[key]["items"].append(eq)
-        if "NOVO" in str(eq.status).upper():
-            groups_dict[key]["novos"] += 1
+        if is_available(eq):
+            groups_dict[key]["available_count"] += 1
+            groups_dict[key]["novos" if is_new(eq) else "usados"] += 1
+        elif is_reserved(eq):
+            groups_dict[key]["reserved_count"] += 1
         else:
-            groups_dict[key]["usados"] += 1
+            groups_dict[key]["unavailable_count"] += 1
 
     grouped_list = list(groups_dict.values())
     
@@ -108,12 +128,12 @@ async def get_equipments_grouped(
     if sort_key:
         reverse = sort_dir == "desc"
         if sort_key == "qtd":
-            grouped_list.sort(key=lambda x: len(x["items"]), reverse=reverse)
+            grouped_list.sort(key=lambda x: (x["available_count"], x["key"]), reverse=reverse)
         else:
-            grouped_list.sort(key=lambda x: str(x.get(sort_key, "")), reverse=reverse)
+            grouped_list.sort(key=lambda x: (str(x.get(sort_key, "")), x["key"]), reverse=reverse)
     else:
         # Default sort (por tipo e depois quantidade, para evitar layout shift no frontend durante paginação)
-        grouped_list.sort(key=lambda x: (str(x.get("tipo", "")).upper(), len(x["items"])), reverse=True)
+        grouped_list.sort(key=lambda x: (x["available_count"], x["key"]), reverse=True)
 
     # Paginação
     total_groups = len(grouped_list)
@@ -141,6 +161,7 @@ async def get_equipments_grouped(
                 "status": i.status,
                 "fornecedor": i.fornecedor,
                 "is_reserved": i.is_reserved,
+                "is_available": is_available(i),
                 "especificacoes": i.especificacoes
             })
         
@@ -148,88 +169,41 @@ async def get_equipments_grouped(
         serialized_groups.append(g_copy)
 
     # Agrupar as marcas disponíveis para o filtro do frontend
-    available_brands = sorted(list(set(eq.marca for eq in equipments)))
-
-    total_novos = sum(1 for eq in equipments if "NOVO" in str(eq.status).upper())
-    total_usados = len(equipments) - total_novos
+    available = [eq for eq in equipments if is_available(eq)]
+    total_novos = sum(1 for eq in available if is_new(eq))
+    total_usados = len(available) - total_novos
 
     return {
         "groups": serialized_groups,
         "available_brands": available_brands,
+        "available_types": available_types,
         "total_groups": total_groups,
         "total_pages": total_pages,
         "current_page": page,
         "total_equipments": len(equipments),
+        "total_available": len(available),
+        "total_reserved": sum(1 for eq in equipments if is_reserved(eq)),
+        "retrieved_at": datetime.now(timezone.utc).isoformat(),
+        "source_updated_at": catalog_synchronizer.source_updated_at,
+        "synced_at": catalog_synchronizer.synced_at,
         "total_novos": total_novos,
         "total_usados": total_usados
     }
 
 @router.post("/sync")
 async def sync_from_json(
+    request: Request,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_superuser)
 ):
     try:
-        async with httpx.AsyncClient() as client:
-            res = await client.get("http://nginx/catalogo.json")
-            res.raise_for_status()
-            data = res.json()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erro ao buscar catalogo.json: {str(e)}")
-        
-    items = []
-    if isinstance(data, list) and len(data) > 0:
-        items = data[0].get("estoque", [])
-    elif isinstance(data, dict):
-        items = data.get("estoque", [])
-    
-    existing = (await db.execute(select(Equipment))).scalars().all()
-    existing_map = {eq.id_patrimonio: eq for eq in existing}
-    
-    incoming_ids = set()
-    for item in items:
-        id_pat = item.get("idPatrimonio")
-        if id_pat is None or str(id_pat).strip() == "":
-            continue
-            
-        id_pat = str(id_pat)
-            
-        # Garante unicidade para itens não patrimoniados (N/A)
-        if id_pat == "N/A":
-            id_pat = f"N/A-{str(item.get('numeroSerie', ''))}"
-            
-        incoming_ids.add(id_pat)
-        if id_pat in existing_map:
-            eq = existing_map[id_pat]
-            eq.status = str(item.get("status", eq.status))
-            eq.is_active = True
-            eq.id_glpi = str(item.get("idGlpi", eq.id_glpi))
-            eq.numero_serie = str(item.get("numeroSerie", eq.numero_serie))
-            eq.tipo = str(item.get("tipo", eq.tipo))
-            eq.marca = str(item.get("marca", eq.marca))
-            eq.modelo = str(item.get("modelo", eq.modelo))
-            eq.fornecedor = item.get("fornecedor") if item.get("fornecedor") is None else str(item.get("fornecedor"))
-            eq.especificacoes = item.get("especificacoes", eq.especificacoes)
-        else:
-            eq = Equipment(
-                id_patrimonio=id_pat,
-                numero_serie=str(item.get("numeroSerie", "")),
-                id_glpi=str(item.get("idGlpi", "")),
-                tipo=str(item.get("tipo", "")),
-                marca=str(item.get("marca", "")),
-                modelo=str(item.get("modelo", "")),
-                status=str(item.get("status", "USADO")),
-                fornecedor=item.get("fornecedor") if item.get("fornecedor") is None else str(item.get("fornecedor")),
-                especificacoes=item.get("especificacoes", {}),
-                is_active=True
-            )
-            db.add(eq)
-            
-    for eq in existing:
-        if eq.id_patrimonio not in incoming_ids:
-            eq.is_active = False
-            
-    await db.commit()
+        await catalog_synchronizer.sync(db, force=True)
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail=str(error))
+    except Exception:
+        await db.rollback()
+        raise HTTPException(status_code=502, detail="Não foi possível importar o inventário do GLPI. O catálogo anterior foi preservado.")
+    await request.app.state.ws_manager.broadcast('CATALOG_UPDATED')
     return {"message": "Sincronizado com sucesso."}
 
 @router.post("/", response_model=EquipmentResponse)
@@ -238,6 +212,8 @@ async def create_equipment(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    if not is_stock_status(equipment_in.status):
+        raise HTTPException(status_code=422, detail="O estoque aceita apenas DISPONIVEL NOVO e DISPONIVEL USADO.")
     # Verifica se já existe um com mesmo id_patrimonio
     result = await db.execute(select(Equipment).where(Equipment.id_patrimonio == equipment_in.id_patrimonio))
     if result.scalar_one_or_none():

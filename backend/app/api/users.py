@@ -8,7 +8,6 @@ from app.db.models import User
 from app.schemas.all import UserResponse, UserCreate
 from app.core.security import get_password_hash
 from app.api.deps import get_current_active_superuser
-from app.db.models import UserRole
 
 router = APIRouter()
 

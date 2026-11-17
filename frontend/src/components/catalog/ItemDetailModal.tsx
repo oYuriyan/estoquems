@@ -1,6 +1,7 @@
 import { X, Cpu, MemoryStick, HardDrive } from 'lucide-react';
 import clsx from 'clsx';
 import type { GroupedItem, Equipamento } from '../../types';
+import { isEquipmentAvailable, isEquipmentReserved } from '../../utils/equipment';
 
 interface ItemDetailModalProps {
   group: GroupedItem;
@@ -13,8 +14,8 @@ interface ItemDetailModalProps {
 export function ItemDetailModal({
   group, cart, onClose, onToggleItem, onUpdateItems,
 }: ItemDetailModalProps) {
-  const availableItems = group.items.filter(i => !i.status?.toUpperCase().includes('RESERVADO'));
-  const selectedCount = cart.filter(c => group.items.some(i => i.idPatrimonio === c.idPatrimonio)).length;
+  const availableItems = group.items.filter(isEquipmentAvailable);
+  const selectedCount = cart.filter(c => availableItems.some(i => i.idPatrimonio === c.idPatrimonio)).length;
   const allSelected = availableItems.length > 0 && selectedCount === availableItems.length;
 
   const selectAll = () => {
@@ -79,7 +80,7 @@ export function ItemDetailModal({
             >
               {allSelected ? 'Desmarcar Todos' : 'Selecionar Todos'}
             </button>
-            <span className="text-xs text-slate-400 font-medium">{selectedCount}/{group.items.length} selecionados</span>
+            <span className="text-xs text-slate-400 font-medium">{selectedCount}/{availableItems.length} disponíveis selecionados</span>
           </div>
           <div className="flex items-center gap-2">
             <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Quantidade:</label>
@@ -109,24 +110,25 @@ export function ItemDetailModal({
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
               {group.items.map(item => {
-                const isReserved = item.status?.toUpperCase().includes('RESERVADO');
+                const isReserved = isEquipmentReserved(item);
+                const isUnavailable = !isEquipmentAvailable(item);
                 const isSelected = cart.some(c => c.idPatrimonio === item.idPatrimonio);
                 return (
                   <tr
                     key={item.idPatrimonio}
                     className={clsx(
                       'transition-colors',
-                      isReserved ? 'bg-red-50/40 opacity-80' : 'hover:bg-slate-50 dark:hover:bg-slate-800/60 dark:bg-[#0f172a] cursor-pointer',
-                      isSelected && !isReserved && 'bg-indigo-50/50',
+                      isUnavailable ? 'bg-red-50/40 opacity-80' : 'hover:bg-slate-50 dark:hover:bg-slate-800/60 dark:bg-[#0f172a] cursor-pointer',
+                      isSelected && !isUnavailable && 'bg-indigo-50/50',
                     )}
-                    onClick={() => !isReserved && onToggleItem(item)}
+                    onClick={() => !isUnavailable && onToggleItem(item)}
                   >
                     <td className="py-4 px-6">
                       <input
                         type="checkbox"
                         className="w-5 h-5 rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-600 cursor-pointer pointer-events-none"
                         checked={isSelected}
-                        disabled={isReserved}
+                        disabled={isUnavailable}
                         readOnly
                       />
                     </td>
@@ -141,7 +143,7 @@ export function ItemDetailModal({
                       {isReserved ? (
                         <span className="inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full border bg-red-50 text-red-700 border-red-200 whitespace-nowrap">
                           <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                          {item.status}
+                          Reservado
                         </span>
                       ) : (
                         <span className={clsx(

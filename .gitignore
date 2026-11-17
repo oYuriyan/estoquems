@@ -53,4 +53,19 @@ n8n_data/
 venv/
 __pycache__/
 .env
- 
+work/
+
+# Configuracao de execucao e chaves ficam apenas no ambiente local.
+.env.*
+!.env.example
+!**/.env.example
+*.key
+*.pem
+*.p12
+*.pfx
+
+# Caches e arquivos temporarios de editores.
+.pytest_cache/
+*.py[cod]
+.~lock.*#
+~$*

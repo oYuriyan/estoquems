@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { Cpu, MemoryStick, HardDrive, Monitor, ShoppingCart } from 'lucide-react';
 import type { GroupedItem } from '../../types';
+import { availableCount, reservedCount } from '../../utils/equipment';
 
 interface ItemCardProps {
   group: GroupedItem;
@@ -11,7 +12,9 @@ interface ItemCardProps {
 }
 
 function ItemCardComponent({ group, cartCount, onClick, className, style }: ItemCardProps) {
-  const isScarce = group.items.length === 1;
+  const available = availableCount(group);
+  const reserved = reservedCount(group);
+  const isScarce = available === 1;
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -74,9 +77,10 @@ function ItemCardComponent({ group, cartCount, onClick, className, style }: Item
       <div className="px-4 md:px-6 py-3 border-t border-slate-100 dark:border-slate-800/50 bg-slate-50 dark:bg-[#0f172a] flex justify-between items-center">
         <span className="font-bold text-slate-500 dark:text-slate-400 text-[10px] md:text-[11px] uppercase tracking-wide">Disponíveis</span>
         <span className="inline-flex items-center justify-center bg-white dark:bg-slate-800 text-indigo-700 font-black px-3 py-1 rounded-lg text-sm border border-slate-200 dark:border-slate-700/50 shadow-sm">
-          {group.items.length} unid.
+          {available} unid.
         </span>
       </div>
+      {reserved > 0 && <div className="px-4 md:px-6 pb-3 text-xs text-amber-600 dark:text-amber-400">{reserved} reservada{reserved !== 1 ? 's' : ''}</div>}
     </div>
   );
 }

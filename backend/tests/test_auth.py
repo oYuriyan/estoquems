@@ -116,3 +116,8 @@ class TestHealthCheck:
         assert "status" in data
         assert "version" in data
         assert "database" in data
+
+@pytest.mark.parametrize('email', [' SALES@TEST.COM ', 'sales@test.com'])
+async def test_login_normalizes_email(client, sales_user, email):
+    response = await client.post('/api/auth/login', data={'username': email, 'password': 'Sales@1234'})
+    assert response.status_code == 200

@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { apiFetch } from '../utils/api';
 import type { Quote, Equipamento } from '../types';
+import { mapEquipment } from '../utils/equipment';
 
 // Re-export para compatibilidade com imports existentes
 export type { Equipamento, Quote };
@@ -65,7 +66,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isDarkMode, setIsDarkMode] = useState(localStorage.getItem('microEstoque_theme') === 'dark');
   const [wsMessage, setWsMessage] = useState<string | null>(null);
 
-  const refreshQuotes = async () => {
+  const refreshQuotes = useCallback(async () => {
     if (!user) return;
     try {
       const res = await apiFetch('/api/quotes/');
@@ -75,19 +76,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const mappedQuotes: Quote[] = backendQuotes.map((q: any) => ({
           id: q.id,
+          status: q.status,
           name: q.name,
           clientName: q.client_name,
           margin: q.margin,
           validityDays: q.validity_days,
           isReserved: q.status === 'RESERVED',
           reservedAt: q.reserved_at,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          items: (q.items || []).map((eq: any) => ({
-             ...eq,
-             idPatrimonio: eq.idPatrimonio || eq.id_patrimonio,
-             numeroSerie: eq.numeroSerie || eq.numero_serie,
-             idGlpi: eq.idGlpi || eq.id_glpi
-          }))
+          items: (q.items || []).map(mapEquipment)
         }));
         setQuotes(mappedQuotes);
         // Atualiza activeQuoteId caso tenha sido apagada
@@ -96,7 +92,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } catch (err) {
       console.error('Erro ao buscar propostas do backend', err);
     }
-  };
+  }, [user]);
 
   // Carrega as propostas do backend ao logar
   useEffect(() => {
@@ -124,19 +120,38 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       ? `ws://localhost:3030/api/ws?token=${token}` 
       : `${protocol}//${window.location.host}/api/ws?token=${token}`;
       
-    const ws = new WebSocket(wsUrl);
-    
-    ws.onmessage = (event) => {
-      setWsMessage(event.data);
-      // Limpa mensagem após 1s para permitir receber mesmos eventos repetidos
-      setTimeout(() => setWsMessage(null), 1000);
+    let socket: WebSocket | null = null;
+    let reconnectTimer: ReturnType<typeof setTimeout>;
+    let messageTimer: ReturnType<typeof setTimeout>;
+    let stopped = false;
+    let retryDelay = 1000;
+    const connect = () => {
+      if (stopped) return;
+      socket = new WebSocket(wsUrl);
+      socket.onopen = () => {
+        retryDelay = 1000;
+        setWsMessage('RECONNECTED');
+        clearTimeout(messageTimer);
+        messageTimer = setTimeout(() => setWsMessage(null), 1000);
+      };
+      socket.onmessage = event => {
+        setWsMessage(event.data);
+        clearTimeout(messageTimer);
+        messageTimer = setTimeout(() => setWsMessage(null), 1000);
+      };
+      socket.onclose = event => {
+        if (!stopped && event.code !== 1008) {
+          reconnectTimer = setTimeout(connect, retryDelay);
+          retryDelay = Math.min(retryDelay * 2, 30_000);
+        }
+      };
     };
-    
-    ws.onclose = () => console.log('WebSocket desconectado');
-    ws.onerror = (err) => console.error('WebSocket erro:', err);
-
+    connect();
     return () => {
-      ws.close();
+      stopped = true;
+      clearTimeout(reconnectTimer);
+      clearTimeout(messageTimer);
+      socket?.close();
     };
   }, [user]);
 

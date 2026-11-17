@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { PasswordRecovery } from './PasswordRecovery';
 import { setToken } from '../../utils/api';
 import { Mail, Lock, ArrowRight, Loader2, ShieldCheck } from 'lucide-react';
 import logoOficial from '../../assets/logo_oficial.png';
@@ -10,6 +11,7 @@ interface LoginScreenProps {
 }
 
 export function LoginScreen({ onLogin }: LoginScreenProps) {
+  const [recovering, setRecovering] = useState(() => window.location.hash.startsWith('#reset='));
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -56,6 +58,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
     }
   };
 
+  if (recovering) return <PasswordRecovery onBack={() => { window.history.replaceState(null, '', window.location.pathname); setRecovering(false); }} />;
   return (
     <div className="min-h-screen w-full flex bg-[#0f172a] font-sans overflow-hidden">
       
@@ -196,6 +199,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
                 </span>
               </button>
             </form>
+            <button type="button" onClick={() => setRecovering(true)} className="mt-5 text-indigo-500 underline">Esqueci minha senha</button>
           </div>
           
           <div className="mt-8 text-center">

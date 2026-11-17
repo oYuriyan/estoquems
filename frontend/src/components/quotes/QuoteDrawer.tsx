@@ -25,6 +25,7 @@ export function QuoteDrawer({
   onClose, onStepChange, onUpdateQuote, onRemoveItem, onDelete,
   onReserve, onCancelReserve, onPrint, onWhatsApp,
 }: QuoteDrawerProps) {
+  const editable = !quote.isReserved && (!quote.status || quote.status === 'DRAFT');
   return (
     <>
       <div className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm print:hidden" onClick={onClose} />
@@ -40,6 +41,7 @@ export function QuoteDrawer({
                   <CheckCircle className="w-2.5 h-2.5" /> Reservada
                 </span>
               )}
+              {quote.status === 'CANCELED' && <span className="text-xs text-slate-500">Proposta cancelada</span>}
             </div>
           </div>
           <button
@@ -51,7 +53,7 @@ export function QuoteDrawer({
         </div>
 
         {/* Stepper Visual */}
-        {!quote.isReserved && (
+        {editable && (
           <div className="px-5 py-3 border-b border-slate-200/50 dark:border-slate-700/50 bg-slate-50/30 dark:bg-[#161b22]/50 flex justify-center items-center shrink-0">
             <div className="flex items-center w-full max-w-sm">
               {[
@@ -93,13 +95,14 @@ export function QuoteDrawer({
         {/* Content */}
         <div className="p-5 flex-1 overflow-y-auto space-y-5">
           {/* Step 2 — Dados do Cliente */}
-          {!quote.isReserved && quoteStep === 2 && (
+          {editable && quoteStep === 2 && (
             <div className="step-enter space-y-3">
               <div>
                 <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Cliente / Empresa</label>
                 <input
                   type="text"
                   value={quote.clientName || ''}
+                  disabled={isSubmitting}
                   onChange={e => onUpdateQuote({ clientName: e.target.value })}
                   className="w-full border border-slate-300 dark:border-[#30363d] rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 outline-none text-sm font-medium text-slate-800 dark:text-slate-100 bg-white dark:bg-[#0d1117] placeholder-slate-400 transition-colors"
                   placeholder="Nome do cliente ou empresa"
@@ -111,6 +114,7 @@ export function QuoteDrawer({
                   <input
                     type="text"
                     value={quote.margin || ''}
+                    disabled={isSubmitting}
                     onChange={e => onUpdateQuote({ margin: e.target.value })}
                     className="w-full border border-slate-300 dark:border-[#30363d] rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 outline-none text-sm font-medium text-slate-800 dark:text-slate-100 bg-white dark:bg-[#0d1117] placeholder-slate-400 transition-colors"
                     placeholder="Ex: 10%"
@@ -121,9 +125,10 @@ export function QuoteDrawer({
                   <input
                     type="number"
                     value={quote.validityDays ?? 2}
-                    onChange={e => onUpdateQuote({ validityDays: parseInt(e.target.value) || 0 })}
+                    disabled={isSubmitting}
+                    onChange={e => { const days = Number(e.target.value); if (days >= 1 && days <= 365) onUpdateQuote({ validityDays: days }); }}
                     className="w-full border border-slate-300 dark:border-[#30363d] rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 outline-none text-sm font-medium text-slate-800 dark:text-slate-100 bg-white dark:bg-[#0d1117] transition-colors"
-                    placeholder="2" min="1"
+                    placeholder="2" min="1" max="365"
                   />
                 </div>
               </div>
@@ -131,7 +136,7 @@ export function QuoteDrawer({
           )}
 
           {/* Step 1 — Lista de itens (ou se reservado) */}
-          {(quote.isReserved || quoteStep === 1) && (
+          {(!editable || quoteStep === 1) && (
             <div className="step-enter">
               <div className="flex justify-between items-center mb-2.5">
                 <h3 className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest">Itens da Proposta</h3>
@@ -169,7 +174,7 @@ export function QuoteDrawer({
                           </span>
                         </div>
                       </div>
-                      {!quote.isReserved && (
+                      {editable && (
                         <button
                           onClick={() => onRemoveItem(item)}
                           className="p-1.5 text-slate-400 dark:text-slate-600 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors shrink-0 ml-2"
@@ -190,7 +195,7 @@ export function QuoteDrawer({
           )}
 
           {/* Step 3 — Resumo */}
-          {!quote.isReserved && quoteStep === 3 && (
+          {editable && quoteStep === 3 && (
             <div className="step-enter space-y-4">
               <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">Resumo da Proposta</h3>
               <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700/50">
@@ -232,7 +237,7 @@ export function QuoteDrawer({
                 </button>
               </div>
             </div>
-          ) : (
+          ) : editable ? (
             <>
               {quoteStep === 1 && (
                 <button
@@ -263,7 +268,7 @@ export function QuoteDrawer({
                   </div>
                   <button
                     onClick={onReserve}
-                    disabled={isSubmitting || cart.length === 0}
+                    disabled={isSubmitting || cart.length === 0 || cart.some(item => unavailableIds.has(item.idPatrimonio))}
                     className={clsx('w-full flex items-center justify-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold text-sm transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed', isSubmitting && 'opacity-70 cursor-wait')}
                   >
                     {isSubmitting
@@ -274,13 +279,13 @@ export function QuoteDrawer({
                 </>
               )}
             </>
-          )}
-          <button
+          ) : <p className="text-sm text-slate-500 text-center">Esta proposta está encerrada. Crie uma nova proposta para reservar equipamentos.</p>}
+          {!quote.isReserved && <button
             onClick={onDelete}
             className="w-full text-[11px] font-bold text-red-400/70 hover:text-red-500 transition-colors flex items-center justify-center gap-1.5 py-1.5 mt-2"
           >
             <Trash2 className="w-3 h-3" /> Excluir Proposta
-          </button>
+          </button>}
         </div>
       </div>
     </>

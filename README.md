@@ -34,8 +34,15 @@ cd estoquems
 ```
 
 **2. Rode a base de dados, n8n e Nginx (Docker):**
+
+Configure primeiro o ambiente a partir de `.env.example`. Os arquivos `.env`
+reais e as chaves TLS sao privados e nao acompanham novos clones. Preserve os
+arquivos existentes em atualizacoes; em instalacoes novas, gere seu proprio
+certificado e chave conforme `DEPLOYMENT.md`.
 ```bash
 # Isso subirá a infraestrutura secundária sem rodar o frontend no modo build.
+npm --prefix frontend ci --legacy-peer-deps
+npm --prefix frontend run build
 docker compose up -d db n8n api nginx
 ```
 
@@ -47,7 +54,10 @@ npm run dev
 ```
 
 O Frontend estará disponível em `http://localhost:5173`.
-O Backend (Swagger) estará em `http://localhost:8000/docs`.
+No ambiente Docker local, a aplicacao e o Swagger ficam em
+`https://localhost:3443` e `https://localhost:3443/api/docs`; a porta 8000 da API
+nao e publicada diretamente. O Nginx serve `frontend/dist`: execute `npm ci
+--legacy-peer-deps` e `npm run build` em `frontend/` para gerar esse diretorio.
 O n8n estará rodando em `http://localhost:5678`.
 
 ---
@@ -57,3 +67,6 @@ O n8n estará rodando em `http://localhost:5678`.
 Para acessar o manual completo de implantação em Máquinas Virtuais (VMs) internas ou servidores VPS, por favor consulte o documento exclusivo de infraestrutura:
 
 👉 [**Acessar Guia de Deploy (DEPLOYMENT.md)**](./DEPLOYMENT.md)
+
+Antes de atualizar um ambiente com dados, leia
+[Atualizacao com preservacao dos dados](docs/ATUALIZACAO-SEGURA.md).
