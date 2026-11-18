@@ -1,0 +1,456 @@
+{
+  "id": "glpi-reserve",
+  "name": "GLPI - Reservar Equipamentos",
+  "active": false,
+  "nodes": [
+    {
+      "id": "15c248d2-3a0d-4329-8e52-2b14f16c827c",
+      "name": "Entrada",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "reservar_ativos",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "webhookId": "153d9e63-2b4a-49dd-af6d-34a36145c22f"
+    },
+    {
+      "id": "85556087-d72e-4bea-a40a-bd462af9acba",
+      "name": "Validar",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "\nconst body=$input.first().json.body;\nif(!body || typeof body.propostaId!=='string' || !/^[a-zA-Z0-9_-]{1,100}$/.test(body.propostaId))throw new Error('Proposta invalida');\nif(!Array.isArray(body.itens)||!body.itens.length||body.itens.length>100)throw new Error('Itens invalidos');\nconst ids=new Set();\nfor(const item of body.itens){const id=Number(item.idGlpi);if(!Number.isSafeInteger(id)||id<=0||ids.has(id))throw new Error('ID GLPI ausente, invalido ou duplicado');ids.add(id);}\nreturn [{json:body}];\n"
+      }
+    },
+    {
+      "id": "959c8a60-0a29-4db9-ac79-e75f77dd5bae",
+      "name": "Sessao GLPI",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "url": "__GLPI_API_BASE__/initSession",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "App-Token",
+              "value": "__GLPI_APP_TOKEN__"
+            },
+            {
+              "name": "Authorization",
+              "value": "__GLPI_USER_TOKEN_AUTHORIZATION__"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 15000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "e455376d-b0e6-4661-83cc-c93616b9c7de",
+      "name": "Preparar",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        0
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "\nconst session=$input.first().json.session_token;\nif(typeof session!=='string'||!session)throw new Error('Sessao GLPI nao confirmada');\nconst body=$('Validar').first().json;\nreturn body.itens.map(item=>({json:{idGlpi:Number(item.idGlpi),numeroSerie:item.numeroSerie||null,operationId:body.propostaId},pairedItem:{item:0}}));\n"
+      }
+    },
+    {
+      "id": "5a2d7d87-83f6-4fb4-955b-4943a76a5751",
+      "name": "Consultar",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        0
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "=__GLPI_API_BASE__/Computer/{{ $json.idGlpi }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "App-Token",
+              "value": "__GLPI_APP_TOKEN__"
+            },
+            {
+              "name": "Session-Token",
+              "value": "={{ $('Sessao GLPI').first().json.session_token }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 15000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": false
+            }
+          }
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "ad15806a-6432-426e-bdb0-e0a9c40b6db1",
+      "name": "Decidir",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        0
+      ],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "\nconst item=$('Preparar').item.json,remote=$input.item.json;\nconst result={...item,action:\"reserve\",should_write:false,outcome:'pending',message:'Nao foi possivel consultar o equipamento'};\nif(Number(remote.id)!==item.idGlpi)return {json:result};\nif(item.numeroSerie && String(remote.serial||'').trim()!==String(item.numeroSerie).trim())return {json:{...result,outcome:'conflict',message:'Serial difere do equipamento solicitado'}};\nconst state=Number(remote.states_id),comment=String(remote.comment||'');\nconst match=comment.match(/\\n\\[LUMMIUM_RESERVA (\\{[^\\r\\n]*\\})\\]$/);\nlet marker=null;try{if(match)marker=JSON.parse(match[1]);}catch{}\nresult.original_state=state;\nif(\"reserve\"==='reserve'){\n if(state===17 && marker?.quote===item.operationId)return {json:{...result,outcome:'eligible',target_state:17,target_comment:comment,message:'Reserva ja confirmada'}};\n if(![3,8].includes(state)||marker)return {json:{...result,outcome:'conflict',message:'Equipamento indisponivel ou reservado por outra proposta'}};\n return {json:{...result,outcome:'eligible',should_write:true,target_state:17,target_comment:comment+'\\n[LUMMIUM_RESERVA '+JSON.stringify({quote:item.operationId,original_state:state})+']',message:'Reserva solicitada'}};\n}\nif([3,8].includes(state)&&!marker)return {json:{...result,outcome:'eligible',target_state:state,target_comment:comment,message:'Equipamento ja liberado'}};\nif(state!==17||marker?.quote!==item.operationId||![3,8].includes(Number(marker.original_state)))return {json:{...result,outcome:'conflict',message:'Reserva nao pertence a esta proposta ou estado original desconhecido'}};\nreturn {json:{...result,outcome:'eligible',should_write:true,target_state:Number(marker.original_state),target_comment:comment.slice(0,match.index),message:'Cancelamento solicitado'}};\n"
+      }
+    },
+    {
+      "id": "9808233e-0e25-4a45-b401-53ec60cf5dc0",
+      "name": "Aplicar",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1320,
+        0
+      ],
+      "parameters": {
+        "method": "PUT",
+        "url": "=__GLPI_API_BASE__/Computer/{{ $json.idGlpi }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "App-Token",
+              "value": "__GLPI_APP_TOKEN__"
+            },
+            {
+              "name": "Session-Token",
+              "value": "={{ $('Sessao GLPI').first().json.session_token }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 15000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": false
+            }
+          }
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify({input:[{id:$json.idGlpi,states_id:$json.target_state,comment:$json.target_comment}]}) }}"
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "779a80bc-d290-4425-a6b1-aafa7cb39b9c",
+      "name": "Conferir",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1540,
+        0
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "=__GLPI_API_BASE__/Computer/{{ $('Decidir').item.json.idGlpi }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "App-Token",
+              "value": "__GLPI_APP_TOKEN__"
+            },
+            {
+              "name": "Session-Token",
+              "value": "={{ $('Sessao GLPI').first().json.session_token }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 15000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": false
+            }
+          }
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "fab0fa89-fb2f-4c9b-b833-be5613d46313",
+      "name": "Resultado por item",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1760,
+        0
+      ],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "\nconst decision=$('Decidir').item.json,remote=$input.item.json;\nconst confirmed=decision.outcome==='eligible' && Number(remote.id)===decision.idGlpi && Number(remote.states_id)===decision.target_state && String(remote.comment||'')===decision.target_comment;\nreturn {json:{idGlpi:decision.idGlpi,numeroSerie:decision.numeroSerie,operationId:decision.operationId,action:decision.action,status:confirmed?'confirmed':decision.outcome==='conflict'?'conflict':'pending',changed:confirmed&&decision.should_write,original_state:decision.original_state,target_state:decision.target_state,message:confirmed?'Estado conferido no GLPI':decision.message}};\n"
+      }
+    },
+    {
+      "id": "f4e1fa22-93cb-48f1-997c-046a5c293263",
+      "name": "Resumo",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1980,
+        0
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "\nconst results=$input.all().map(item=>item.json),success=results.length>0&&results.every(item=>item.status==='confirmed');\nconst out={sucesso:success,operationId:$('Validar').first().json.propostaId,results,partial:!success&&results.some(item=>item.status==='confirmed')};\nif(results.some(item=>item.status==='conflict'))out.erro='Um ou mais equipamentos apresentam conflito';\nreturn [{json:out}];\n"
+      }
+    },
+    {
+      "id": "38947659-cfd7-422c-8a2a-a6de78a58c31",
+      "name": "Responder",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        2200,
+        0
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "99c8eaa2-6073-4673-8d5e-1f86e12daab9",
+      "name": "Lote",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        2420,
+        0
+      ],
+      "parameters": {
+        "batchSize": 1,
+        "options": {
+          "reset": false
+        }
+      }
+    },
+    {
+      "id": "373b19df-59b2-4f07-a03d-e25cdf265562",
+      "name": "Deve alterar",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2640,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "6389e468-e044-4962-9ca8-77c5db06b72c",
+              "leftValue": "={{ $json.should_write }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Entrada": {
+      "main": [
+        [
+          {
+            "node": "Validar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar": {
+      "main": [
+        [
+          {
+            "node": "Sessao GLPI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sessao GLPI": {
+      "main": [
+        [
+          {
+            "node": "Preparar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar": {
+      "main": [
+        [
+          {
+            "node": "Lote",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consultar": {
+      "main": [
+        [
+          {
+            "node": "Decidir",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Decidir": {
+      "main": [
+        [
+          {
+            "node": "Deve alterar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aplicar": {
+      "main": [
+        [
+          {
+            "node": "Conferir",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Conferir": {
+      "main": [
+        [
+          {
+            "node": "Resultado por item",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resultado por item": {
+      "main": [
+        [
+          {
+            "node": "Lote",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resumo": {
+      "main": [
+        [
+          {
+            "node": "Responder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lote": {
+      "main": [
+        [
+          {
+            "node": "Resumo",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Consultar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deve alterar": {
+      "main": [
+        [
+          {
+            "node": "Aplicar",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Conferir",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
