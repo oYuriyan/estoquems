@@ -74,3 +74,5 @@ Antes de atualizar um ambiente com dados, leia
 Para o primeiro piloto na empresa, use a
 [requisicao da VM Linux](docs/REQUISICAO-VM-PILOTO.md) e o
 [roteiro de aceite e feedback](docs/PILOTO-COMERCIAL.md).
+
+Operações e recuperação da versão 1.2: [guia operacional](docs/OPERACOES-CONFIAVEIS.md).

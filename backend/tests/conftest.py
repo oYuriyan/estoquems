@@ -70,6 +70,7 @@ async def client(db_session: AsyncSession):
     async with AsyncClient(
         transport=ASGITransport(app=app),
         base_url="http://test",
+        headers={"X-Lummium-Operations":"1"},
     ) as c:
         yield c
 

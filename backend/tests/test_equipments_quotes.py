@@ -9,6 +9,7 @@ Cobertura:
 - Deletar proposta reservada deve falhar → 400
 - Usuário não pode ver proposta de outro usuário → 404
 """
+import uuid
 import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -21,7 +22,7 @@ async def create_equipment(db: AsyncSession, **kwargs) -> Equipment:
     defaults = dict(
         id_patrimonio=f"PAT-TEST-{id(kwargs)}",
         numero_serie="SN-TEST",
-        id_glpi="GLPI-TEST",
+        id_glpi=str(uuid.uuid4().int % 1000000000 + 1),
         tipo="NOTEBOOK",
         marca="DELL",
         modelo="Latitude 5420",

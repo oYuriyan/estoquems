@@ -27,7 +27,7 @@ def is_stock_status(status: str) -> bool:
 
 
 def is_available(equipment) -> bool:
-    return bool(equipment.is_active and not is_reserved(equipment) and is_stock_status(equipment.status))
+    return bool(equipment.is_active and not getattr(equipment, "reservation_operation_id", None) and not is_reserved(equipment) and is_stock_status(equipment.status))
 
 
 def is_new(equipment) -> bool:

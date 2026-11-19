@@ -91,6 +91,8 @@ class CatalogSynchronizer:
             by_identity = {equipment.id_patrimonio: equipment for equipment in existing}
             for identity, item in prepared:
                 equipment = by_identity.get(identity)
+                if equipment is not None and equipment.reservation_operation_id:
+                    continue
                 if equipment is not None and equipment.inventory_confirmed_at and stamp <= utc(equipment.inventory_confirmed_at):
                     continue
                 if not is_stock_status(item.get('status')):
@@ -113,7 +115,7 @@ class CatalogSynchronizer:
                 equipment.fornecedor = item.get('fornecedor')
                 equipment.especificacoes = item.get('especificacoes', {})
             for equipment in existing:
-                protected = equipment.inventory_confirmed_at and stamp <= utc(equipment.inventory_confirmed_at)
+                protected = equipment.reservation_operation_id or (equipment.inventory_confirmed_at and stamp <= utc(equipment.inventory_confirmed_at))
                 if equipment.id_patrimonio not in identities and not protected:
                     equipment.is_active = False
             if state is None:

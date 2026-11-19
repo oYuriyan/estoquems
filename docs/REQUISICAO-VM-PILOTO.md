@@ -1,8 +1,9 @@
 # VM Linux para o piloto Lummium
 
-Atualizado em 17/11/2026. Piloto previsto para aproximadamente cinco pessoas,
-incluindo Yuri. A TI ainda vai preparar a VM; nenhum servidor de destino foi
-configurado ou considerado homologado nesta etapa.
+Atualizado em 19/11/2026. Piloto previsto para aproximadamente cinco pessoas,
+incluindo Yuri. Yuri esclareceu que a VM ja existe, com instalacao anterior
+congelada. O destino ainda nao foi inspecionado nem alterado nesta etapa;
+confirmar sua configuracao e seus dados antes de retomar o deploy.
 
 ## Pedido para a TI
 

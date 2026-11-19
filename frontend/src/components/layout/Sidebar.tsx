@@ -118,6 +118,7 @@ export function Sidebar({
                 <div className="min-w-0">
                   <span className="truncate text-[13px] font-semibold block">{q.name}</span>
                   {q.clientName && <span className="truncate text-[10px] font-bold text-indigo-400 block mt-0.5">{q.clientName}</span>}
+                  {['PENDING', 'PARTIAL'].includes(q.operation?.status || '') && <span className="text-[10px] text-amber-300 block">Conferência pendente</span>}
                   {q.status === 'CANCELED' && <span className="text-[10px] text-slate-500">Cancelada</span>}
                 </div>
               </div>

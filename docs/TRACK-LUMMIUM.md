@@ -1,12 +1,22 @@
 # Lummium — acompanhamento da evolução
 
-Atualizado em 17/11/2026. Este arquivo é a referência atual; PLANO-LOCACAO.md permanece como registro histórico.
+Atualizado em 19/11/2026. Este arquivo é a referência atual; PLANO-LOCACAO.md permanece como registro histórico.
 Escopo: notebooks para locação, catálogo, propostas e reservas. Sem preços, margens ou cálculo financeiro.
+
+## Entrega 1.2.0 — operações confiáveis
+
+Histórico, resultado por item, bloqueios persistentes e recuperação foram
+implementados e ensaiados. O guia atual está em [OPERACOES-CONFIAVEIS.md](OPERACOES-CONFIAVEIS.md).
+A evidência inclui falha parcial e resposta perdida com reinício da API, pela
+interface de homologação e com somente os dois equipamentos fictícios autorizados.
+O quadro abaixo conserva a evolução anterior; não confundir validação local
+com implantação na VM ou aceite dos cinco participantes em dispositivos reais.
+O downgrade citado por Yuri significava retirar Telegram, sem rebaixar componentes.
 
 ## Estado publicado
 
 - Base estavel: v1.1.0, commit 65be438, publicada e validada em 17/11. Migracao d1103_inventory_watermark ensaiada com restauracao PostgreSQL, aplicada com registros existentes preservados; CI aprovado.
-- Proximo destino: VM Linux ainda a ser preparada pela TI. Piloto com aproximadamente cinco pessoas, incluindo Yuri.
+- Proximo destino: VM Linux existente, com instalacao anterior congelada; diagnostico do destino pendente. Piloto com aproximadamente cinco pessoas, incluindo Yuri.
 - Preparacao do proximo ciclo em homologacao: bloqueio de reservas por inventario vencido/nao validado, metadados persistentes e controle de acesso as integracoes. Nao confundir esse codigo candidato com a base estavel em uso.
 
 - Aplicação: https://172.16.20.92:3443/ (rede interna; certificado local ainda sem confiança validada nos dispositivos).

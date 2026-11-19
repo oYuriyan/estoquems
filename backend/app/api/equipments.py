@@ -164,6 +164,7 @@ async def get_equipments_grouped(
                 "fornecedor": i.fornecedor,
                 "is_reserved": i.is_reserved,
                 "is_available": is_available(i),
+                "reservation_pending": bool(i.reservation_operation_id),
                 "especificacoes": i.especificacoes
             })
         

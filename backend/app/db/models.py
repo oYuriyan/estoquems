@@ -50,6 +50,7 @@ class Equipment(Base):
     status = Column(String, default="USADO", nullable=False)
     is_reserved = Column(Boolean, default=False, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
+    reservation_operation_id = Column(String, ForeignKey("quote_operations.id"), nullable=True, index=True)
     inventory_confirmed_at = Column(DateTime(timezone=True), nullable=True)
     fornecedor = Column(String)
     especificacoes = Column(JSON) # JSON com processador, ram, armazenamento, etc.
@@ -101,3 +102,8 @@ class QuoteItem(Base):
     
     quote = relationship("Quote", back_populates="items")
     equipment = relationship("Equipment")
+
+# Register ledger tables for metadata creation and migrations.
+from app.db.operations import QuoteOperation as QuoteOperation, OperationItem as OperationItem, OperationEvent as OperationEvent
+
+__all__ = ["Base", "User", "UserRole", "Equipment", "EquipmentStatus", "Quote", "QuoteItem", "QuoteStatus", "CatalogSyncState", "generate_uuid", "QuoteOperation", "OperationItem", "OperationEvent"]

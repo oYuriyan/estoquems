@@ -29,5 +29,22 @@ it('mostra a mensagem estruturada quando o servidor bloqueia uma tela desatualiz
   await act(async () => result.current.handleReserve());
   expect(toast).toHaveBeenCalledWith('Atualize o inventário antes de reservar.', 'error');
   expect(fetchCatalog).toHaveBeenCalled();
-  expect(refresh).not.toHaveBeenCalled();
+  expect(refresh).toHaveBeenCalled();
+});
+
+it('HTTP 202 mostra pendência e nunca anuncia sucesso', async () => {
+  vi.mocked(apiFetch).mockResolvedValue({ok:true,status:202,json:async()=>({detail:{message:'Conferência pendente.'}})} as Response);
+  const update=vi.fn().mockResolvedValue(true),refresh=vi.fn(),fetchCatalog=vi.fn(),toast=vi.fn();
+  const {result}=renderHook(()=>useQuoteActions(quote.id,quote,[item],update,fetchCatalog,refresh,toast,vi.fn(),null));
+  await act(async()=>result.current.handleReserve());
+  expect(toast).toHaveBeenCalledWith('Conferência pendente.','info');
+  expect(toast.mock.calls.some(call=>call[1]==='success')).toBe(false);
+  expect(refresh).toHaveBeenCalledOnce();
+});
+it('dois cliques simultâneos enviam somente uma solicitação', async () => {
+  vi.mocked(apiFetch).mockResolvedValue({ok:true,status:200,json:async()=>({operation:{message:'Reserva confirmada.'}})} as Response);
+  const update=vi.fn().mockResolvedValue(true);
+  const {result}=renderHook(()=>useQuoteActions(quote.id,quote,[item],update,vi.fn(),vi.fn(),vi.fn(),vi.fn(),null));
+  await act(async()=>{await Promise.all([result.current.handleReserve(),result.current.handleReserve()]);});
+  expect(apiFetch).toHaveBeenCalledOnce();
 });

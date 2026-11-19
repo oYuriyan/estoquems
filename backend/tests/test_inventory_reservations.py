@@ -1,6 +1,7 @@
 """Regressões de disponibilidade e reservas, com GLPI/n8n simulados."""
 from unittest.mock import AsyncMock, Mock, patch
 
+import httpx
 import pytest
 from app.db.models import QuoteStatus
 from test_equipments_quotes import create_equipment, create_draft_quote
@@ -11,9 +12,15 @@ pytestmark = pytest.mark.usefixtures('fresh_catalog')
 def webhook_client(fails=False):
     response = Mock()
     response.json.return_value = {'sucesso': True}
-    response.raise_for_status.side_effect = RuntimeError("integração indisponível") if fails else None
+    response.raise_for_status.side_effect = httpx.ConnectError("integração indisponível") if fails else None
     client = AsyncMock()
     client.post.return_value = response
+    async def acknowledge(url, **kwargs):
+        payload = kwargs['json']
+        if response.json.return_value == {'sucesso': True}:
+            response.json.side_effect = lambda: {'sucesso': True, 'operationId': payload['operationId'], 'results': [{'idGlpi': i['idGlpi'], 'operationId': payload['operationId'], 'status': 'confirmed'} for i in payload['itens']]}
+        return response
+    client.post.side_effect = acknowledge
     context = AsyncMock()
     context.__aenter__.return_value = client
     return context, client
@@ -120,7 +127,8 @@ async def test_cancel_keeps_reservation_when_glpi_fails(client, db_session, sale
     context, _ = webhook_client(fails=True)
     with patch('app.api.quotes.httpx.AsyncClient', return_value=context):
         response = await client.post(f'/api/quotes/{quote_id}/cancel', headers={"Authorization": f"Bearer {token}"})
-    assert response.status_code == 502
+    assert response.status_code == 202
+    assert response.json()["operation"]["status"] == "PENDING"
     await db_session.refresh(equipment)
     await db_session.refresh(quote)
     assert equipment.is_reserved is True
@@ -164,7 +172,8 @@ async def test_http_200_conflict_from_n8n_is_not_a_success(client, db_session, s
     integration.post.return_value.json.return_value = {'erro': 'Já reservado no GLPI'}
     with patch('app.api.quotes.httpx.AsyncClient', return_value=context):
         response = await client.post(f'/api/quotes/{quote_id}/reserve', headers={'Authorization': f'Bearer {token}'})
-    assert response.status_code == 409
+    assert response.status_code == 202
+    assert response.json()["operation"]["status"] == "PENDING"
     await db_session.refresh(equipment)
     await db_session.refresh(quote)
     assert equipment.is_reserved is False

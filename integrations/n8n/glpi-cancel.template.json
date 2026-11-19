@@ -31,7 +31,7 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "\nconst body=$input.first().json.body;\nif(!body || typeof body.propostaId!=='string' || !/^[a-zA-Z0-9_-]{1,100}$/.test(body.propostaId))throw new Error('Proposta invalida');\nif(!Array.isArray(body.itens)||!body.itens.length||body.itens.length>100)throw new Error('Itens invalidos');\nconst ids=new Set();\nfor(const item of body.itens){const id=Number(item.idGlpi);if(!Number.isSafeInteger(id)||id<=0||ids.has(id))throw new Error('ID GLPI ausente, invalido ou duplicado');ids.add(id);}\nreturn [{json:body}];\n"
+        "jsCode": "\nconst body=$input.first().json.body;\nif(!body || typeof body.propostaId!=='string' || !/^[a-zA-Z0-9_-]{1,100}$/.test(body.propostaId))throw new Error('Proposta invalida');\nif(!Array.isArray(body.itens)||!body.itens.length||body.itens.length>100)throw new Error('Itens invalidos');\nconst ids=new Set();\nfor(const item of body.itens){const id=Number(item.idGlpi);if(!Number.isSafeInteger(id)||id<=0||ids.has(id))throw new Error('ID GLPI ausente, invalido ou duplicado');ids.add(id);}\nif(body.operationId!==undefined && (typeof body.operationId!=='string'||!/^[a-zA-Z0-9_-]{1,100}$/.test(body.operationId)))throw new Error('Operacao invalida');\nreturn [{json:body}];\n\n"
       }
     },
     {
@@ -79,7 +79,7 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "\nconst session=$input.first().json.session_token;\nif(typeof session!=='string'||!session)throw new Error('Sessao GLPI nao confirmada');\nconst body=$('Validar').first().json;\nreturn body.itens.map(item=>({json:{idGlpi:Number(item.idGlpi),numeroSerie:item.numeroSerie||null,operationId:body.propostaId},pairedItem:{item:0}}));\n"
+        "jsCode": "\nconst session=$input.first().json.session_token;\nif(typeof session!=='string'||!session)throw new Error('Sessao GLPI nao confirmada');\nconst body=$('Validar').first().json;\nreturn body.itens.map(item=>({json:{idGlpi:Number(item.idGlpi),numeroSerie:item.numeroSerie||null,quoteId:body.propostaId,operationId:body.operationId||body.propostaId},pairedItem:{item:0}}));\n"
       }
     },
     {
@@ -129,7 +129,7 @@
       ],
       "parameters": {
         "mode": "runOnceForEachItem",
-        "jsCode": "\nconst item=$('Preparar').item.json,remote=$input.item.json;\nconst result={...item,action:\"cancel\",should_write:false,outcome:'pending',message:'Nao foi possivel consultar o equipamento'};\nif(Number(remote.id)!==item.idGlpi)return {json:result};\nif(item.numeroSerie && String(remote.serial||'').trim()!==String(item.numeroSerie).trim())return {json:{...result,outcome:'conflict',message:'Serial difere do equipamento solicitado'}};\nconst state=Number(remote.states_id),comment=String(remote.comment||'');\nconst match=comment.match(/\\n\\[LUMMIUM_RESERVA (\\{[^\\r\\n]*\\})\\]$/);\nlet marker=null;try{if(match)marker=JSON.parse(match[1]);}catch{}\nresult.original_state=state;\nif(\"cancel\"==='reserve'){\n if(state===17 && marker?.quote===item.operationId)return {json:{...result,outcome:'eligible',target_state:17,target_comment:comment,message:'Reserva ja confirmada'}};\n if(![3,8].includes(state)||marker)return {json:{...result,outcome:'conflict',message:'Equipamento indisponivel ou reservado por outra proposta'}};\n return {json:{...result,outcome:'eligible',should_write:true,target_state:17,target_comment:comment+'\\n[LUMMIUM_RESERVA '+JSON.stringify({quote:item.operationId,original_state:state})+']',message:'Reserva solicitada'}};\n}\nif([3,8].includes(state)&&!marker)return {json:{...result,outcome:'eligible',target_state:state,target_comment:comment,message:'Equipamento ja liberado'}};\nif(state!==17||marker?.quote!==item.operationId||![3,8].includes(Number(marker.original_state)))return {json:{...result,outcome:'conflict',message:'Reserva nao pertence a esta proposta ou estado original desconhecido'}};\nreturn {json:{...result,outcome:'eligible',should_write:true,target_state:Number(marker.original_state),target_comment:comment.slice(0,match.index),message:'Cancelamento solicitado'}};\n"
+        "jsCode": "\nconst item=$('Preparar').item.json,remote=$input.item.json;\nconst result={...item,action:\"cancel\",should_write:false,outcome:'pending',message:'Nao foi possivel consultar o equipamento'};\nif(Number(remote.id)!==item.idGlpi)return {json:result};\nif(item.numeroSerie && String(remote.serial||'').trim()!==String(item.numeroSerie).trim())return {json:{...result,outcome:'conflict',message:'Serial difere do equipamento solicitado'}};\nconst state=Number(remote.states_id),comment=String(remote.comment||'');\nconst match=comment.match(/\\n\\[LUMMIUM_RESERVA (\\{[^\\r\\n]*\\})\\]$/);\nlet marker=null;try{if(match)marker=JSON.parse(match[1]);}catch{}\nresult.original_state=state;\nif(\"cancel\"==='reserve'){\n if(state===17 && marker?.quote===item.quoteId)return {json:{...result,outcome:'eligible',target_state:17,target_comment:comment,message:'Reserva ja confirmada'}};\n if(![3,8].includes(state)||marker)return {json:{...result,outcome:'conflict',message:'Equipamento indisponivel ou reservado por outra proposta'}};\n return {json:{...result,outcome:'eligible',should_write:true,target_state:17,target_comment:comment+'\\n[LUMMIUM_RESERVA '+JSON.stringify({quote:item.quoteId,original_state:state})+']',message:'Reserva solicitada'}};\n}\nif([3,8].includes(state)&&!marker)return {json:{...result,outcome:'eligible',target_state:state,target_comment:comment,message:'Equipamento ja liberado'}};\nif(state!==17||marker?.quote!==item.quoteId||![3,8].includes(Number(marker.original_state)))return {json:{...result,outcome:'conflict',message:'Reserva nao pertence a esta proposta ou estado original desconhecido'}};\nreturn {json:{...result,outcome:'eligible',should_write:true,target_state:Number(marker.original_state),target_comment:comment.slice(0,match.index),message:'Cancelamento solicitado'}};\n"
       }
     },
     {
@@ -233,7 +233,7 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "\nconst results=$input.all().map(item=>item.json),success=results.length>0&&results.every(item=>item.status==='confirmed');\nconst out={sucesso:success,operationId:$('Validar').first().json.propostaId,results,partial:!success&&results.some(item=>item.status==='confirmed')};\nif(results.some(item=>item.status==='conflict'))out.erro='Um ou mais equipamentos apresentam conflito';\nreturn [{json:out}];\n"
+        "jsCode": "\nconst results=$input.all().map(item=>item.json),success=results.length>0&&results.every(item=>item.status==='confirmed');\nconst out={sucesso:success,operationId:($('Validar').first().json.operationId||$('Validar').first().json.propostaId),results,partial:!success&&results.some(item=>item.status==='confirmed')};\nif(results.some(item=>item.status==='conflict'))out.erro='Um ou mais equipamentos apresentam conflito';\nreturn [{json:out}];\n"
       }
     },
     {
@@ -451,6 +451,7 @@
     }
   },
   "settings": {
-    "executionOrder": "v1"
+    "executionOrder": "v1",
+    "executionTimeout": 45
   }
 }

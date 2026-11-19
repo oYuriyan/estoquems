@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { apiFetch } from '../utils/api';
 import type { Quote, Equipamento } from '../types';
 
@@ -14,61 +14,48 @@ export function useQuoteActions(
   reservationBlockReason: string | null,
 ) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const submitting = useRef(false);
 
-  const handleReserve = async () => {
-    if (cart.length === 0 || !activeQuoteId || !activeQuote) return;
-    if (reservationBlockReason) { addToast(reservationBlockReason, 'error'); return; }
+  const submitOperation = async (action: string) => {
+    if (!activeQuoteId || !activeQuote || submitting.current) return;
+    if (action === 'reserve' && reservationBlockReason) { addToast(reservationBlockReason, 'error'); return; }
     if (!navigator.onLine) { addToast('Você está offline.', 'error'); return; }
+    submitting.current = true;
     setIsSubmitting(true);
     try {
-      const saved = await updateQuote(activeQuoteId, {
-        name: activeQuote.name,
-        clientName: activeQuote.clientName || 'Não informado',
-        validityDays: activeQuote.validityDays || 2,
-        margin: activeQuote.margin || '',
-        items: cart,
-      });
-      if (!saved) throw new Error('A proposta não foi salva. Confira os dados antes de reservar.');
-
-      const res = await apiFetch(`/api/quotes/${activeQuoteId}/reserve`, {
-        method: 'POST'
-      });
-      if (!res.ok) {
-        const error = await res.json().catch(() => ({}));
-        const message = typeof error.detail === 'string' ? error.detail : error.detail?.message;
-        throw new Error(typeof message === 'string' ? message : 'Não foi possível confirmar a reserva.');
-      }
-      
-      await refreshQuotes();
-      await fetchCatalogo(true, true);
-      addToast('Reserva realizada com sucesso!', 'success');
-    } catch (err: unknown) {
-      await fetchCatalogo(true, true);
-      addToast(err instanceof Error ? err.message : 'Erro desconhecido ao reservar.', 'error');
-    } finally { setIsSubmitting(false); }
-  };
-
-  const handleCancelReserve = () => {
-    if (!activeQuoteId || !activeQuote) return;
-    showConfirm('Cancelar Reserva', 'Após a confirmação no GLPI, os equipamentos serão liberados e esta proposta ficará cancelada.', async () => {
-      setIsSubmitting(true);
-      try {
-        const backendId = (activeQuote as unknown as Record<string, unknown>).backendId || activeQuoteId;
-        const res = await apiFetch(`/api/quotes/${backendId}/cancel`, {
-          method: 'POST'
+      const pending = ['PENDING', 'PARTIAL'].includes(activeQuote.operation?.status || '');
+      if (action === 'reserve' && !pending) {
+        if (!cart.length) return;
+        if (reservationBlockReason) { addToast(reservationBlockReason, 'error'); return; }
+        const saved = await updateQuote(activeQuoteId, {
+          name: activeQuote.name, clientName: activeQuote.clientName || 'Não informado',
+          validityDays: activeQuote.validityDays || 2, margin: activeQuote.margin || '', items: cart,
         });
-        if (!res.ok) {
-          const error = await res.json().catch(() => ({}));
-          throw new Error(typeof error.detail === 'string' ? error.detail : 'Não foi possível cancelar a reserva.');
-        }
-        await refreshQuotes();
-        await fetchCatalogo(true, true);
-        addToast('Reserva cancelada com sucesso.', 'success');
-      } catch (err: unknown) {
-        addToast(err instanceof Error ? err.message : 'Erro desconhecido ao cancelar.', 'error');
-      } finally { setIsSubmitting(false); }
-    });
+        if (!saved) throw new Error('A proposta não foi salva. Confira os dados antes de reservar.');
+      }
+      const response = await apiFetch(`/api/quotes/${activeQuoteId}/${action}`, {method:'POST',headers:{'X-Lummium-Operations':'1'}});
+      const data = await response.json().catch(() => ({}));
+      const message = typeof data.detail === 'string' ? data.detail : data.detail?.message;
+      if (response.status === 202) {
+        addToast(typeof message === 'string' ? message : 'Operação registrada; aguardando conferência.', 'info');
+      } else if (!response.ok) {
+        throw new Error(typeof message === 'string' ? message : 'Não foi possível confirmar a operação.');
+      } else {
+        addToast(data.operation?.message || 'Operação confirmada.', 'success');
+      }
+    } catch (error: unknown) {
+      addToast(error instanceof Error ? error.message : 'Não foi possível confirmar a operação.', 'error');
+    } finally {
+      await Promise.allSettled([refreshQuotes(), fetchCatalogo(true, true)]);
+      submitting.current = false;
+      setIsSubmitting(false);
+    }
   };
+  const handleReserve = () => submitOperation('reserve');
+  const handleReconcile = () => submitOperation('reconcile');
+  const handleRetry = () => submitOperation('retry');
+  const handleReverse = () => showConfirm('Desfazer reserva parcial', 'Somente os itens confirmados desta proposta serão liberados após conferência no GLPI. Deseja continuar?', () => { void submitOperation('reverse'); });
+  const handleCancelReserve = () => showConfirm('Cancelar Reserva', 'Os equipamentos serão liberados somente após confirmação no GLPI.', () => { void submitOperation('cancel'); });
 
   const handleWhatsApp = () => {
     if (!activeQuote) return;
@@ -97,6 +84,7 @@ export function useQuoteActions(
     isSubmitting,
     handleReserve,
     handleCancelReserve,
+    handleReconcile, handleRetry, handleReverse,
     handleWhatsApp
   };
 }

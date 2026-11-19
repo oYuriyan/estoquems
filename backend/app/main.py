@@ -27,6 +27,7 @@ from app.api import auth, equipments, quotes, users, recovery
 from app.core.config import get_settings
 from app.db.session import get_db, AsyncSessionLocal
 from app.catalog_sync import catalog_synchronizer
+from app.services.operations import reconcile_background
 from app.middleware.logging import RequestLoggingMiddleware
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -78,15 +79,17 @@ async def lifespan(app: FastAPI):
                 logger.warning('Inventário não sincronizado; catálogo anterior preservado: %s', error)
             await asyncio.sleep(60)
     task = asyncio.create_task(refresh_catalog()) if settings.APP_ENV != 'test' else None
+    reconciliation = asyncio.create_task(reconcile_background(AsyncSessionLocal, app.state.ws_manager.broadcast)) if settings.APP_ENV != 'test' else None
     try:
         yield
     finally:
-        if task:
-            task.cancel()
-            try:
-                await task
-            except asyncio.CancelledError:
-                pass
+        for running in (task, reconciliation):
+            if running:
+                running.cancel()
+                try:
+                    await running
+                except asyncio.CancelledError:
+                    pass
     logger.info("🛑 %s finalizando.", settings.APP_NAME)
 
 

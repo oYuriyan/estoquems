@@ -193,7 +193,7 @@ export default function App() {
 
   const reservationBlockReason = getReservationBlockReason(data?.metadados, now);
 
-  const { isSubmitting, handleReserve, handleCancelReserve, handleWhatsApp } = useQuoteActions(
+  const { isSubmitting, handleReserve, handleCancelReserve, handleWhatsApp, handleReconcile, handleRetry, handleReverse } = useQuoteActions(
     activeQuoteId,
     activeQuote,
     cart,
@@ -321,6 +321,9 @@ export default function App() {
           onDelete={() => showConfirm('Excluir Proposta', 'Esta ação não pode ser desfeita.', async () => { if (await removeQuote(activeQuoteId!)) setIsQuoteModalOpen(false); })}
           onReserve={handleReserve}
           onCancelReserve={handleCancelReserve}
+          onReconcile={handleReconcile}
+          onRetry={handleRetry}
+          onReverse={handleReverse}
           onPrint={() => generatePdf(activeQuote, cart, logoOficial, watermarkOficial)}
           onWhatsApp={handleWhatsApp}
         />

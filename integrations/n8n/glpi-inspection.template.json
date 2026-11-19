@@ -1,0 +1,248 @@
+{
+  "id": "glpi-inspection",
+  "name": "GLPI - Conferir Reservas",
+  "active": false,
+  "nodes": [
+    {
+      "id": "15c248d2-3a0d-4329-8e52-2b14f16c827c",
+      "name": "Entrada",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "consultar_reservas",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "webhookId": "10dc8a42-603d-4065-bd28-0f9fae059d28"
+    },
+    {
+      "id": "85556087-d72e-4bea-a40a-bd462af9acba",
+      "name": "Validar",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "\nconst body=$input.first().json.body;\nif(!body || typeof body.propostaId!=='string' || !/^[a-zA-Z0-9_-]{1,100}$/.test(body.propostaId))throw new Error('Proposta invalida');\nif(!Array.isArray(body.itens)||!body.itens.length||body.itens.length>100)throw new Error('Itens invalidos');\nconst ids=new Set();\nfor(const item of body.itens){const id=Number(item.idGlpi);if(!Number.isSafeInteger(id)||id<=0||ids.has(id))throw new Error('ID GLPI ausente, invalido ou duplicado');ids.add(id);}\nif(body.operationId!==undefined && (typeof body.operationId!=='string'||!/^[a-zA-Z0-9_-]{1,100}$/.test(body.operationId)))throw new Error('Operacao invalida');\nreturn [{json:body}];\n\n"
+      }
+    },
+    {
+      "id": "959c8a60-0a29-4db9-ac79-e75f77dd5bae",
+      "name": "Sessao GLPI",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "url": "__GLPI_API_BASE__/initSession",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "App-Token",
+              "value": "__GLPI_APP_TOKEN__"
+            },
+            {
+              "name": "Authorization",
+              "value": "__GLPI_USER_TOKEN_AUTHORIZATION__"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 15000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "e455376d-b0e6-4661-83cc-c93616b9c7de",
+      "name": "Preparar",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        0
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "\nconst session=$input.first().json.session_token;\nif(typeof session!=='string'||!session)throw new Error('Sessao GLPI nao confirmada');\nconst body=$('Validar').first().json;\nreturn body.itens.map(item=>({json:{idGlpi:Number(item.idGlpi),numeroSerie:item.numeroSerie||null,quoteId:body.propostaId,operationId:body.operationId||body.propostaId},pairedItem:{item:0}}));\n"
+      }
+    },
+    {
+      "id": "5a2d7d87-83f6-4fb4-955b-4943a76a5751",
+      "name": "Consultar",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        0
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "=__GLPI_API_BASE__/Computer/{{ $json.idGlpi }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "App-Token",
+              "value": "__GLPI_APP_TOKEN__"
+            },
+            {
+              "name": "Session-Token",
+              "value": "={{ $('Sessao GLPI').first().json.session_token }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 15000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": false
+            }
+          }
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "f4e1fa22-93cb-48f1-997c-046a5c293263",
+      "name": "Resumo",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1980,
+        0
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "return [{json:{operationId:($('Validar').first().json.operationId||$('Validar').first().json.propostaId),results:$input.all().map(item=>item.json)}}];"
+      }
+    },
+    {
+      "id": "38947659-cfd7-422c-8a2a-a6de78a58c31",
+      "name": "Responder",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        2200,
+        0
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "be395925-32e0-491b-88ed-14bd52a6fe39",
+      "name": "Estado por item",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        0
+      ],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "\nconst item=$('Preparar').item.json,remote=$input.item.json;\nlet state='unknown';\nif(Number(remote.id)===item.idGlpi && (!item.numeroSerie||String(remote.serial||'').trim()===String(item.numeroSerie).trim())){\n const current=Number(remote.states_id),comment=String(remote.comment||'');\n const match=comment.match(/\\n\\[LUMMIUM_RESERVA (\\{[^\\r\\n]*\\})\\]$/);\n let marker=null;try{if(match)marker=JSON.parse(match[1]);}catch{}\n if(current===17)state=marker?.quote===item.quoteId?'reserved_by_quote':'reserved_other';\n else if([3,8].includes(current)&&!marker)state='available';\n else state='unavailable';\n}\nreturn {json:{idGlpi:item.idGlpi,operationId:item.operationId,state}};\n"
+      }
+    }
+  ],
+  "connections": {
+    "Entrada": {
+      "main": [
+        [
+          {
+            "node": "Validar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar": {
+      "main": [
+        [
+          {
+            "node": "Sessao GLPI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sessao GLPI": {
+      "main": [
+        [
+          {
+            "node": "Preparar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar": {
+      "main": [
+        [
+          {
+            "node": "Consultar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consultar": {
+      "main": [
+        [
+          {
+            "node": "Estado por item",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Estado por item": {
+      "main": [
+        [
+          {
+            "node": "Resumo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resumo": {
+      "main": [
+        [
+          {
+            "node": "Responder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "executionTimeout": 45
+  }
+}

@@ -81,3 +81,5 @@ conferir conflitos e acessos, ensaiar restauracao e validar a preparacao. Usar
 o CLI suportado `import:workflow`, publicar cada ID e reiniciar n8n para carregar
 as versoes. A importacao padrao deixa os workflows inativos; nao esquecer essa
 etapa. Nao ativar agendamentos duplicados entre o computador atual e a VM.
+
+Complemento de 19/11: a versão 1.2 adiciona a conferência somente leitura, totalizando quatro templates e um preparador atualizado. Histórico e recuperação estão em [OPERACOES-CONFIAVEIS.md](OPERACOES-CONFIAVEIS.md). Os resultados de 18/11 acima permanecem como registro histórico.

@@ -5,7 +5,7 @@ from functools import lru_cache
 class Settings(BaseSettings):
     # App Settings
     APP_NAME: str = "Lummium API"
-    APP_VERSION: str = "1.1.0"
+    APP_VERSION: str = "1.2.0"
     APP_ENV: str = "production"
 
     # DB
