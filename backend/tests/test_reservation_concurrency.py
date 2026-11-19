@@ -8,6 +8,8 @@ from app.main import app
 from app.db.session import get_db
 from test_equipments_quotes import create_equipment, create_draft_quote
 
+pytestmark = pytest.mark.usefixtures('fresh_catalog')
+
 
 @pytest.mark.asyncio
 async def test_only_one_concurrent_quote_can_reserve_equipment(client, db_session, sales_user):
@@ -32,6 +34,8 @@ async def test_only_one_concurrent_quote_can_reserve_equipment(client, db_sessio
     response.json.return_value = {'sucesso': True}
     integration = AsyncMock()
     async def acknowledge(*args, **kwargs):
+        payload = kwargs['json']
+        response.json.return_value = {'sucesso': True, 'operationId': payload['operationId'], 'results': [{'idGlpi': i['idGlpi'], 'operationId': payload['operationId'], 'status': 'confirmed'} for i in payload['itens']]}
         await asyncio.sleep(0.05)
         return response
     integration.post.side_effect = acknowledge

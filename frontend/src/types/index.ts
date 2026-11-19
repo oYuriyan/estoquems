@@ -57,7 +57,15 @@ export interface GroupedItem {
   items: Equipamento[];
 }
 
+export interface QuoteOperation {
+  id: string; quote_id: string; action: 'reserve' | 'cancel'; status: string;
+  parent_id?: string | null; actor_id: string; attempts: number; message: string;
+  created_at: string; updated_at: string; next_check_at?: string | null;
+  items: { equipment_id: string; id_glpi: string; serial: string; status: string; message: string }[];
+  events?: { kind: string; actor: string; status: string; created_at: string }[];
+}
 export interface Quote {
+  operation?: QuoteOperation | null;
   status?: 'DRAFT' | 'RESERVED' | 'CANCELED' | 'EXPIRED' | 'WON';
   id: string; // ID local (UUID)
   backendId?: string; // ID do banco de dados (FastAPI)

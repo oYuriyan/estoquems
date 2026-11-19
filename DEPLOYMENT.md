@@ -2,6 +2,11 @@
 
 Este guia cobre a instalação e execução do sistema Lummium em uma **Máquina Virtual (VM) com Ubuntu/Linux** focada em uso por **IP Interno** (rede corporativa).
 
+Para o piloto com a equipe, a TI deve primeiro fornecer a VM, o DNS e o
+certificado conforme [REQUISICAO-VM-PILOTO.md](docs/REQUISICAO-VM-PILOTO.md).
+Os comandos deste guia nao significam que integracoes e uso operacional ja
+estejam homologados. Confira os bloqueadores em TRACK-LUMMIUM.md.
+
 ---
 
 ## Passo 1: Acessar a Máquina Virtual (VM) via SSH

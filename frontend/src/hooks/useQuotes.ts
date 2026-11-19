@@ -24,7 +24,7 @@ export function useQuotes(onError?: (message: string) => void) {
   const updateQuote = useCallback((id: string | null, patch: Partial<Quote>): Promise<boolean> => {
     const quote = quotesRef.current.find(q => q.id === id);
     if (!id || !quote) return Promise.resolve(false);
-    if (quote.isReserved || (quote.status && quote.status !== 'DRAFT')) {
+    if (['PENDING', 'PARTIAL'].includes(quote.operation?.status || '') || quote.isReserved || (quote.status && quote.status !== 'DRAFT')) {
       errorRef.current?.('Crie uma nova proposta para selecionar equipamentos.');
       return Promise.resolve(false);
     }
@@ -132,7 +132,7 @@ export function useQuotes(onError?: (message: string) => void) {
     
     const currentQuote = quotesRef.current.find(q => q.id === targetQuoteId);
     if (!currentQuote) return;
-    if (currentQuote.isReserved || (currentQuote.status && currentQuote.status !== 'DRAFT')) {
+    if (['PENDING', 'PARTIAL'].includes(currentQuote.operation?.status || '') || currentQuote.isReserved || (currentQuote.status && currentQuote.status !== 'DRAFT')) {
       errorRef.current?.('Crie uma nova proposta para selecionar equipamentos.');
       return;
     }

@@ -1,10 +1,14 @@
+name: estoque
+
 services:
   nginx:
-    image: nginx:alpine
+    image: ${NGINX_IMAGE:-nginx@sha256:8b1e78743a03dbb2c95171cc58639fef29abc8816598e27fb910ed2e621e589a}
     ports:
       # Expõe a porta 80 e 443 para a rede interna
       - "80:80"
       - "443:443"
+    expose:
+      - "8080"
     volumes:
       - ./frontend/dist:/usr/share/nginx/html
       - catalog_data:/var/catalog_data
@@ -18,11 +22,11 @@ services:
     restart: unless-stopped
 
   db:
-    image: postgres:15-alpine
+    image: ${POSTGRES_IMAGE:-postgres@sha256:df7bca0066e6f60cc3dd32faa70caddec20e2c22b58932f79498e5704b23854a}
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER:?Defina POSTGRES_USER no ambiente privado}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD no ambiente privado}
+      POSTGRES_DB: ${POSTGRES_DB:?Defina POSTGRES_DB no ambiente privado}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -39,14 +43,14 @@ services:
     expose:
       - "8000"
     environment:
-      - DATABASE_URL=${DATABASE_URL}
-      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
-      - FRONTEND_ORIGIN=${FRONTEND_ORIGIN}
+      - DATABASE_URL=${DATABASE_URL:?Defina DATABASE_URL no ambiente privado}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:?Defina JWT_SECRET_KEY no ambiente privado}
+      - FRONTEND_ORIGIN=${FRONTEND_ORIGIN:?Defina a URL HTTPS do piloto}
       - CATALOG_MAX_AGE_HOURS=${CATALOG_MAX_AGE_HOURS:-48}
       - SMTP_USERNAME=${SMTP_USERNAME:-}
       - SMTP_PASSWORD=${SMTP_PASSWORD:-}
       - SMTP_FROM=${SMTP_FROM:-}
-      - PASSWORD_RESET_URL=${PASSWORD_RESET_URL:-https://localhost:3443/}
+      - PASSWORD_RESET_URL=${PASSWORD_RESET_URL:?Defina a URL publica de recuperacao}
     depends_on:
       db:
         condition: service_healthy
@@ -66,7 +70,7 @@ services:
     command: sh -c "chown -R 1000:1000 /data && chown -R 1000:1000 /home/node/.n8n"
 
   n8n:
-    image: n8nio/n8n:latest
+    image: ${N8N_IMAGE:-n8nio/n8n@sha256:ddb5204bc8c7b71c446dfe1c1dce296df138bcfadb7f5e27d7de35ec2889d026}
     depends_on:
       init-perms:
         condition: service_completed_successfully
@@ -79,7 +83,7 @@ services:
       - N8N_PORT=5678
       - N8N_PROTOCOL=http
       - NODE_ENV=production
-      - WEBHOOK_URL=http://nginx/
+      - WEBHOOK_URL=http://localhost:5678/
       - GENERIC_TIMEZONE=America/Sao_Paulo
       - N8N_USER_FOLDER=/home/node/
       - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=false

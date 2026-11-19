@@ -80,6 +80,8 @@ class QuoteResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     
+    operation: Optional[Dict[str, Any]] = None
+
     # Detalhes opcionais
     items: List[EquipmentResponse] = []
     

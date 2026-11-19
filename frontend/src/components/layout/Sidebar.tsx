@@ -20,6 +20,7 @@ interface SidebarProps {
   isRefreshing: boolean;
   ultimaAtualizacao: string;
   ultimaSincronizacaoGLPI?: string;
+  reservationBlockReason: string | null;
   onSelectQuote: (id: string) => void;
   onNewQuote: () => void;
   onDeleteQuote: (id: string) => void;
@@ -31,14 +32,14 @@ interface SidebarProps {
 
 export function Sidebar({
   user, quotes, activeQuoteId, reservedProposals,
-  isRefreshing, ultimaAtualizacao, ultimaSincronizacaoGLPI,
+  isRefreshing, ultimaAtualizacao, ultimaSincronizacaoGLPI, reservationBlockReason,
   onSelectQuote, onNewQuote, onDeleteQuote, onResetCatalog, onSyncGlpi, onLogout, onRestartTour,
   onOpenAdminPanel,
 }: SidebarProps & { onOpenAdminPanel: () => void }) {
   const parsedDate = parseISO(ultimaAtualizacao);
   const hasDate = isValid(parsedDate);
   const sourceDate = parseISO(ultimaSincronizacaoGLPI || '');
-  const sourceIsStale = !isValid(sourceDate) || differenceInHours(new Date(), sourceDate) > 24;
+  const sourceIsStale = !!reservationBlockReason;
   const statusCritico = !hasDate || differenceInHours(new Date(), parsedDate) > 24;
 
   return (
@@ -117,6 +118,7 @@ export function Sidebar({
                 <div className="min-w-0">
                   <span className="truncate text-[13px] font-semibold block">{q.name}</span>
                   {q.clientName && <span className="truncate text-[10px] font-bold text-indigo-400 block mt-0.5">{q.clientName}</span>}
+                  {['PENDING', 'PARTIAL'].includes(q.operation?.status || '') && <span className="text-[10px] text-amber-300 block">Conferência pendente</span>}
                   {q.status === 'CANCELED' && <span className="text-[10px] text-slate-500">Cancelada</span>}
                 </div>
               </div>
@@ -196,7 +198,7 @@ export function Sidebar({
             {statusCritico ? <AlertTriangle className="w-3 h-3" /> : <CheckCircle className="w-3 h-3" />}
             <span>{hasDate ? format(parsedDate, 'dd/MM HH:mm') : 'Consulta pendente'}</span>
           </div>
-          <p className={clsx('text-[10px] text-center', sourceIsStale ? 'text-amber-400' : 'text-slate-400')}>Inventário GLPI: {isValid(sourceDate) ? format(sourceDate, 'dd/MM HH:mm') : 'aguardando sincronização'}{sourceIsStale && <span className="block mt-1">Confirme a atualização do inventário.</span>}</p>
+          <p className={clsx('text-[10px] text-center', sourceIsStale ? 'text-amber-400' : 'text-slate-400')}>Inventário GLPI: {isValid(sourceDate) ? format(sourceDate, 'dd/MM HH:mm') : 'aguardando sincronização'}{sourceIsStale && <span className="block mt-1">{reservationBlockReason}</span>}</p>
         </div>
 
         {user.role === 'ADMIN' && (

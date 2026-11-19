@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.2.0 — 2026-11-19
+
+- Histórico persistente com autor, proposta, operação e resultado por equipamento.
+- Bloqueios duráveis, conferência somente leitura, retomada e desfazimento de reserva parcial.
+- Resultados correlacionados, proteção contra resposta atrasada e tela antiga em cache.
+- Interface com acompanhamento e histórico; quarto workflow GLPI para conferência, sem Telegram.
+- Migração aditiva ensaiada sobre restauração; downgrade destrutivo de histórico recusado.
+- Integra as proteções de inventário e proxy preparadas no ciclo anterior.
+
+
 Todas as mudanças notáveis deste projeto estão documentadas aqui.
 
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),

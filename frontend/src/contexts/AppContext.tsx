@@ -77,6 +77,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const mappedQuotes: Quote[] = backendQuotes.map((q: any) => ({
           id: q.id,
           status: q.status,
+          operation: q.operation,
           name: q.name,
           clientName: q.client_name,
           margin: q.margin,
@@ -93,6 +94,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       console.error('Erro ao buscar propostas do backend', err);
     }
   }, [user]);
+
+  useEffect(() => {
+    if (!user || !quotes.some(quote => ['PENDING', 'PARTIAL'].includes(quote.operation?.status || ''))) return;
+    const timer = setInterval(() => { void refreshQuotes(); }, 3000);
+    return () => clearInterval(timer);
+  }, [user, quotes, refreshQuotes]);
 
   // Carrega as propostas do backend ao logar
   useEffect(() => {
@@ -135,6 +142,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         messageTimer = setTimeout(() => setWsMessage(null), 1000);
       };
       socket.onmessage = event => {
+        if (event.data === "OPERATION_UPDATED") void refreshQuotes();
         setWsMessage(event.data);
         clearTimeout(messageTimer);
         messageTimer = setTimeout(() => setWsMessage(null), 1000);
@@ -153,7 +161,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       clearTimeout(messageTimer);
       socket?.close();
     };
-  }, [user]);
+  }, [user, refreshQuotes]);
 
   // Listener global para sessão expirada (evento disparado pelo apiFetch ao receber 401)
   useEffect(() => {

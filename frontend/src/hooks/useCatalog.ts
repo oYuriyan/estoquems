@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import type { GroupedItem } from '../types';
 import { apiFetch } from '../utils/api';
 import { mapEquipment } from '../utils/equipment';
+import type { InventoryReservationMetadata } from '../utils/inventory';
 
 interface UseCatalogOptions {
   pausePolling?: boolean;
@@ -12,7 +13,7 @@ interface UseCatalogOptions {
 export function useCatalog({ pausePolling = false, isAuthenticated = false, onError }: UseCatalogOptions = {}) {
   const [data, setData] = useState<{ 
     groups: GroupedItem[], 
-    metadados: {
+    metadados: InventoryReservationMetadata & {
       ultimaAtualizacao?: string;
       ultimaSincronizacaoGLPI?: string;
       totalEquipments?: number;
@@ -29,6 +30,7 @@ export function useCatalog({ pausePolling = false, isAuthenticated = false, onEr
   // States para server-side fetching
   const page = useRef(1);
   const request = useRef<AbortController | null>(null);
+  const syncRequest = useRef<AbortController | null>(null);
   const errorHandler = useRef(onError);
   useEffect(() => { errorHandler.current = onError; }, [onError]);
   const [hasMore, setHasMore] = useState(true);
@@ -79,24 +81,30 @@ export function useCatalog({ pausePolling = false, isAuthenticated = false, onEr
         items: g.items.map(mapEquipment)
       }));
 
+      const metadados = {
+        totalEquipments: payload.total_equipments,
+        totalGroups: payload.total_groups,
+        totalNovos: payload.total_novos,
+        totalUsados: payload.total_usados,
+        totalAvailable: payload.total_available,
+        totalReserved: payload.total_reserved,
+        ultimaAtualizacao: payload.retrieved_at || new Date().toISOString(),
+        ultimaSincronizacaoGLPI: payload.source_updated_at || undefined,
+        reservationAllowed: payload.reservation_allowed === true,
+        reservationBlockReason: payload.reservation_block_reason || undefined,
+        inventoryFreshUntil: payload.inventory_fresh_until || undefined,
+      };
+
       setData(prev => {
         if (resetPage || !prev) {
           return {
             groups: mappedGroups,
-            metadados: { 
-              totalEquipments: payload.total_equipments, 
-              totalGroups: payload.total_groups,
-              totalNovos: payload.total_novos,
-              totalUsados: payload.total_usados,
-              totalAvailable: payload.total_available,
-              totalReserved: payload.total_reserved,
-              ultimaAtualizacao: payload.retrieved_at || new Date().toISOString(),
-              ultimaSincronizacaoGLPI: payload.source_updated_at || undefined,
-            }
+            metadados,
           };
         }
         return {
           ...prev,
+          metadados,
           groups: [...prev.groups, ...mappedGroups.filter((group: GroupedItem) => !prev.groups.some(previous => previous.key === group.key))]
         };
       });
@@ -108,6 +116,7 @@ export function useCatalog({ pausePolling = false, isAuthenticated = false, onEr
       return true;
 
     } catch (err: unknown) {
+      if (controller.signal.aborted) return false;
       console.error(err instanceof Error ? err.message : 'Erro desconhecido ao carregar dados.');
       if (!controller.signal.aborted && !silent) errorHandler.current?.('Erro ao atualizar o catálogo.');
       return false;
@@ -129,63 +138,61 @@ export function useCatalog({ pausePolling = false, isAuthenticated = false, onEr
     return () => { request.current?.abort(); };
   }, [filters, isAuthenticated]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  /** Aciona sync GLPI via n8n e faz polling até o catálogo ser atualizado (máx 30s) */
+  // Cancela a espera local ao sair da conta ou desmontar a tela.
+  useEffect(() => () => syncRequest.current?.abort(), [isAuthenticated]);
+
+  /** Somente a API autenticada solicita a exportação; arquivo e webhook ficam internos. */
   const syncGLPI = useCallback(async (onSuccess?: (msg: string) => void, onInfo?: (msg: string) => void) => {
-    if (isRefreshing) return;
+    if (isRefreshing || syncRequest.current || !isAuthenticated) return;
+    const controller = new AbortController();
+    syncRequest.current = controller;
     setIsRefreshing(true);
-    onInfo?.('Sincronização acionada. Aguardando n8n processar...');
 
-    // Busca o timestamp real atual do arquivo ANTES de disparar o n8n
-    let snapshotTimestamp = '';
+    const readSourceTime = async () => {
+      const response = await apiFetch('/api/equipments/source-status', { signal: controller.signal });
+      if (response.status === 502) return null;
+      if (!response.ok) throw new Error('Não foi possível consultar a exportação do inventário.');
+      const payload = await response.json();
+      return typeof payload.source_updated_at === 'string' ? payload.source_updated_at : null;
+    };
+    const waitForRetry = () => new Promise<void>((resolve, reject) => {
+      if (controller.signal.aborted) { reject(new DOMException('Cancelado', 'AbortError')); return; }
+      const abort = () => { window.clearTimeout(timer); reject(new DOMException('Cancelado', 'AbortError')); };
+      const timer = window.setTimeout(() => { controller.signal.removeEventListener('abort', abort); resolve(); }, 5000);
+      controller.signal.addEventListener('abort', abort, { once: true });
+    });
+
     try {
-      const initialRes = await fetch(`/catalogo.json?t=${Date.now()}`, { cache: 'no-store' });
-      const initialJson = await initialRes.json();
-      const initialParsed = Array.isArray(initialJson) ? initialJson[0] : initialJson;
-      snapshotTimestamp = initialParsed?.metadados?.ultimaAtualizacao ?? '';
-    } catch { /* ignore */ }
-
-    try {
-      const response = await fetch('/webhook/atualizar_estoque', { method: 'GET', cache: 'no-store' });
-      if (!response.ok) throw new Error('Falha ao acionar a sincronização.');
-    } catch {
-      setIsRefreshing(false);
-      onInfo?.('Não foi possível acionar a sincronização do GLPI.');
-      return;
-    }
-
-    let attempts = 0;
-
-    const poll = setInterval(async () => {
-      attempts++;
-      try {
-        const res = await fetch(`/catalogo.json?t=${Date.now()}`, { cache: 'no-store' });
-        const json = await res.json();
-        const parsed = Array.isArray(json) ? json[0] : json;
-        if (parsed?.metadados?.ultimaAtualizacao && parsed.metadados.ultimaAtualizacao !== snapshotTimestamp) {
-          clearInterval(poll);
-          try {
-            // Avisa o backend para ler o novo catalogo.json e salvar no Postgres
-            const response = await apiFetch('/api/equipments/sync', { method: 'POST' });
-            if (!response.ok) throw new Error('Falha ao gravar o catálogo no banco.');
-            // Recarrega do Postgres (resetando a página para atualizar contagens e limpar duplicatas)
-            if (!await fetchCatalogo(false, true)) throw new Error('Falha ao consultar o catálogo atualizado.');
-            onSuccess?.('Catálogo atualizado e sincronizado com sucesso!');
-          } catch (err) {
-            console.error('Erro ao sincronizar com o banco de dados:', err);
-            onInfo?.('JSON gerado, mas houve um erro ao sincronizar com o banco.');
-          }
-          setIsRefreshing(false);
-          return;
-        }
-      } catch { /* ignora erros de polling */ }
-
-      if (attempts >= 6) {
-        clearInterval(poll);
-        setIsRefreshing(false);
-        onInfo?.('Sincronização acionada, mas o catálogo ainda não foi atualizado. Tente em instantes.');
+      const previousTimestamp = await readSourceTime();
+      const requested = await apiFetch('/api/equipments/refresh-source', { method: 'POST', signal: controller.signal });
+      if (!requested.ok) {
+        const error = await requested.json().catch(() => ({}));
+        throw new Error(typeof error.detail === 'string' ? error.detail : 'Não foi possível solicitar a atualização do inventário.');
       }
-    }, 5000);
-  }, [isRefreshing, fetchCatalogo]);
+      onInfo?.('Atualização solicitada. Aguardando a exportação do inventário...');
+      for (let attempt = 0; attempt < 6; attempt++) {
+        await waitForRetry();
+        const timestamp = await readSourceTime();
+        if (!timestamp || timestamp === previousTimestamp) continue;
+        const imported = await apiFetch('/api/equipments/sync', { method: 'POST', signal: controller.signal });
+        if (!imported.ok) {
+          const error = await imported.json().catch(() => ({}));
+          throw new Error(typeof error.detail === 'string' ? error.detail : 'A exportação não pôde ser validada. O catálogo anterior foi preservado.');
+        }
+        if (!await fetchCatalogo(false, true)) throw new Error('Não foi possível consultar o catálogo atualizado.');
+        onSuccess?.('Catálogo atualizado e validado com sucesso!');
+        return;
+      }
+      onInfo?.('A origem ainda não confirmou uma exportação nova. O catálogo anterior foi preservado.');
+    } catch (error) {
+      if (!controller.signal.aborted) onInfo?.(error instanceof Error ? error.message : 'Não foi possível atualizar o inventário.');
+    } finally {
+      if (syncRequest.current === controller) {
+        syncRequest.current = null;
+        setIsRefreshing(false);
+      }
+    }
+  }, [isRefreshing, isAuthenticated, fetchCatalogo]);
 
   // Auto-refresh a cada 60s
   useEffect(() => {

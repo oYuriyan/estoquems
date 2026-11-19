@@ -1,5 +1,6 @@
 import { FileText, X, CheckCircle, Trash2, AlertCircle, Send, Server, Loader2 } from 'lucide-react';
 import clsx from 'clsx';
+import { OperationPanel } from './OperationPanel';
 import type { Quote, Equipamento } from '../../types';
 
 interface QuoteDrawerProps {
@@ -9,6 +10,7 @@ interface QuoteDrawerProps {
   isSubmitting: boolean;
   isGeneratingPdf: boolean;
   unavailableIds: Set<string>;
+  reservationBlockReason: string | null;
   onClose: () => void;
   onStepChange: (step: 1 | 2 | 3) => void;
   onUpdateQuote: (patch: Partial<Quote>) => void;
@@ -16,16 +18,20 @@ interface QuoteDrawerProps {
   onDelete: () => void;
   onReserve: () => void;
   onCancelReserve: () => void;
+  onReconcile?: () => void;
+  onRetry?: () => void;
+  onReverse?: () => void;
   onPrint: () => void;
   onWhatsApp: () => void;
 }
 
 export function QuoteDrawer({
-  quote, cart, quoteStep, isSubmitting, isGeneratingPdf, unavailableIds,
+  quote, cart, quoteStep, isSubmitting, isGeneratingPdf, unavailableIds, reservationBlockReason,
   onClose, onStepChange, onUpdateQuote, onRemoveItem, onDelete,
-  onReserve, onCancelReserve, onPrint, onWhatsApp,
+  onReserve, onCancelReserve, onReconcile, onRetry, onReverse, onPrint, onWhatsApp,
 }: QuoteDrawerProps) {
-  const editable = !quote.isReserved && (!quote.status || quote.status === 'DRAFT');
+  const pending = ['PENDING', 'PARTIAL'].includes(quote.operation?.status || '');
+  const editable = !pending && !quote.isReserved && (!quote.status || quote.status === 'DRAFT');
   return (
     <>
       <div className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm print:hidden" onClick={onClose} />
@@ -36,7 +42,7 @@ export function QuoteDrawer({
             <FileText className="text-indigo-500 w-4 h-4 shrink-0" />
             <div className="min-w-0">
               <h2 className="text-base font-black text-slate-800 dark:text-slate-100 truncate">{quote.name}</h2>
-              {quote.isReserved && (
+              {quote.isReserved && !pending && (
                 <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                   <CheckCircle className="w-2.5 h-2.5" /> Reservada
                 </span>
@@ -45,6 +51,7 @@ export function QuoteDrawer({
             </div>
           </div>
           <button
+            aria-label="Fechar proposta"
             onClick={onClose}
             className="text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors shrink-0 ml-2"
           >
@@ -94,6 +101,7 @@ export function QuoteDrawer({
 
         {/* Content */}
         <div className="p-5 flex-1 overflow-y-auto space-y-5">
+          {quote.operation && <OperationPanel quoteId={quote.id} operation={quote.operation} isSubmitting={isSubmitting} onReconcile={onReconcile} onRetry={onRetry} onReverse={onReverse} />}
           {/* Step 2 — Dados do Cliente */}
           {editable && quoteStep === 2 && (
             <div className="step-enter space-y-3">
@@ -146,7 +154,7 @@ export function QuoteDrawer({
               </div>
               <div className="space-y-2">
                 {cart.map(item => {
-                  const isUnavailable = unavailableIds.has(item.idPatrimonio);
+                  const isUnavailable = (!quote.isReserved || pending) && unavailableIds.has(item.idPatrimonio);
                   return (
                     <div
                       key={item.idPatrimonio}
@@ -222,7 +230,12 @@ export function QuoteDrawer({
 
         {/* Footer */}
         <div className="px-4 py-4 border-t border-slate-200/50 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/50 shrink-0 space-y-3">
-          {quote.isReserved ? (
+          {editable && reservationBlockReason && (
+            <p role="status" className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
+              {reservationBlockReason} Você pode continuar preparando a proposta.
+            </p>
+          )}
+          {pending ? <p className="text-sm text-amber-700 dark:text-amber-200 text-center">Acompanhe a conferência e os resultados por item acima.</p> : quote.isReserved ? (
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-center gap-2 text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 px-4 py-3 rounded-lg border border-emerald-200 dark:border-emerald-800/50 font-bold text-sm">
                 <CheckCircle className="w-4 h-4" /> Equipamentos Reservados
@@ -268,7 +281,7 @@ export function QuoteDrawer({
                   </div>
                   <button
                     onClick={onReserve}
-                    disabled={isSubmitting || cart.length === 0 || cart.some(item => unavailableIds.has(item.idPatrimonio))}
+                    disabled={isSubmitting || !!reservationBlockReason || cart.length === 0 || cart.some(item => unavailableIds.has(item.idPatrimonio))}
                     className={clsx('w-full flex items-center justify-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold text-sm transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed', isSubmitting && 'opacity-70 cursor-wait')}
                   >
                     {isSubmitting
@@ -280,7 +293,7 @@ export function QuoteDrawer({
               )}
             </>
           ) : <p className="text-sm text-slate-500 text-center">Esta proposta está encerrada. Crie uma nova proposta para reservar equipamentos.</p>}
-          {!quote.isReserved && <button
+          {!quote.isReserved && !quote.operation && <button
             onClick={onDelete}
             className="w-full text-[11px] font-bold text-red-400/70 hover:text-red-500 transition-colors flex items-center justify-center gap-1.5 py-1.5 mt-2"
           >
